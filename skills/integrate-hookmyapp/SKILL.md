@@ -134,11 +134,15 @@ hookmyapp health <waba-id>
 
 HookMyApp forwards Meta's WhatsApp Cloud API webhook payload to your URL as-is via HTTP POST. The JSON body matches the [Meta WhatsApp Cloud API webhook format](https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/components) exactly.
 
-HookMyApp adds the following header for payload verification:
+HookMyApp signs every forwarded webhook so your server can verify it genuinely came from HookMyApp and was not tampered with. **Always verify signatures in production** -- without verification, anyone who discovers your webhook URL could send fake payloads to your server.
 
-- **`X-HookMyApp-Signature-256`**: HMAC-SHA256 signature of the JSON request body, computed using your verify token as the secret key. Format: `sha256=<hex-digest>`.
+### Signature header
 
-To verify the signature in your webhook handler:
+- **`X-HookMyApp-Signature-256`**: `sha256=<hex-digest>` -- HMAC-SHA256 of the JSON request body, using your verify token as the secret key.
+
+### Verification logic
+
+Compute the same HMAC on your side and compare. Reject the request if they don't match.
 
 ```javascript
 import crypto from 'node:crypto';
@@ -146,14 +150,19 @@ import crypto from 'node:crypto';
 function verifySignature(body, signature, verifyToken) {
   const expected = 'sha256=' + crypto
     .createHmac('sha256', verifyToken)
-    .update(body, 'utf-8')
+    .update(JSON.stringify(body))
     .digest('hex');
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expected)
-  );
+  return signature === expected;
+}
+
+// In your route handler:
+const sig = req.get('X-HookMyApp-Signature-256');
+if (!verifySignature(req.body, sig, process.env.VERIFY_TOKEN)) {
+  return res.sendStatus(401); // Not from HookMyApp
 }
 ```
+
+The [webhook-starter-kit](https://github.com/hookmyapp/webhook-starter-kit) includes this verification out of the box.
 
 ## Troubleshooting
 
