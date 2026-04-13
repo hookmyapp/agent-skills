@@ -2,14 +2,15 @@
 name: integrate-hookmyapp
 description: >
   Set up WhatsApp Business API integration with HookMyApp. Use when the user
-  wants to connect WhatsApp, receive webhooks, or integrate WhatsApp Business
-  API into their application. Guides through CLI installation, authentication,
-  embedded signup, webhook configuration, and credential retrieval.
+  wants to connect WhatsApp, receive webhooks, send WhatsApp messages, or
+  integrate WhatsApp Business API into their application. Guides through CLI
+  installation, authentication, embedded signup, webhook configuration,
+  credential retrieval, and sending messages (text and template).
 ---
 
 # Integrate HookMyApp
 
-This skill guides you through connecting a WhatsApp Business account using HookMyApp and configuring webhook forwarding to your application. By the end, your app will have API credentials (WABA ID, access token, phone number ID) and be receiving WhatsApp webhook events at your specified URL.
+This skill guides you through connecting a WhatsApp Business account using HookMyApp, configuring webhook forwarding, and sending messages. By the end, your app will receive WhatsApp webhook events and be able to send text and template messages -- using either the free sandbox or production credentials.
 
 ## Prerequisites
 
@@ -185,6 +186,122 @@ Save these to your project's `.env` file. You can also pipe directly:
 ```bash
 hookmyapp env <waba-id> >> .env
 ```
+
+## Sending Messages
+
+Send WhatsApp messages from your application using the Meta Cloud API (production) or the HookMyApp sandbox proxy. The API is the same -- only the base URL and credentials differ.
+
+### API Endpoint
+
+```
+POST {WHATSAPP_API_URL}/{WHATSAPP_PHONE_NUMBER_ID}/messages
+Authorization: Bearer {WHATSAPP_ACCESS_TOKEN}
+Content-Type: application/json
+```
+
+### Environment Variables
+
+**Sandbox** (from `hookmyapp sandbox start` or the dashboard Copy .env button):
+```bash
+WHATSAPP_API_URL=https://sandbox.hookmyapp.com/v22.0
+WHATSAPP_ACCESS_TOKEN=<activation-code>
+WHATSAPP_PHONE_NUMBER_ID=<your-phone>
+```
+
+**Production** (from `hookmyapp env <waba-id>`):
+```bash
+WHATSAPP_API_URL=https://graph.facebook.com/v22.0
+WHATSAPP_ACCESS_TOKEN=<meta-access-token>
+WHATSAPP_PHONE_NUMBER_ID=<meta-phone-number-id>
+```
+
+### Send a Text Message
+
+```javascript
+async function sendMessage(to, text) {
+  const url = `${process.env.WHATSAPP_API_URL}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'text',
+      text: { body: text },
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`WhatsApp API error ${res.status}: ${JSON.stringify(err)}`);
+  }
+  return res.json();
+}
+
+// Usage
+await sendMessage('1234567890', 'Hello from my app!');
+```
+
+### Send a Template Message
+
+Template messages are required for initiating conversations (messages outside the 24-hour customer service window).
+
+```javascript
+async function sendTemplate(to, templateName, languageCode = 'en_US') {
+  const url = `${process.env.WHATSAPP_API_URL}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messaging_product: 'whatsapp',
+      to,
+      type: 'template',
+      template: {
+        name: templateName,
+        language: { code: languageCode },
+      },
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(`WhatsApp API error ${res.status}: ${JSON.stringify(err)}`);
+  }
+  return res.json();
+}
+```
+
+### Python
+
+```python
+import os
+import httpx
+
+async def send_message(to: str, text: str) -> dict:
+    url = f"{os.environ['WHATSAPP_API_URL']}/{os.environ['WHATSAPP_PHONE_NUMBER_ID']}/messages"
+    async with httpx.AsyncClient() as client:
+        res = await client.post(url, json={
+            "messaging_product": "whatsapp",
+            "to": to,
+            "type": "text",
+            "text": {"body": text},
+        }, headers={
+            "Authorization": f"Bearer {os.environ['WHATSAPP_ACCESS_TOKEN']}",
+        })
+        res.raise_for_status()
+        return res.json()
+```
+
+### Key Points
+
+- **Sandbox and production use the same API shape.** Swap the three `WHATSAPP_*` env vars to switch.
+- **Text messages** can only be sent within 24 hours of the customer's last message. Outside that window, use **template messages**.
+- The sandbox proxy passes your request through to Meta's Graph API using HookMyApp's shared credentials, so you can test sending without your own Meta token.
+- The [webhook-starter-kit](https://github.com/hookmyapp/webhook-starter-kit) includes `sendMessage` out of the box with an auto-reply demo, but you can use these functions in any framework or language.
 
 ## Verification
 
