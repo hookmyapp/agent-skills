@@ -201,7 +201,7 @@ Content-Type: application/json
 
 ### Environment Variables
 
-**Sandbox** (from `hookmyapp sandbox start` or the dashboard Copy .env button):
+**Sandbox** (from `hookmyapp sandbox start` or the HookMyApp web app):
 ```bash
 WHATSAPP_API_URL=https://sandbox.hookmyapp.com/v22.0
 WHATSAPP_ACCESS_TOKEN=<activation-code>
