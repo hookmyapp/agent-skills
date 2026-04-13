@@ -16,7 +16,77 @@ This skill guides you through connecting a WhatsApp Business account using HookM
 - Node.js >= 18
 - A HookMyApp account ([hookmyapp.com](https://hookmyapp.com))
 
-## Step 1: Install the CLI
+## Quickstart: Sandbox (Recommended for Getting Started)
+
+The sandbox lets you receive and send WhatsApp messages using HookMyApp's shared test number -- no Meta Business account needed. Perfect for development and testing.
+
+### 1. Install the CLI and authenticate
+
+```bash
+npm install -g hookmyapp
+hookmyapp login
+```
+
+> **HUMAN ACTION REQUIRED:** Complete the login flow in the browser. Wait for "Logged in successfully".
+
+### 2. Select your workspace
+
+```bash
+hookmyapp workspace list
+hookmyapp workspace use <workspace-name-or-id>
+```
+
+### 3. Start a sandbox session
+
+```bash
+hookmyapp sandbox start --phone <your-phone-number>
+```
+
+This prints step-by-step instructions:
+1. Send the activation code via WhatsApp (opens a deep link)
+2. Start your ngrok tunnel (command provided with scoped auth token)
+3. Clone the starter kit
+4. Copy .env values
+
+> **HUMAN ACTION REQUIRED:** The user must send the activation code via WhatsApp to activate the session. Follow the deep link printed by the CLI.
+
+### 4. Clone the starter kit and configure
+
+```bash
+npx degit hookmyapp/webhook-starter-kit my-app
+cd my-app && npm install
+```
+
+Copy the .env values printed by `sandbox start` into your `.env` file.
+
+### 5. Start developing
+
+```bash
+npm run dev
+```
+
+Your app now receives WhatsApp webhooks and can send messages via `sendMessage(to, text)`.
+
+### 6. Check sandbox status
+
+```bash
+hookmyapp sandbox status
+```
+
+### Graduate to Production
+
+When ready for production, follow the full setup below (Steps 1-7) and swap three values in your `.env`:
+- `WHATSAPP_API_URL` -> `https://graph.facebook.com/v22.0`
+- `WHATSAPP_ACCESS_TOKEN` -> your Meta access token
+- `WHATSAPP_PHONE_NUMBER_ID` -> your phone number ID
+
+Zero code changes needed.
+
+---
+
+## Full Setup: Production
+
+### Step 1: Install the CLI
 
 ```bash
 npm install -g hookmyapp
@@ -28,7 +98,7 @@ Verify the installation:
 hookmyapp --version
 ```
 
-## Step 2: Authenticate
+### Step 2: Authenticate
 
 ```bash
 hookmyapp login
@@ -36,7 +106,7 @@ hookmyapp login
 
 > **HUMAN ACTION REQUIRED:** This command opens a browser window for authentication. The user must complete the login flow in the browser (sign in or create an account). Wait for the CLI to print "Logged in successfully" before continuing. Do not proceed until the CLI confirms successful login.
 
-## Step 3: Select Workspace
+### Step 3: Select Workspace
 
 List available workspaces:
 
@@ -56,7 +126,7 @@ If the user has no workspace yet, create one:
 hookmyapp workspace new <name>
 ```
 
-## Step 4: Connect WhatsApp Account
+### Step 4: Connect WhatsApp Account
 
 ```bash
 hookmyapp accounts connect
@@ -70,7 +140,7 @@ hookmyapp accounts connect
 >
 > The CLI polls for the new account automatically. Wait for the "Account connected" output with the WABA ID and phone number before proceeding. This can take a few minutes.
 
-## Step 5: Verify Account
+### Step 5: Verify Account
 
 Confirm the account was connected successfully:
 
@@ -80,7 +150,7 @@ hookmyapp accounts list
 
 You should see the newly connected account with its WABA ID, phone number, and status.
 
-## Step 6: Configure Webhook
+### Step 6: Configure Webhook
 
 Set the webhook URL where WhatsApp messages and events will be forwarded:
 
@@ -94,7 +164,7 @@ hookmyapp webhook set <waba-id> --url <webhook-url>
 
 Need a webhook receiver? Use the starter kit: [hookmyapp/webhook-starter-kit](https://github.com/hookmyapp/webhook-starter-kit)
 
-## Step 7: Get Credentials
+### Step 7: Get Credentials
 
 Output environment variables for your application:
 
