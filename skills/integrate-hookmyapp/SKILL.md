@@ -60,13 +60,13 @@ cd my-app && npm install
 
 Copy the .env values printed by `sandbox start` into your `.env` file.
 
-### 5. Start developing
+### 5. Start
 
 ```bash
-npm run dev
+npm start
 ```
 
-Your app now receives WhatsApp webhooks and can send messages via `sendMessage(to, text)`.
+This starts both the webhook server and the ngrok tunnel. Your app now receives WhatsApp webhooks and can send messages via `sendMessage(to, text)`.
 
 ### 6. Check sandbox status
 
