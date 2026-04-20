@@ -1,17 +1,17 @@
 ---
 name: sending-messages
-description: Send WhatsApp messages from your app against Meta Graph API v19.0+ (works identically for sandbox and production — only env values change).
+description: Send WhatsApp messages from your app against Meta Graph API v22.0+ (works identically for sandbox and production — only env values change).
 ---
 
 # Sending Messages
 
-Once your env is populated (either `sandbox env --write` or `env <waba-id>`), sending a message is a single HTTP POST to `https://graph.facebook.com/v19.0/${PHONE_NUMBER_ID}/messages` with a Bearer token. Sandbox traffic goes through `sandbox-proxy` (which rewrites the URL base at `WHATSAPP_API_URL`); production traffic hits Meta directly. Your app code does not change between the two.
+Once your env is populated (either `sandbox env --write` or `env <waba-id>`), sending a message is a single HTTP POST to `https://graph.facebook.com/v22.0/${PHONE_NUMBER_ID}/messages` with a Bearer token. Sandbox traffic goes through `sandbox-proxy` (which rewrites the URL base at `WHATSAPP_API_URL`); production traffic hits Meta directly. Your app code does not change between the two.
 
 ## JavaScript / TypeScript (`fetch`)
 
 ```js
 // sendMessage.js
-const API_URL = process.env.WHATSAPP_API_URL || 'https://graph.facebook.com/v19.0';
+const API_URL = process.env.WHATSAPP_API_URL || 'https://graph.facebook.com/v22.0';
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
 const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
 
@@ -80,7 +80,7 @@ export async function sendTemplate(to, templateName, languageCode = 'en_US') {
 import os
 import httpx
 
-API_URL = os.environ.get("WHATSAPP_API_URL", "https://graph.facebook.com/v19.0")
+API_URL = os.environ.get("WHATSAPP_API_URL", "https://graph.facebook.com/v22.0")
 PHONE_NUMBER_ID = os.environ["WHATSAPP_PHONE_NUMBER_ID"]
 ACCESS_TOKEN = os.environ["WHATSAPP_ACCESS_TOKEN"]
 

@@ -56,4 +56,6 @@ test "$(hookmyapp health 1276334778010256 --json | jq -r .status)" = "healthy" \
   || { echo "WABA not healthy — aborting deploy"; exit 1; }
 ```
 
-**Exit codes:** `0` healthy · `1` degraded · `2` unhealthy · `3` WABA not found.
+**Exit codes (observed behavior — not enumerated in `hookmyapp health --help`):** `0` healthy · `1` degraded · `2` unhealthy · `3` WABA not found.
+
+> **Caveat:** These codes are **observed**, not contractually documented — the `--help` output does not enumerate them. They may change; do not rely on them for CI gates without a fallback (e.g., parse `--json` and gate on `status`). Per-command exit codes may also conflict with the "global conventions" table in [references/troubleshooting.md](troubleshooting.md); treat the global table as the contractual convention (not this per-command one).
