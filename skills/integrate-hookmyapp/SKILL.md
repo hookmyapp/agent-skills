@@ -51,7 +51,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 |--------|-------------------------|------------|
 | WABA | Shared, managed by HookMyApp | Yours, provisioned via Meta embedded signup |
 | Setup step | `sandbox start --phone +<E164>` | `channels connect` (browser popup) |
-| Env keys | 5: `VERIFY_TOKEN`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | 5 (same as sandbox): `VERIFY_TOKEN` (user-chosen via `webhook set`), `PORT`, `WHATSAPP_API_URL` (→ `graph.facebook.com/v22.0`), `WHATSAPP_ACCESS_TOKEN` (from `env <waba-id>` `ACCESS_TOKEN`), `WHATSAPP_PHONE_NUMBER_ID` (from `env <waba-id>` `PHONE_NUMBER_ID`). `WABA_ID` emitted by `env` is unused by the kit. |
+| Env keys | 5: `VERIFY_TOKEN` (CLI-issued per session), `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | 5 (same shape as sandbox): `VERIFY_TOKEN` (user-chosen; set via `webhook set --verify-token`), `PORT`, `WHATSAPP_API_URL` (→ `graph.facebook.com/v22.0`), `WHATSAPP_ACCESS_TOKEN` (from `env <waba-id>` `ACCESS_TOKEN`), `WHATSAPP_PHONE_NUMBER_ID` (from `env <waba-id>` `PHONE_NUMBER_ID`). `WABA_ID` emitted by `env` is unused by the kit. |
 | Inbound tunnel | `sandbox listen` (Cloudflare) | Your own public HTTPS URL + `webhook set --verify-token` |
 | Recipient | Pinned to session phone server-side | Any WhatsApp user who messaged you first |
 | Templates | Blocked (text only) | Supported |
@@ -193,7 +193,9 @@ hookmyapp webhook set 1276334778010256 \
   --verify-token <your-chosen-token>
 ```
 
-Pick a strong random `VERIFY_TOKEN` (32+ chars) and pass it via `--verify-token`. This is the HMAC key the forwarder will sign every inbound webhook with (`X-HookMyApp-Signature-256`). Omitting `--verify-token` leaves the prior token in place — desirable for URL-only rotation when you already have one, not desirable on first-time setup.
+Pick a strong random `VERIFY_TOKEN` (32+ chars) and pass it via `--verify-token`. This is the HMAC key the forwarder will sign every inbound webhook with (`X-HookMyApp-Signature-256`).
+
+**On first-time production setup, `--verify-token` is required** — the forwarder has no prior token to preserve. On subsequent `webhook set` calls, you may omit `--verify-token` for URL-only rotation (the previously-set token stays in effect).
 
 > **HUMAN ACTION REQUIRED:** Before running this, confirm with the human that the URL is the intended production endpoint. A typo here silently drops inbound customer messages.
 

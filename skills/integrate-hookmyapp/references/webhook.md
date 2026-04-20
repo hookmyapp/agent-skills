@@ -30,8 +30,10 @@ Global flags: `--workspace`, `--env`, `--json`.
 
 **Examples:**
 
+Either flag is optional except on first-time setup, where `--verify-token` is required (the forwarder has no prior token to preserve). Subsequent calls may omit either flag to keep the existing value on that field.
+
 ```bash
-# First-time production setup — set URL and mint a verify token
+# First-time production setup — set URL and mint a verify token (both required)
 hookmyapp webhook set 1276334778010256 \
   --url https://api.acme.com/whatsapp/webhook \
   --verify-token $(openssl rand -hex 32)
@@ -42,7 +44,7 @@ hookmyapp webhook set 1276334778010256 --url https://new-host.acme.com/webhook
 
 ### Rotating VERIFY_TOKEN
 
-Server-side rotation is a two-step dance: the CLI changes the forwarder's signing key, and your server has to read the new token from `.env` simultaneously. A gap between the two breaks signature verification with `401` until both sides agree.
+Server-side rotation is a two-step dance: the CLI changes the forwarder's signing key, and your server has to read the new token from `.env` simultaneously. A gap between the two breaks signature verification (your handler decides the response — the starter kit returns `401`; your implementation may differ) until both sides agree.
 
 ```bash
 hookmyapp webhook set 1276334778010256 \
@@ -50,7 +52,7 @@ hookmyapp webhook set 1276334778010256 \
   --verify-token <new-token>
 ```
 
-Roll your server's `VERIFY_TOKEN` env var at the same time (same deploy, ideally) — otherwise inbound traffic will fail signature verification with `401` during the window between server restart and `webhook set`.
+Roll your server's `VERIFY_TOKEN` env var at the same time (same deploy, ideally) — otherwise inbound traffic will fail signature verification during the window between server restart and `webhook set`, and your handler will reject each request with whatever status it returns on HMAC mismatch.
 
 **Exit codes:** `0` success · `1` URL did not pass Meta's verify GET · `2` WABA not found in workspace · `3` not authorized for WABA.
 

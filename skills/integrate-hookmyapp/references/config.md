@@ -66,7 +66,7 @@ hookmyapp config set env local
 
 ## config get
 
-Print a single config value (reads from the config file only, not the default fallback).
+Print the active value for a single config key. Always returns the effective value (persisted value if one was written by `config set`, otherwise the CLI's built-in default) — never errors on unset.
 
 **Flags:** none per-command. Global `--json` is accepted.
 
@@ -78,10 +78,17 @@ Print a single config value (reads from the config file only, not the default fa
 
 ```bash
 hookmyapp config get env
+# → production (default — no value persisted)
+
+hookmyapp config set env staging
+hookmyapp config get env
+# → staging
+
 hookmyapp config get env --json
+# → {"key":"env","value":"staging","active":"staging","default":"production"}
 ```
 
-Exits non-zero if the key isn't set (i.e., only returns values that were written by `config set`, not the CLI defaults).
+Exits `0` whether the key was persisted or not. Use `--json` and read `value` (null when unset) vs `active` (effective value including default) to distinguish.
 
 ## config unset
 
