@@ -18,9 +18,9 @@ Set the production webhook URL for a specific WABA.
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--url` | URL | yes | — | Public HTTPS URL. Must respond `200` with `VERIFY_TOKEN` body on Meta's verify GET. |
-| `--workspace` | string | no | active | Target workspace. |
-| `--env` | `staging\|production` | no | `production` | Environment (must be `production`). |
-| `--json` | boolean | no | `false` | JSON output. |
+| `--verify-token` | string | no | (prior token) | HMAC key for `X-HookMyApp-Signature-256` signature verification on forwarded webhooks. In production, pick a strong random 32+ char token. Omitting the flag leaves the prior token in place (desirable for URL-only rotation; undesirable when you want to rotate the token itself). See SKILL.md "Signature verification" for how the token is used. |
+
+Global flags: `--workspace`, `--env`, `--json`.
 
 **Arguments:** `<waba-id>` — e.g. `1276334778010256`.
 
@@ -31,8 +31,26 @@ Set the production webhook URL for a specific WABA.
 **Examples:**
 
 ```bash
-hookmyapp webhook set 1276334778010256 --url https://api.acme.com/whatsapp/webhook
+# First-time production setup — set URL and mint a verify token
+hookmyapp webhook set 1276334778010256 \
+  --url https://api.acme.com/whatsapp/webhook \
+  --verify-token $(openssl rand -hex 32)
+
+# URL rotation only (keeps prior verify token)
+hookmyapp webhook set 1276334778010256 --url https://new-host.acme.com/webhook
 ```
+
+### Rotating VERIFY_TOKEN
+
+Server-side rotation is a two-step dance: the CLI changes the forwarder's signing key, and your server has to read the new token from `.env` simultaneously. A gap between the two breaks signature verification with `401` until both sides agree.
+
+```bash
+hookmyapp webhook set 1276334778010256 \
+  --url https://api.acme.com/whatsapp/webhook \
+  --verify-token <new-token>
+```
+
+Roll your server's `VERIFY_TOKEN` env var at the same time (same deploy, ideally) — otherwise inbound traffic will fail signature verification with `401` during the window between server restart and `webhook set`.
 
 **Exit codes:** `0` success · `1` URL did not pass Meta's verify GET · `2` WABA not found in workspace · `3` not authorized for WABA.
 

@@ -33,7 +33,7 @@ gcloud secrets versions add whatsapp-access-token \
 
 # One-shot curl call
 curl -H "Authorization: Bearer $(hookmyapp token 1276334778010256)" \
-  https://graph.facebook.com/v19.0/1276334778010256
+  https://graph.facebook.com/v22.0/1276334778010256
 ```
 
 **Exit codes:** `0` success · `1` WABA not found · `2` token minting failed (re-run `channels connect`).
