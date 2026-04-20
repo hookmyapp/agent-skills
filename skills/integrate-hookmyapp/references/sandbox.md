@@ -15,9 +15,9 @@ Start a new sandbox session bound to your phone.
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
-| `--phone` | E.164 string | yes | — | Your phone number, e.g. `+15551234567`. |
-| `--env` | `staging\|production` | no | `production` | Sandbox environment. |
-| `--json` | boolean | no | `false` | JSON session record. |
+| `--phone` | E.164 string | no | — | Your phone number, e.g. `+15551234567`. Omit for interactive prompt. |
+
+Global flags that apply: `--env <local|staging|production>`, `--json`, `--workspace`.
 
 **Arguments:** none
 
@@ -27,6 +27,7 @@ Start a new sandbox session bound to your phone.
 
 ```bash
 hookmyapp sandbox start --phone +15551234567
+hookmyapp sandbox start                      # no flag — CLI prompts for phone
 ```
 
 **Exit codes:** `0` success · `1` phone is invalid E.164 · `2` session already active for this phone.
@@ -47,7 +48,7 @@ hookmyapp sandbox status
 
 Terminate the active sandbox session.
 
-**Flags:** `--workspace`.
+**Flags:** none per-command. Global `--workspace` is accepted.
 
 **Examples:**
 
@@ -55,17 +56,19 @@ Terminate the active sandbox session.
 hookmyapp sandbox stop
 ```
 
-## sandbox env --write
+## sandbox env
 
-Write the sandbox's five env keys to a `.env`-style file.
+Print or write the sandbox's five env keys.
 
 **Flags:**
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
-| `--write` | path | yes | — | Destination file (e.g. `.env`). Overwrites in place. |
-| `--workspace` | string | no | active | Target workspace. |
-| `--env` | `staging\|production` | no | `production` | Environment. |
+| `--phone` | E.164 string | no | — | Select session by phone (skip picker). |
+| `--write` | path | no | `./.env` | Destination file. Positional argument is OPTIONAL (defaults to `./.env`). Without `--write`, the command prints the keys to stdout. |
+| `--force` | boolean | no | `false` | Overwrite destination without prompt. Recommended for CI. |
+
+Global flags: `--env`, `--json`, `--workspace`.
 
 **Arguments:** none
 
@@ -86,23 +89,43 @@ Write the sandbox's five env keys to a `.env`-style file.
 **Examples:**
 
 ```bash
-hookmyapp sandbox env --write .env
+# Print to stdout (useful for piping)
+hookmyapp sandbox env
+
+# Pipe to a custom file
+hookmyapp sandbox env > .env.sandbox
+
+# Write to default ./.env
+hookmyapp sandbox env --write
+
+# Write to a custom path
+hookmyapp sandbox env --write=.env.sandbox
+
+# Skip session picker in CI + overwrite without prompt
+hookmyapp sandbox env --phone +15551234567 --write --force
 ```
+
+Use `--force` in CI; without it the CLI prompts before overwriting an existing file.
 
 **Exit codes:** `0` success · `1` no active session (run `sandbox start` first).
 
 ## sandbox listen
 
-Open a Cloudflare tunnel from a HookMyApp-managed public hostname to your local server. This replaces any third-party tunneling tool you may have used previously.
+Start a sandbox tunnel and stream incoming webhooks to your local app.
 
 **Flags:**
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
-| `--phone` | E.164 string | yes | — | Session phone (same as `sandbox start`). |
-| `--port` | integer | no | `3000` | Local port to forward to. |
-| `--path` | path | no | `/webhook` | Local path the tunnel POSTs to. |
-| `--env` | `staging\|production` | no | `production` | Sandbox environment. |
+| `--port` | integer | no | `3000` | Local port your app listens on. |
+| `--path` | path | no | `/webhook` | Webhook path on your app. |
+| `--phone` | E.164 string | no | — | Skip session picker by test phone. |
+| `--session` | string | no | — | Skip session picker by session publicId (`ssn_XXXXXXXX`) — use when you have a session ID but not the phone. |
+| `--verbose` | boolean | no | `false` | Print full request/response bodies. First-line diagnostic when "webhooks arrive at HookMyApp but nothing hits my server." |
+| `--json` | boolean | no | `false` | Per-command machine-readable event log. NOT the same as the global `--json` flag. |
+| `--reinstall-tunnel-binary` | boolean | no | `false` | Force re-download of cloudflared. Direct fix for "tunnel closed" cloudflared errors. |
+
+Global flags: `--env`, `--workspace`.
 
 **Arguments:** none
 
@@ -114,10 +137,16 @@ Open a Cloudflare tunnel from a HookMyApp-managed public hostname to your local 
 
 ```bash
 # Default: forwards to localhost:3000/webhook
-hookmyapp sandbox listen --phone +15551234567
+hookmyapp sandbox listen
 
-# Custom port + path
-hookmyapp sandbox listen --phone +15551234567 --port 4000 --path /hooks/whatsapp
+# Skip session picker by phone
+hookmyapp sandbox listen --phone +15551234567 --port 3000
+
+# Diagnostic mode — stream full request/response bodies
+hookmyapp sandbox listen --path /webhook --verbose
+
+# Force re-download cloudflared when tunnels keep dropping
+hookmyapp sandbox listen --reinstall-tunnel-binary
 ```
 
 **Exit codes:** `0` on graceful shutdown · `1` port in use · `2` tunnel provisioning failed · `3` session phone mismatch.
@@ -130,9 +159,10 @@ Send a text message from the sandbox WABA **to the session phone**.
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
-| `--phone` | E.164 string | yes | — | Session phone (acts as both sender context and recipient — see note). |
-| `--message` | string | yes | — | Text body. |
-| `--env` | `staging\|production` | no | `production` | Sandbox environment. |
+| `--phone` | E.164 string | no | — | Session phone (acts as both sender context and recipient — see note). CLI prompts interactively when omitted. |
+| `--message` | string | no | — | Text body. CLI prompts interactively when omitted. |
+
+Global flags: `--env`, `--workspace`.
 
 **Arguments:** none
 
@@ -143,7 +173,14 @@ Send a text message from the sandbox WABA **to the session phone**.
 **Examples:**
 
 ```bash
-hookmyapp sandbox send --phone +15551234567 --message "hello"
+# Interactive — prompts for both session and message
+hookmyapp sandbox send
+
+# Prompt only for session (message pre-filled)
+hookmyapp sandbox send --message "hi"
+
+# Fully-flagged (CI form)
+hookmyapp sandbox send --phone +15551234567 --message "hi"
 ```
 
 **Exit codes:** `0` success · `1` no active session · `2` message blocked by sandbox-proxy (recipient not session phone, or template attempt).
