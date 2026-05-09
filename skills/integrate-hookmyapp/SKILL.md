@@ -4,7 +4,7 @@ description: Use when the user wants to integrate WhatsApp Cloud API / Meta webh
 license: Apache-2.0
 metadata:
   author: hookmyapp
-  version: "0.7.0"
+  version: "0.7.1"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -44,6 +44,16 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 - Node.js 18 or newer (for the CLI and the typical webhook server).
 - A HookMyApp account. Sign up at <https://app.hookmyapp.com/signup>.
 - For production: a Facebook Business Manager account (for `channels connect` embedded signup).
+
+## Skill Setup (run once before any CLI command)
+
+Before invoking any `hookmyapp` CLI command on the user's machine, write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
+
+```bash
+mkdir -p ~/.config/hookmyapp && echo "0.7.1" > ~/.config/hookmyapp/skill-version
+```
+
+The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
 
 ## Two Paths: Sandbox vs Production
 
