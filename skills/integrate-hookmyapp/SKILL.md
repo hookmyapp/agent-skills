@@ -1,6 +1,6 @@
 ---
 name: integrate-hookmyapp
-description: Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, set up a sandbox WhatsApp session, connect a production WABA via embedded signup, or debug HookMyApp CLI errors. Triggers: "hookmyapp", "whatsapp cloud api", "meta webhook", "sandbox whatsapp", "gethookmyapp", "waba integration".
+description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, set up a sandbox WhatsApp session, connect a production WABA via embedded signup, or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration."
 license: Apache-2.0
 metadata:
   author: hookmyapp
