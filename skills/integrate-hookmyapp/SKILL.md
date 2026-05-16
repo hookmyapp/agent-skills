@@ -4,7 +4,7 @@ description: "Use when the user wants to integrate WhatsApp Cloud API / Meta web
 license: Apache-2.0
 metadata:
   author: hookmyapp
-  version: "0.7.1"
+  version: "0.8.0"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -20,6 +20,7 @@ HookMyApp is a WhatsApp Business API broker. This skill teaches AI coding agents
 - **Workspace and environment flags scope every call.** When the user has multiple workspaces or operates in both staging and production, pass `--workspace <id>` and `--env staging|production` explicitly rather than relying on defaults.
 - **Browser steps cannot be automated.** `login` and `channels connect` both open browser tabs the human must complete. Do not pretend to automate them — hand the terminal back with a clear instruction.
 - **Sandbox is not production.** Sandbox is a shared WABA with 5 env keys, no templates, and recipient pinned to the session phone. Production is your own WABA with 3 env keys and full template support. The two are not interchangeable — pick one based on the user's goal before generating code.
+- **Production has two webhook-delivery flavors: CLI tunnel OR customer URL.** A real onboarded channel can receive inbound webhooks via either (a) `hookmyapp channels listen` (the CLI provisions a per-channel Cloudflare tunnel — no customer HTTPS URL required, designed for local dev / self-hosted agents / 24/7 hobby projects) or (b) `hookmyapp webhook set <waba-id> --url https://...` (customer-owned public HTTPS endpoint, the classic production pattern). Pick CLI when the user is developing on localhost or running an always-on local agent (e.g. an OpenClaude-style installation); pick URL when the user has a deployed backend ready to accept inbound webhooks. The two are mutually exclusive per channel — setting a URL while the CLI is listening evicts the CLI (it exits cleanly with a notice).
 
 ### When to Prompt the Human
 
@@ -27,6 +28,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 
 - `hookmyapp login` — opens a browser tab for sign-in.
 - `hookmyapp channels connect` — opens Meta's embedded-signup popup; user picks business, WABA, and phone number.
+- `hookmyapp channels listen` — long-running foreground process; the human must keep the terminal open (or background it via `nohup …  &` for 24/7 use). Test inbound webhook delivery by sending a real WhatsApp message to the channel's number.
 - Selecting `--env production` on any destructive operation (`webhook set`, `logout`).
 - Rotating a leaked `ACCESS_TOKEN` — must happen in the Meta App Dashboard, not via CLI.
 
@@ -37,6 +39,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 - **Never run `webhook set --env production` without explicit human confirmation of the URL.** Pointing production webhooks at a dev URL silently drops inbound customer messages.
 - **Never generate sandbox template-message examples.** Templates are rejected by sandbox-proxy; generating such code only wastes the user's time.
 - **Never run `hookmyapp channels disable <waba-id>` without explicit human confirmation.** Forwarding off = silent message drop on inbound; no error surfaces to the customer. Use `channels show <waba-id>` or `health <waba-id>` to verify state before and after.
+- **Never run `hookmyapp channels listen --env production` without explicit human confirmation.** Listening on a real production channel routes inbound customer messages to the developer's localhost — that is the intended behavior for local dev / self-hosted agents, but a misclicked production channel hijacks live traffic for as long as the CLI is up. Confirm the channel publicId AND the env before launching.
 - **Flag `hookmyapp config set env <name>` as a persistent change.** It writes the CLI-config file and affects every subsequent invocation in every shell until `hookmyapp config unset env`. Prefer the per-invocation `--env <name>` flag when the intent is one-off.
 
 ## Prerequisites
@@ -50,7 +53,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 Before invoking any `hookmyapp` CLI command on the user's machine, write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.7.1" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.8.0" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -221,13 +224,47 @@ Check that all phone numbers are `VERIFIED`, webhook is `verified: true`, and qu
 
 Production supports template messages — see [references/sending-messages.md](references/sending-messages.md) for the `type: "template"` payload shape and approval workflow.
 
+## Quickstart: Production with CLI tunnel (no public URL required)
+
+An alternative inbound-delivery path for production channels: instead of pointing the channel at the user's own HTTPS endpoint (`webhook set --url ...`), the CLI provisions a per-channel Cloudflare Tunnel and pipes inbound webhooks straight to `localhost`. The channel's dashboard destination shows as **HookMyAppCLI** for as long as the CLI is running. This is the intended path for:
+
+- Local development against a real WABA without standing up a public endpoint.
+- Self-hosted agentic deployments (OpenClaude on a personal laptop / friend's NUC / Raspberry Pi). Tunnels can stay up 24/7.
+- Quick demos and customer pairing sessions.
+
+**Prerequisites:** Steps 1-4 of the Production quickstart above (logged in, workspace selected, WABA connected via `channels connect`, forwarding enabled). Skip steps 5-7 (no `env`/`webhook set` needed for the CLI-tunnel path — the CLI handles tunnel provisioning, and your local code only needs to listen on a localhost port).
+
+**1. Pick a channel to listen on**
+
+```bash
+hookmyapp channels list                            # find the publicId (ch_XXXXXXXX)
+```
+
+**2. Run the listen command** (foreground, long-running)
+
+```bash
+hookmyapp channels listen --channel ch_XXXXXXXX --port 3000 --path /webhook
+```
+
+> **HUMAN ACTION REQUIRED:** The CLI runs in the foreground until Ctrl-C. The human must keep the terminal open, or background it via `nohup hookmyapp channels listen ... &` for 24/7 use.
+
+The CLI does five things on startup: provisions a Cloudflare Tunnel for the channel, prints the tunnel hostname, starts a local proxy server, registers the proxy's port with the backend so inbound webhooks route to it, and begins a 30s heartbeat loop to keep the tunnel marked live. Stop with Ctrl-C — the destination returns to its default (HookMyAppCLI awaiting a CLI, or your previously-configured webhook URL if one was set).
+
+**3. Test inbound delivery**
+
+> **HUMAN ACTION REQUIRED:** Send a real WhatsApp message from your personal account to the channel's WABA phone number. You should see the inbound payload logged in the CLI's terminal AND on your local server (whatever responds on `localhost:3000/webhook`).
+
+**Mid-listen URL-set behavior (important).** If the user (or anyone else with dashboard access) sets a webhook URL on the channel while the CLI is mid-listen, the URL wins — the CLI exits cleanly with code 0 on its next heartbeat, printing the userMessage from the backend's `410 CHANNEL_TUNNEL_RECLAIMED` response. This is expected behavior, not an error. If the user wants to switch back to CLI delivery, they click "Go back to HookMyAppCLI" in the dashboard (clears the URL) and re-run `hookmyapp channels listen`.
+
+**No env keys for inbound.** The CLI-tunnel path does not require any `WHATSAPP_*` env keys for inbound webhooks — the local server just needs to listen on the port passed to `--port`. **Outbound** message sending still uses `hookmyapp env <waba-id>` env keys (Meta's Graph API; HookMyApp doesn't proxy outbound for real channels).
+
 ## Command Reference
 
 | Group | Purpose | Full reference |
 |-------|---------|----------------|
 | auth | Log in and log out. | [references/auth.md](references/auth.md) |
 | billing | Show subscription status, open Stripe portal, upgrade plan. | [references/billing.md](references/billing.md) |
-| channels | Connect, list, show, enable/disable, and disconnect WABAs. | [references/channels.md](references/channels.md) |
+| channels | Connect, list, show, enable/disable, disconnect, and `listen` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
 | config | Set/get/unset persistent CLI config (e.g., default `--env`). | [references/config.md](references/config.md) |
 | env | Print the 3 production env keys for a WABA. | [references/env.md](references/env.md) |
 | health | Check WABA health (phone numbers, webhook, quality rating). | [references/health.md](references/health.md) |
@@ -347,7 +384,10 @@ For sandbox, the equivalent smoke is `sandbox status` plus sending a WhatsApp me
 | `403 forbidden_waba` | WABA was disconnected in Meta dashboard — reconnect via `channels connect`. |
 | Webhook verify GET returns `404` | Ensure your server serves `GET /webhook` (default) with `VERIFY_TOKEN` body. |
 | `sandbox listen: tunnel closed` / cloudflared errors | Re-run with `hookmyapp sandbox listen --reinstall-tunnel-binary` to force re-download cloudflared. Then check outbound 443 to `*.trycloudflare.com` is not firewalled. |
-| Webhook arrives at HookMyApp but nothing in server logs | Re-run `hookmyapp sandbox listen --verbose` to stream full request/response bodies in the CLI terminal. |
+| `channels listen` exits with "destination was changed" notice | Expected — the dashboard webhook URL was set while the CLI was listening, so the URL wins (spec D3). Either re-run after clicking "Go back to HookMyAppCLI" in the dashboard, or accept the URL handoff and stop. |
+| `channels listen: NO_FORWARDING_CHANNELS` | The channel exists but forwarding is disabled. Run `hookmyapp channels enable <waba-id>` first, then re-run `channels listen`. |
+| `channels listen: CHANNEL_MISMATCH` | `--channel <id>` doesn't match any channel in the active workspace. Run `hookmyapp channels list` to get the right publicId, OR omit `--channel` to use the picker. |
+| Webhook arrives at HookMyApp but nothing in server logs | Re-run `hookmyapp sandbox listen --verbose` or `hookmyapp channels listen --verbose` to stream full request/response bodies in the CLI terminal. |
 | `sandbox send` rejected (recipient not session phone) | Sandbox pins recipient; no destination flag exists. Move to production for multi-recipient. |
 | `channels connect: popup blocked` | Allow popups from `app.hookmyapp.com` or open the printed URL manually. |
 
