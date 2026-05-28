@@ -20,13 +20,13 @@ Set the production webhook URL for a specific WABA.
 | `--url` | URL | yes | — | Public HTTPS URL. Must respond `200` with `VERIFY_TOKEN` body on Meta's verify GET. |
 | `--verify-token` | string | no | (prior token) | HMAC key for `X-HookMyApp-Signature-256` signature verification on forwarded webhooks. In production, pick a strong random 32+ char token. Omitting the flag leaves the prior token in place (desirable for URL-only rotation; undesirable when you want to rotate the token itself). See SKILL.md "Signature verification" for how the token is used. |
 
-Global flags: `--workspace`, `--env`, `--json`.
+Global flags: `--workspace`, `--json`.
 
 **Arguments:** `<waba-id>` — e.g. `1276334778010256`.
 
 **Browser step required:** No
 
-> **Safety:** Before `webhook set --env production`, confirm the URL and WABA ID with the human. Pointing production webhooks at a dev URL silently drops inbound messages.
+> **Safety:** Before `webhook set`, confirm the URL and WABA ID with the human. Pointing production webhooks at a dev URL silently drops inbound messages.
 
 **Examples:**
 

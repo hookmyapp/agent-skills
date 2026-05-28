@@ -17,9 +17,7 @@ Run Meta embedded signup. Produces a new WABA attached to the current workspace.
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
-| `--workspace` | string | no | active | Target workspace ID (overrides active). |
-| `--env` | `staging\|production` | no | `production` | Environment. |
-| `--json` | boolean | no | `false` | JSON output of the final WABA record. |
+| `--workspace` | string | no | active | Target workspace ID (overrides active). || `--json` | boolean | no | `false` | JSON output of the final WABA record. |
 
 **Arguments:** none
 

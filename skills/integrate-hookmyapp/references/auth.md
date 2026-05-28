@@ -18,9 +18,7 @@ Authenticate against HookMyApp. Opens a browser tab for sign-in, then auto-selec
 | `--code` | string | no | — | Exchange a dashboard-minted bootstrap code for a session — zero browser interaction. Single-use, short TTL. |
 | `--phone` | E.164 string | no | — | Skip sandbox session picker; use this phone. |
 | `--wizard` | boolean | no | `false` | Explicitly re-run the post-login wizard. (Browser sign-in auto-runs the wizard already; this flag is useful for re-prompting workspace selection without logging out.) |
-| `--next` | `sandbox\|channels\|exit` | no | — | Non-interactive next-action for scripts/CI. |
-| `--env` | `local\|staging\|production` | no | `config get env` or `production` | Target environment. Use `staging` for pre-release testing. |
-| `--json` | boolean | no | `false` | Emit JSON instead of the interactive wizard (machine-readable). |
+| `--next` | `sandbox\|channels\|exit` | no | — | Non-interactive next-action for scripts/CI. || `--json` | boolean | no | `false` | Emit JSON instead of the interactive wizard (machine-readable). |
 | `--debug` | boolean | no | `false` | Full HTTP request/response + stack traces. |
 
 **Arguments:** none
@@ -32,11 +30,7 @@ Authenticate against HookMyApp. Opens a browser tab for sign-in, then auto-selec
 **Examples:**
 
 ```bash
-# Production login (default)
 hookmyapp login
-
-# Staging (pre-release testing)
-hookmyapp login --env staging
 ```
 
 ### Zero-browser flow (AI-paste / CI)
