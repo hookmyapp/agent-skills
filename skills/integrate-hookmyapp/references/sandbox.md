@@ -17,7 +17,7 @@ Start a new sandbox session bound to your phone.
 |------|------|----------|---------|-------------|
 | `--phone` | E.164 string | no | — | Your phone number, e.g. `+15551234567`. Omit for interactive prompt. |
 
-Global flags that apply: `--env <local|staging|production>`, `--json`, `--workspace`.
+Global flags that apply: `--json`, `--workspace`.
 
 **Arguments:** none
 
@@ -68,7 +68,7 @@ Print or write the sandbox's five env keys.
 | `--write` | path | no | `./.env` | Destination file. Positional argument is OPTIONAL (defaults to `./.env`). Without `--write`, the command prints the keys to stdout. |
 | `--force` | boolean | no | `false` | Overwrite destination without prompt. Recommended for CI. |
 
-Global flags: `--env`, `--json`, `--workspace`.
+Global flags: `--json`, `--workspace`.
 
 **Arguments:** none
 
@@ -125,7 +125,7 @@ Start a sandbox tunnel and stream incoming webhooks to your local app.
 | `--json` | boolean | no | `false` | Per-command machine-readable event log. NOT the same as the global `--json` flag. |
 | `--reinstall-tunnel-binary` | boolean | no | `false` | Force re-download of cloudflared. Direct fix for "tunnel closed" cloudflared errors. |
 
-Global flags: `--env`, `--workspace`.
+Global flags: `--workspace`.
 
 **Arguments:** none
 
@@ -162,7 +162,7 @@ Send a text message from the sandbox WABA **to the session phone**.
 | `--phone` | E.164 string | no | — | Session phone (acts as both sender context and recipient — see note). CLI prompts interactively when omitted. |
 | `--message` | string | no | — | Text body. CLI prompts interactively when omitted. |
 
-Global flags: `--env`, `--workspace`.
+Global flags: `--workspace`.
 
 **Arguments:** none
 

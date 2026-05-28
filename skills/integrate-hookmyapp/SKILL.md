@@ -17,7 +17,7 @@ HookMyApp is a WhatsApp Business API broker. This skill teaches AI coding agents
 ### Key Principles
 
 - **The CLI is the source of truth.** Never embed credentials inline in generated code. Run `hookmyapp sandbox env --write .env` or `hookmyapp env <waba-id>` and let the user's app read from environment variables.
-- **Workspace and environment flags scope every call.** When the user has multiple workspaces or operates in both staging and production, pass `--workspace <id>` and `--env staging|production` explicitly rather than relying on defaults.
+- **The CLI targets production by default; never pass `--env`.** `--env` selects an internal HookMyApp backend (`staging`/`local`) that customers have no access to and never use. Every command already defaults to production. Pass `--workspace <id>` only when the user has multiple workspaces and a command must hit one other than the active default.
 - **Browser steps cannot be automated.** `login` and `channels connect` both open browser tabs the human must complete. Do not pretend to automate them — hand the terminal back with a clear instruction.
 - **Sandbox is not production.** Sandbox is a shared WABA with 5 env keys, no templates, and recipient pinned to the session phone. Production is your own WABA with 3 env keys and full template support. The two are not interchangeable — pick one based on the user's goal before generating code.
 - **Production has two webhook-delivery flavors: CLI tunnel OR customer URL.** A real onboarded channel can receive inbound webhooks via either (a) `hookmyapp channels listen` (the CLI provisions a per-channel Cloudflare tunnel — no customer HTTPS URL required, designed for local dev / self-hosted agents / 24/7 hobby projects) or (b) `hookmyapp webhook set <waba-id> --url https://...` (customer-owned public HTTPS endpoint, the classic production pattern). Pick CLI when the user is developing on localhost or running an always-on local agent (e.g. an OpenClaude-style installation); pick URL when the user has a deployed backend ready to accept inbound webhooks. The two are mutually exclusive per channel — setting a URL while the CLI is listening evicts the CLI (it exits cleanly with a notice).
@@ -29,18 +29,17 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 - `hookmyapp login` — opens a browser tab for sign-in.
 - `hookmyapp channels connect` — opens Meta's embedded-signup popup; user picks business, WABA, and phone number.
 - `hookmyapp channels listen` — long-running foreground process; the human must keep the terminal open (or background it via `nohup …  &` for 24/7 use). Test inbound webhook delivery by sending a real WhatsApp message to the channel's number.
-- Selecting `--env production` on any destructive operation (`webhook set`, `logout`).
+- Any destructive operation (`webhook set`, `logout`); confirm intent before running.
 - Rotating a leaked `ACCESS_TOKEN` — must happen in the Meta App Dashboard, not via CLI.
 
 ### Safety Rules
 
 - **Never paste `env <waba-id>` or `token <waba-id>` output into chat, tickets, or logs.** Redirect to a secret manager or `.env` file the user controls.
 - **Never run `workspace use` without confirming the target ID.** Running commands against the wrong workspace can mutate the wrong WABA.
-- **Never run `webhook set --env production` without explicit human confirmation of the URL.** Pointing production webhooks at a dev URL silently drops inbound customer messages.
+- **Never run `webhook set` without explicit human confirmation of the URL.** Pointing production webhooks at a dev URL silently drops inbound customer messages.
 - **Never generate sandbox template-message examples.** Templates are rejected by sandbox-proxy; generating such code only wastes the user's time.
 - **Never run `hookmyapp channels disable <waba-id>` without explicit human confirmation.** Forwarding off = silent message drop on inbound; no error surfaces to the customer. Use `channels show <waba-id>` or `health <waba-id>` to verify state before and after.
-- **Never run `hookmyapp channels listen --env production` without explicit human confirmation.** Listening on a real production channel routes inbound customer messages to the developer's localhost — that is the intended behavior for local dev / self-hosted agents, but a misclicked production channel hijacks live traffic for as long as the CLI is up. Confirm the channel publicId AND the env before launching.
-- **Flag `hookmyapp config set env <name>` as a persistent change.** It writes the CLI-config file and affects every subsequent invocation in every shell until `hookmyapp config unset env`. Prefer the per-invocation `--env <name>` flag when the intent is one-off.
+- **Never run `hookmyapp channels listen` without explicit human confirmation.** Listening on a real channel routes inbound customer messages to the developer's localhost. That is the intended behavior for local dev and self-hosted agents, but a misclicked channel hijacks live traffic for as long as the CLI is up. Confirm the channel publicId before launching.
 
 ## Prerequisites
 
@@ -265,7 +264,7 @@ The CLI does five things on startup: provisions a Cloudflare Tunnel for the chan
 | auth | Log in and log out. | [references/auth.md](references/auth.md) |
 | billing | Show subscription status, open Stripe portal, upgrade plan. | [references/billing.md](references/billing.md) |
 | channels | Connect, list, show, enable/disable, disconnect, and `listen` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
-| config | Set/get/unset persistent CLI config (e.g., default `--env`). | [references/config.md](references/config.md) |
+| config | Set/get/unset persistent CLI config (e.g., `telemetry` crash-reporting on/off). | [references/config.md](references/config.md) |
 | env | Print the 3 production env keys for a WABA. | [references/env.md](references/env.md) |
 | health | Check WABA health (phone numbers, webhook, quality rating). | [references/health.md](references/health.md) |
 | sandbox | Start session, write 5-key env, open tunnel, send test messages. | [references/sandbox.md](references/sandbox.md) |
@@ -280,7 +279,7 @@ Every command accepts these flags:
 - `--json` — emit JSON instead of formatted tables (pipe through `jq`).
 - `--human` — force human-readable output (default when stdout is a TTY).
 - `--workspace <slug>` — override the active workspace for this invocation. Accepts workspace **name, slug, OR id** (`ws_XXXXXXXX`).
-- `--env <name>` — override the default environment for this invocation. One of: `local`, `staging`, `production`. Defaults to whatever `hookmyapp config get env` returns, or `production` if unset.
+- `--env <name>` — **advanced/internal; customers never need this.** Selects which HookMyApp backend to target (`staging` and `local` are internal-only). Always defaults to `production`.
 - `--debug` — print full HTTP request/response bodies and stack traces for troubleshooting.
 - `--help` — print usage and available flags for the command.
 
