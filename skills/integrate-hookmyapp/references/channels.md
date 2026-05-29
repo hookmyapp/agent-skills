@@ -1,25 +1,26 @@
 ---
 name: channels
-description: Connect and list WhatsApp Business Accounts (WABAs) via Meta embedded signup.
+description: Connect and list WhatsApp or Instagram channels via Meta embedded signup.
 ---
 
 # Channels
 
-A "channel" is a WABA (WhatsApp Business Account) attached to your workspace. Connecting a channel runs the Meta embedded-signup flow, which provisions the WABA inside Meta's systems and hands HookMyApp the system-user access token.
+A "channel" is a WhatsApp Business Account (WABA) or an Instagram account attached to your workspace. Connecting a channel runs the Meta embedded-signup flow, which provisions the account inside Meta's systems and hands HookMyApp the system-user access token. Instagram channels connect the same way via `channels connect instagram` (Meta OAuth: Instagram login or Instagram-via-Facebook).
 
 > **Note:** This command was previously named `accounts` (in CLI versions before 0.6.1). If you find older docs referencing `accounts connect` / `accounts list`, the current name is `channels`.
 
 ## channels connect
 
-Run Meta embedded signup. Produces a new WABA attached to the current workspace.
+Run Meta embedded signup. Produces a new channel attached to the current workspace.
+
+**Arguments:** `[whatsapp|instagram]` (optional) — channel type to connect. When omitted the CLI prompts interactively. Pass `whatsapp` or `instagram` explicitly to skip the type prompt. There is no default; the CLI always asks if the type is omitted.
 
 **Flags:**
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
-| `--workspace` | string | no | active | Target workspace ID (overrides active). || `--json` | boolean | no | `false` | JSON output of the final WABA record. |
-
-**Arguments:** none
+| `--workspace` | string | no | active | Target workspace ID (overrides active). |
+| `--json` | boolean | no | `false` | JSON output of the final channel record. |
 
 **Browser step required:** Yes
 
@@ -29,10 +30,12 @@ Run Meta embedded signup. Produces a new WABA attached to the current workspace.
 
 ```bash
 hookmyapp channels connect
+hookmyapp channels connect whatsapp
+hookmyapp channels connect instagram
 hookmyapp channels connect --workspace acme-corp
 ```
 
-**Exit codes:** `0` success · `1` popup blocked / closed before completion · `2` Meta returned an error (see CLI output) · `3` workspace has reached plan WABA limit *(observed behavior; not enumerated in `--help`)*.
+**Exit codes:** `0` success · `1` popup blocked / closed before completion · `2` Meta returned an error (see CLI output) · `3` workspace has reached plan channel limit *(observed behavior; not enumerated in `--help`)*.
 
 ## channels list
 
@@ -43,7 +46,7 @@ Print the WABAs connected to the current workspace.
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--workspace` | string | no | active | Target workspace ID. |
-| `--json` | boolean | no | `false` | JSON rows `{waba_id, business_name, phone_numbers[], status}`. |
+| `--json` | boolean | no | `false` | JSON rows `{channel_id, name, type, phone_numbers[]|username, status}`. |
 
 **Arguments:** none
 
@@ -53,7 +56,7 @@ Print the WABAs connected to the current workspace.
 
 ```bash
 hookmyapp channels list
-hookmyapp channels list --json | jq '.[] | .waba_id'
+hookmyapp channels list --json | jq '.[] | .channel_id'
 # → "1276334778010256"
 ```
 
@@ -70,15 +73,15 @@ Display details for a single WABA.
 | `--workspace` | string | no | active | Target workspace (global flag; name, slug, or id). |
 | `--json` | boolean | no | `false` | JSON output. |
 
-**Arguments:** `<waba-id>` — e.g. `1276334778010256`.
+**Arguments:** `<channel>` — a `ch_xxxxxxxx` publicId, `+<E164phone>`, or `@<handle>`. Example: `ch_AAAAAAAA`.
 
 **Browser step required:** No
 
 **Examples:**
 
 ```bash
-hookmyapp channels show 1276334778010256
-hookmyapp channels show 1276334778010256 --json
+hookmyapp channels show ch_AAAAAAAA
+hookmyapp channels show ch_AAAAAAAA --json
 ```
 
 Output includes `forwarding: enabled|disabled` — use this to verify state before running `channels disable`/`enable`.
@@ -91,13 +94,13 @@ Detach a WABA from the workspace. Destructive.
 
 > **NOTE:** No `--yes` flag exists to skip confirmation — inconsistent with `workspace members remove` which does expose `--yes`. Treat as interactive-confirm. Do not run in non-interactive scripts without a TTY-wrap.
 
-**Arguments:** `<waba-id>`
+**Arguments:** `<channel>`
 
 **Examples:**
 
 ```bash
-hookmyapp channels disconnect 1276334778010256
-hookmyapp channels disconnect 1276334778010256 --workspace acme-corp
+hookmyapp channels disconnect ch_AAAAAAAA
+hookmyapp channels disconnect ch_AAAAAAAA --workspace acme-corp
 ```
 
 ## channels enable
@@ -106,12 +109,12 @@ Re-enable forwarding for a previously-disabled channel.
 
 **Flags:** only `-h/--help` per `--help`.
 
-**Arguments:** `<waba-id>`
+**Arguments:** `<channel>`
 
 **Examples:**
 
 ```bash
-hookmyapp channels enable 1276334778010256
+hookmyapp channels enable ch_AAAAAAAA
 ```
 
 ## channels disable
@@ -120,12 +123,16 @@ Disable inbound webhook forwarding for a channel. Outbound sends still work; inb
 
 **Flags:** only `-h/--help` per `--help`. No `--yes` flag.
 
-**Arguments:** `<waba-id>`
+**Arguments:** `<channel>`
 
-> **Safety:** `channels disable` produces no customer-facing error on inbound messages — they are silently dropped. See SKILL.md "Safety Rules" for why this needs explicit human confirmation before running, and use `channels show <waba-id>` (or `hookmyapp health <waba-id>`) to verify state before and after.
+> **Safety:** `channels disable` produces no customer-facing error on inbound messages — they are silently dropped. See SKILL.md "Safety Rules" for why this needs explicit human confirmation before running, and use `channels show <channel>` (or `hookmyapp channels health <channel>`) to verify state before and after.
 
 **Examples:**
 
 ```bash
-hookmyapp channels disable 1276334778010256
+hookmyapp channels disable ch_AAAAAAAA
 ```
+
+## Other channel subcommands
+
+`channels` also exposes per-channel `env`, `token`, `health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]`. Each has its own reference: [env](env.md), [token](token.md), [health](health.md), [webhook](webhook.md). `logs` and `listen` are documented inline in [SKILL.md](../SKILL.md).
