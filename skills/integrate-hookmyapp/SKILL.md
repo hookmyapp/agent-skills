@@ -211,7 +211,9 @@ Pick a strong random `VERIFY_TOKEN` (32+ chars) and pass it via `--verify-token`
 
 > **HUMAN ACTION REQUIRED:** Before running this, confirm with the human that the URL is the intended production endpoint. A typo here silently drops inbound customer messages.
 
-The URL must respond `200 OK` with `VERIFY_TOKEN` as the plain-text body on Meta's verify GET (HookMyApp performs this check on your behalf when you run `webhook set`).
+The URL must respond `200 OK` with `VERIFY_TOKEN` as the plain-text body on Meta's verify GET (HookMyApp performs this check on your behalf when you run `channels webhook set`).
+
+- `hookmyapp channels webhook clear <channel>` clears the configured override URL and reverts the channel to the HookMyApp CLI tunnel destination (HookMyAppCLI). It is idempotent. This is the command-line equivalent of clicking "Go back to HookMyAppCLI" in the dashboard before re-running `hookmyapp channels listen`.
 
 **7. Verify health**
 
@@ -222,6 +224,8 @@ hookmyapp channels health ch_AAAAAAAA
 Check that all phone numbers are `VERIFIED`, webhook is `verified: true`, and quality rating is `GREEN`.
 
 Production supports template messages — see [references/sending-messages.md](references/sending-messages.md) for the `type: "template"` payload shape and approval workflow.
+
+**Instagram works the same way.** Connect a real IG channel with `hookmyapp channels connect instagram` (Meta OAuth: Instagram login or Instagram-via-Facebook), or start a sandbox IG session with `hookmyapp sandbox start instagram` (or `--type=instagram`) and DM the configured sandbox IG handle. Every `channels.*` verb (`show`, `env`, `token`, `health`, `webhook`, `logs`, `enable`, `disable`, `disconnect`, `listen`) works on an IG channel by passing its `<channel>` ref. Across `sandbox env|send|stop|listen|logs|webhook`, select an IG session by handle with `--username <@handle>` (WhatsApp sessions use `--phone +<E164>`; either context also accepts `--session ssn_XXXXXXXX`).
 
 ## Quickstart: Production with CLI tunnel (no public URL required)
 
@@ -253,7 +257,7 @@ The CLI does five things on startup: provisions a Cloudflare Tunnel for the chan
 
 > **HUMAN ACTION REQUIRED:** Send a real WhatsApp message from your personal account to the channel's WABA phone number. You should see the inbound payload logged in the CLI's terminal AND on your local server (whatever responds on `localhost:3000/webhook`).
 
-**Mid-listen URL-set behavior (important).** If the user (or anyone else with dashboard access) sets a webhook URL on the channel while the CLI is mid-listen, the URL wins — the CLI exits cleanly with code 0 on its next heartbeat, printing the userMessage from the backend's `410 CHANNEL_TUNNEL_RECLAIMED` response. This is expected behavior, not an error. If the user wants to switch back to CLI delivery, they click "Go back to HookMyAppCLI" in the dashboard (clears the URL) and re-run `hookmyapp channels listen`.
+**Mid-listen URL-set behavior (important).** If the user (or anyone else with dashboard access) sets a webhook URL on the channel while the CLI is mid-listen, the URL wins — the CLI exits cleanly with code 0 on its next heartbeat, printing the userMessage from the backend's `410 CHANNEL_TUNNEL_RECLAIMED` response. This is expected behavior, not an error. If the user wants to switch back to CLI delivery, they click "Go back to HookMyAppCLI" in the dashboard (clears the URL), or run `hookmyapp channels webhook clear <channel>`, and re-run `hookmyapp channels listen`.
 
 **No env keys for inbound.** The CLI-tunnel path does not require any `WHATSAPP_*` env keys for inbound webhooks — the local server just needs to listen on the port passed to `--port`. **Outbound** message sending still uses `hookmyapp channels env <channel>` env keys (Meta's Graph API; HookMyApp doesn't proxy outbound for real channels).
 
@@ -282,7 +286,9 @@ Every command accepts these flags:
 
 Once env is populated, sending is a single HTTP POST to Meta's Graph API v22.0 (or the sandbox proxy, when `WHATSAPP_API_URL` is overridden). Bearer token in the Authorization header, JSON body with `messaging_product: "whatsapp"`, destination number (E.164), and `type: "text"` or `type: "template"`.
 
-Your app code does not change between sandbox and production — only the three `WHATSAPP_*` env values change. Full code samples (JS with `fetch`, Python with `httpx`, template payloads) live in [references/sending-messages.md](references/sending-messages.md).
+Your app code does not change between sandbox and production — only the env values change. Full code samples (JS with `fetch`, Python with `httpx`, template payloads) live in [references/sending-messages.md](references/sending-messages.md).
+
+Instagram outbound uses a different body shape (`{"recipient":{"id":"<IGSID>"},"message":{"text":"..."}}`) against the Instagram Graph API base, not WhatsApp's `messaging_product`/`to` shape. See [references/sending-messages.md](references/sending-messages.md) for both.
 
 ## Webhook Payload Format
 
@@ -378,7 +384,7 @@ For sandbox, the equivalent smoke is `sandbox status` plus sending a WhatsApp me
 | `403 forbidden_waba` | WABA was disconnected in Meta dashboard — reconnect via `channels connect`. |
 | Webhook verify GET returns `404` | Ensure your server serves `GET /webhook` (default) with `VERIFY_TOKEN` body. |
 | `sandbox listen: tunnel closed` / cloudflared errors | Re-run with `hookmyapp sandbox listen --reinstall-tunnel-binary` to force re-download cloudflared. Then check outbound 443 to `*.trycloudflare.com` is not firewalled. |
-| `channels listen` exits with "destination was changed" notice | Expected — the dashboard webhook URL was set while the CLI was listening, so the URL wins (spec D3). Either re-run after clicking "Go back to HookMyAppCLI" in the dashboard, or accept the URL handoff and stop. |
+| `channels listen` exits with "destination was changed" notice | Expected — the dashboard webhook URL was set while the CLI was listening, so the URL wins (spec D3). Either re-run after clicking "Go back to HookMyAppCLI" in the dashboard, or run `hookmyapp channels webhook clear <channel>`, or accept the URL handoff and stop. |
 | `channels listen: NO_FORWARDING_CHANNELS` | The channel exists but forwarding is disabled. Run `hookmyapp channels enable <channel>` first, then re-run `channels listen`. |
 | `channels listen: CHANNEL_MISMATCH` | The positional channel doesn't match any channel in the active workspace. Run `hookmyapp channels list` to get the right publicId, OR omit the positional channel to use the picker. |
 | Webhook arrives at HookMyApp but nothing in server logs | Re-run `hookmyapp sandbox listen --verbose` or `hookmyapp channels listen --verbose` to stream full request/response bodies in the CLI terminal. |
