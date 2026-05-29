@@ -1,15 +1,15 @@
 ---
 name: health
-description: Check WABA health (phone numbers, webhook subscription, quality rating).
+description: "Check channel health (phone numbers, webhook subscription, quality rating) via `channels health`."
 ---
 
 # Health
 
-`hookmyapp health <waba-id>` surfaces the pieces that routinely break WhatsApp integrations: unregistered phone numbers, stale webhook subscriptions, or a flagged quality rating. Run it first when triaging "my webhooks stopped arriving."
+`hookmyapp channels health <channel>` surfaces the pieces that routinely break WhatsApp integrations: unregistered phone numbers, stale webhook subscriptions, or a flagged quality rating. Run it first when triaging "my webhooks stopped arriving." Instagram channels report the same health shape.
 
-## health
+## channels health
 
-Print WABA health status.
+Print channel health status.
 
 **Flags:**
 
@@ -18,7 +18,7 @@ Print WABA health status.
 | `--workspace` | string | no | active | Target workspace. |
 | `--json` | boolean | no | `false` | JSON output (see schema below). |
 
-**Arguments:** `<waba-id>` — e.g. `1276334778010256`.
+**Arguments:** `<channel>` — a `ch_xxxxxxxx` publicId, `+<E164phone>`, or `@<handle>`. Example: `ch_AAAAAAAA`.
 
 **Browser step required:** No
 
@@ -49,13 +49,13 @@ Print WABA health status.
 **Examples:**
 
 ```bash
-hookmyapp health 1276334778010256
+hookmyapp channels health ch_AAAAAAAA
 
 # Gate a CI deploy on healthy status
-test "$(hookmyapp health 1276334778010256 --json | jq -r .status)" = "healthy" \
-  || { echo "WABA not healthy — aborting deploy"; exit 1; }
+test "$(hookmyapp channels health ch_AAAAAAAA --json | jq -r .status)" = "healthy" \
+  || { echo "Channel not healthy -- aborting deploy"; exit 1; }
 ```
 
-**Exit codes (observed behavior — not enumerated in `hookmyapp health --help`):** `0` healthy · `1` degraded · `2` unhealthy · `3` WABA not found.
+**Exit codes (observed behavior — not enumerated in `hookmyapp channels health --help`):** `0` healthy · `1` degraded · `2` unhealthy · `3` channel not found.
 
-> **Caveat:** These codes are **observed**, not contractually documented — the `--help` output does not enumerate them. They may change; do not rely on them for CI gates without a fallback (e.g., parse `--json` and gate on `status`). Per-command exit codes may also conflict with the "global conventions" table in [references/troubleshooting.md](troubleshooting.md); treat the global table as the contractual convention (not this per-command one).
+> **Caveat:** These codes are **observed**, not contractually documented -- the `--help` output does not enumerate them. They may change; do not rely on them for CI gates without a fallback (e.g., parse `--json` and gate on `status`). Per-command exit codes may also conflict with the "global conventions" table in [references/troubleshooting.md](troubleshooting.md); treat the global table as the contractual convention (not this per-command one).

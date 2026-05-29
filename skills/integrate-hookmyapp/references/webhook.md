@@ -1,17 +1,19 @@
 ---
 name: webhook
-description: Set and inspect the production webhook override URL for a WABA.
+description: "Set, inspect, and clear the production webhook override URL for a channel via `channels webhook`."
 ---
 
 # Webhooks
 
-Configure which URL Meta POSTs your production WABA events to. Under the hood this writes Meta's `override_callback_uri` field on the WABA via the Graph API — it takes precedence over any app-level webhook configured in the Meta App Dashboard's Webhooks card.
+Configure which URL Meta POSTs your production channel events to. Under the hood this writes Meta's `override_callback_uri` field via the Graph API — it takes precedence over any app-level webhook configured in the Meta App Dashboard's Webhooks card.
 
-> **Scope:** These commands operate on **production** WABAs only. Sandbox webhook delivery is handled by `sandbox listen` (Cloudflare tunnel).
+The canonical form is `hookmyapp channels webhook {show,set,clear} <channel>`. The bare top-level `hookmyapp webhook …` alias still works but prints a deprecation notice pointing at the `channels webhook` equivalent.
 
-## webhook set
+> **Scope:** These commands operate on **production** channels only. Sandbox webhook delivery is handled by `sandbox listen` (Cloudflare tunnel) or `sandbox webhook {show,set,clear}`.
 
-Set the production webhook URL for a specific WABA.
+## channels webhook set
+
+Set the production webhook URL for a specific channel.
 
 **Flags:**
 
@@ -22,11 +24,11 @@ Set the production webhook URL for a specific WABA.
 
 Global flags: `--workspace`, `--json`.
 
-**Arguments:** `<waba-id>` — e.g. `1276334778010256`.
+**Arguments:** `<channel>` — a `ch_xxxxxxxx` publicId, `+<E164phone>`, or `@<handle>`. Example: `ch_AAAAAAAA`.
 
 **Browser step required:** No
 
-> **Safety:** Before `webhook set`, confirm the URL and WABA ID with the human. Pointing production webhooks at a dev URL silently drops inbound messages.
+> **Safety:** Before `channels webhook set`, confirm the URL and channel ref with the human. Pointing production webhooks at a dev URL silently drops inbound messages.
 
 **Examples:**
 
@@ -34,12 +36,12 @@ Either flag is optional except on first-time setup, where `--verify-token` is re
 
 ```bash
 # First-time production setup — set URL and mint a verify token (both required)
-hookmyapp webhook set 1276334778010256 \
+hookmyapp channels webhook set ch_AAAAAAAA \
   --url https://api.acme.com/whatsapp/webhook \
   --verify-token $(openssl rand -hex 32)
 
 # URL rotation only (keeps prior verify token)
-hookmyapp webhook set 1276334778010256 --url https://new-host.acme.com/webhook
+hookmyapp channels webhook set ch_AAAAAAAA --url https://new-host.acme.com/webhook
 ```
 
 ### Rotating VERIFY_TOKEN
@@ -47,7 +49,7 @@ hookmyapp webhook set 1276334778010256 --url https://new-host.acme.com/webhook
 Server-side rotation is a two-step dance: the CLI changes the forwarder's signing key, and your server has to read the new token from `.env` simultaneously. A gap between the two breaks signature verification (your handler decides the response — the starter kit returns `401`; your implementation may differ) until both sides agree.
 
 ```bash
-hookmyapp webhook set 1276334778010256 \
+hookmyapp channels webhook set ch_AAAAAAAA \
   --url https://api.acme.com/whatsapp/webhook \
   --verify-token <new-token>
 ```
@@ -56,26 +58,40 @@ Roll your server's `VERIFY_TOKEN` env var at the same time (same deploy, ideally
 
 **Exit codes:** `0` success · `1` URL did not pass Meta's verify GET · `2` WABA not found in workspace · `3` not authorized for WABA.
 
-## webhook show
+## channels webhook show
 
-Print the current `override_callback_uri` for a WABA.
+Print the current `override_callback_uri` for a channel.
 
 **Flags:**
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--workspace` | string | no | active | Target workspace. |
-| `--json` | boolean | no | `false` | JSON output `{waba_id, url, verified}`. |
+| `--json` | boolean | no | `false` | JSON output `{channel_id, url, verified}`. |
 
-**Arguments:** `<waba-id>`
+**Arguments:** `<channel>`
 
 **Browser step required:** No
 
 **Examples:**
 
 ```bash
-hookmyapp webhook show 1276334778010256
+hookmyapp channels webhook show ch_AAAAAAAA
 # → https://api.acme.com/whatsapp/webhook  (verified)
 ```
 
-**Exit codes:** `0` success (even if unset — prints `<none>`) · `1` WABA not found.
+**Exit codes:** `0` success (even if unset — prints `<none>`) · `1` channel not found.
+
+## channels webhook clear
+
+Clear the channel's override URL and revert delivery to the HookMyApp CLI tunnel destination (HookMyAppCLI). Idempotent: clearing an already-cleared channel is a no-op success.
+
+**Arguments:** `<channel>`
+
+**Examples:**
+
+```bash
+hookmyapp channels webhook clear ch_AAAAAAAA
+```
+
+After clearing, the channel awaits a `hookmyapp channels listen` to pick up inbound webhooks, or you can `channels webhook set` a new URL.

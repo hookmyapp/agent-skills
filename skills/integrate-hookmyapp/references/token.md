@@ -1,13 +1,13 @@
 ---
 name: token
-description: Print the long-lived system-user access token for a WABA.
+description: "Print the long-lived system-user access token for a channel via `channels token`."
 ---
 
 # Token
 
-`hookmyapp token <waba-id>` is a convenience command that prints just the `ACCESS_TOKEN` value — useful for shell pipelines and one-shot curl calls without wanting the full three-key output of `env`.
+`hookmyapp channels token <channel>` is a convenience command that prints just the `ACCESS_TOKEN` value — useful for shell pipelines and one-shot curl calls without wanting the full key output of `channels env`.
 
-## token
+## channels token
 
 Print the long-lived system-user access token.
 
@@ -16,9 +16,9 @@ Print the long-lived system-user access token.
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--workspace` | string | no | active | Target workspace. |
-| `--json` | boolean | no | `false` | JSON `{waba_id, access_token}`. |
+| `--json` | boolean | no | `false` | JSON `{channel_id, access_token}`. |
 
-**Arguments:** `<waba-id>` — e.g. `1276334778010256`.
+**Arguments:** `<channel>` — a `ch_xxxxxxxx` publicId, `+<E164phone>`, or `@<handle>`. Example: `ch_AAAAAAAA`.
 
 **Browser step required:** No
 
@@ -29,10 +29,10 @@ Print the long-lived system-user access token.
 ```bash
 # Plain print (to a secret manager command, not a file)
 gcloud secrets versions add whatsapp-access-token \
-  --data-file=<(hookmyapp token 1276334778010256)
+  --data-file=<(hookmyapp channels token ch_AAAAAAAA)
 
 # One-shot curl call
-curl -H "Authorization: Bearer $(hookmyapp token 1276334778010256)" \
+curl -H "Authorization: Bearer $(hookmyapp channels token ch_AAAAAAAA)" \
   https://graph.facebook.com/v22.0/1276334778010256
 ```
 
