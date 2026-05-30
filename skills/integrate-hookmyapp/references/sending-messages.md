@@ -1,11 +1,11 @@
 ---
 name: sending-messages
-description: Send WhatsApp or Instagram messages from your app against Meta Graph API. Works identically for sandbox and production; only env values and (for Instagram) the body shape change.
+description: Send WhatsApp or Instagram messages from your app against Meta Graph API. Works identically for sandbox and your own channel; only env values and (for Instagram) the body shape change.
 ---
 
 # Sending Messages
 
-Once your env is populated (either `sandbox env --write` or `channels env <channel>`), sending a WhatsApp message is a single HTTP POST to `https://graph.facebook.com/v22.0/${PHONE_NUMBER_ID}/messages` with a Bearer token. Sandbox traffic goes through `sandbox-proxy` (which rewrites the URL base at `WHATSAPP_API_URL`); production traffic hits Meta directly. Your app code does not change between the two. Instagram uses a different endpoint base and body shape; see the Instagram section below.
+Once your env is populated (either `sandbox env --write` or `channels env <channel>`), sending a WhatsApp message is a single HTTP POST to `https://graph.facebook.com/v22.0/${PHONE_NUMBER_ID}/messages` with a Bearer token. Sandbox traffic goes through `sandbox-proxy` (which rewrites the URL base at `WHATSAPP_API_URL`); your own channel hits Meta directly (`META_GRAPH_API_URL`). Your app code does not change between the two. Instagram uses a different endpoint base and body shape; see the Instagram section below.
 
 ## JavaScript / TypeScript (`fetch`)
 
@@ -42,12 +42,12 @@ export async function sendMessage(to, text) {
 }
 ```
 
-## Template messages (PRODUCTION ONLY)
+## Template messages (your own channel only)
 
-Template messages are pre-approved marketing / notification messages. They require a `template` type body and are **rejected by sandbox-proxy** (`proxy.controller.ts:67-76`) — use them only against a production WABA.
+Template messages are pre-approved marketing / notification messages. They require a `template` type body and are **rejected by sandbox-proxy** (`proxy.controller.ts:67-76`) — use them only on your own channel.
 
 ```js
-// sendTemplate.js (production only)
+// sendTemplate.js (your own channel only)
 export async function sendTemplate(to, templateName, languageCode = 'en_US') {
   const res = await fetch(`${API_URL}/${PHONE_NUMBER_ID}/messages`, {
     method: 'POST',

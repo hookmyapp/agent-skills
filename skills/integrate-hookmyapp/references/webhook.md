@@ -1,26 +1,26 @@
 ---
 name: webhook
-description: "Set, inspect, and clear the production webhook override URL for a channel via `channels webhook`."
+description: "Set, inspect, and clear the webhook override URL for a channel via `channels webhook`."
 ---
 
 # Webhooks
 
-Configure which URL Meta POSTs your production channel events to. Under the hood this writes Meta's `override_callback_uri` field via the Graph API — it takes precedence over any app-level webhook configured in the Meta App Dashboard's Webhooks card.
+Configure which URL Meta POSTs your channel's events to. Under the hood this writes Meta's `override_callback_uri` field via the Graph API — it takes precedence over any app-level webhook configured in the Meta App Dashboard's Webhooks card.
 
 Use `hookmyapp channels webhook {show,set,clear} <channel>`.
 
-> **Scope:** These commands operate on **production** channels only. Sandbox webhook delivery is handled by `sandbox listen` (Cloudflare tunnel) or `sandbox webhook {show,set,clear}`.
+> **Scope:** These commands operate on your own (connected) channels only. Sandbox webhook delivery is handled by `sandbox listen` (Cloudflare tunnel) or `sandbox webhook {show,set,clear}`.
 
 ## channels webhook set
 
-Set the production webhook URL for a specific channel.
+Set the webhook URL for a specific channel.
 
 **Flags:**
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--url` | URL | yes | — | Public HTTPS URL. Must respond `200` with `VERIFY_TOKEN` body on Meta's verify GET. |
-| `--verify-token` | string | no | (prior token) | HMAC key for `X-HookMyApp-Signature-256` signature verification on forwarded webhooks. In production, pick a strong random 32+ char token. Omitting the flag leaves the prior token in place (desirable for URL-only rotation; undesirable when you want to rotate the token itself). See SKILL.md "Signature verification" for how the token is used. |
+| `--verify-token` | string | no | (prior token) | HMAC key for `X-HookMyApp-Signature-256` signature verification on forwarded webhooks. Pick a strong random 32+ char token. Omitting the flag leaves the prior token in place (desirable for URL-only rotation; undesirable when you want to rotate the token itself). See SKILL.md "Signature verification" for how the token is used. |
 
 Global flags: `--workspace`, `--json`.
 
@@ -28,14 +28,14 @@ Global flags: `--workspace`, `--json`.
 
 **Browser step required:** No
 
-> **Safety:** Before `channels webhook set`, confirm the URL and channel ref with the human. Pointing production webhooks at a dev URL silently drops inbound messages.
+> **Safety:** Before `channels webhook set`, confirm the URL and channel ref with the human. Pointing your channel's webhooks at a dev URL silently drops inbound messages.
 
 **Examples:**
 
 Either flag is optional except on first-time setup, where `--verify-token` is required (the forwarder has no prior token to preserve). Subsequent calls may omit either flag to keep the existing value on that field.
 
 ```bash
-# First-time production setup — set URL and mint a verify token (both required)
+# First-time setup — set URL and mint a verify token (both required)
 hookmyapp channels webhook set ch_AAAAAAAA \
   --url https://api.acme.com/whatsapp/webhook \
   --verify-token $(openssl rand -hex 32)
