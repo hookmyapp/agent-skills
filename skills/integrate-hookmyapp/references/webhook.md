@@ -7,7 +7,7 @@ description: "Set, inspect, and clear the production webhook override URL for a 
 
 Configure which URL Meta POSTs your production channel events to. Under the hood this writes Meta's `override_callback_uri` field via the Graph API — it takes precedence over any app-level webhook configured in the Meta App Dashboard's Webhooks card.
 
-The canonical form is `hookmyapp channels webhook {show,set,clear} <channel>`. The bare top-level `hookmyapp webhook …` alias still works but prints a deprecation notice pointing at the `channels webhook` equivalent.
+Use `hookmyapp channels webhook {show,set,clear} <channel>`.
 
 > **Scope:** These commands operate on **production** channels only. Sandbox webhook delivery is handled by `sandbox listen` (Cloudflare tunnel) or `sandbox webhook {show,set,clear}`.
 
