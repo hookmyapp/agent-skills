@@ -67,7 +67,7 @@ Create a new workspace and switch into it.
 **Examples:**
 
 ```bash
-hookmyapp workspace new "Acme Production"
+hookmyapp workspace new "Acme Inc"
 hookmyapp workspace new "Personal"
 ```
 
