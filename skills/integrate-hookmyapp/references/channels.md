@@ -5,7 +5,9 @@ description: Connect and list WhatsApp or Instagram channels via Meta embedded s
 
 # Channels
 
-A "channel" is a WhatsApp Business Account (WABA) or an Instagram account attached to your workspace. Connecting a channel runs the Meta embedded-signup flow, which provisions the account inside Meta's systems and hands HookMyApp the system-user access token. Instagram channels connect the same way via `channels connect instagram` (Meta OAuth: Instagram login or Instagram-via-Facebook).
+A "channel" is a WhatsApp Business Account (WABA) or an Instagram account attached to your workspace. Connecting a channel runs the Meta embedded-signup flow, which provisions the account inside Meta's systems and hands HookMyApp the long-lived Meta system-user token. That token stays inside HookMyApp; your app authenticates to the gateway with a minted `hmp_` API key instead (see [keys](token.md)). Instagram channels connect the same way via `channels connect instagram` (Meta OAuth: Instagram login or Instagram-via-Facebook).
+
+> **Direct Meta access still works.** Existing integrations that call `https://graph.facebook.com` with their own Meta token are unaffected by the gateway. Routing through `https://gateway.hookmyapp.com/meta/...` with a minted `hmp_` key is the recommended path for new setups.
 
 > **Note:** This command was previously named `accounts` (in CLI versions before 0.6.1). If you find older docs referencing `accounts connect` / `accounts list`, the current name is `channels`.
 
@@ -135,4 +137,4 @@ hookmyapp channels disable ch_AAAAAAAA
 
 ## Other channel subcommands
 
-`channels` also exposes per-channel `env`, `token`, `health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]`. Each has its own reference: [env](env.md), [token](token.md), [health](health.md), [webhook](webhook.md). `logs` and `listen` are documented inline in [SKILL.md](../SKILL.md).
+`channels` also exposes per-channel `env`, `health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]`; gateway API keys are managed with the top-level `keys {create,list,revoke}` group. Each has its own reference: [env](env.md), [keys](token.md), [health](health.md), [webhook](webhook.md). `logs` and `listen` are documented inline in [SKILL.md](../SKILL.md).
