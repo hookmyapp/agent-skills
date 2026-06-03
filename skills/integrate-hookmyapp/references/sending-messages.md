@@ -5,15 +5,24 @@ description: Send WhatsApp or Instagram messages from your app against Meta Grap
 
 # Sending Messages
 
-Once your env is populated (either `sandbox env --write` or `channels env <channel>`), sending a WhatsApp message is a single HTTP POST to `https://graph.facebook.com/v22.0/${PHONE_NUMBER_ID}/messages` with a Bearer token. Sandbox traffic goes through `sandbox-proxy` (which rewrites the URL base at `WHATSAPP_API_URL`); your own channel hits Meta directly (`META_GRAPH_API_URL`). Your app code does not change between the two. Instagram uses a different endpoint base and body shape; see the Instagram section below.
+Once your env is populated (either `sandbox env --write` or `channels env <channel>`), sending a WhatsApp message is a single HTTP POST to `https://gateway.hookmyapp.com/meta/v22.0/${PHONE_NUMBER_ID}/messages` with a Bearer gateway API key (the `hmp_…` key minted by `channels env --write` or `hookmyapp keys create <channel>`). The path after `/meta` is verbatim Meta Graph API: the gateway forwards your request to Meta using the underlying Meta token (which never leaves HookMyApp) and returns Meta's response unchanged. Our docs here are Meta's docs. Sandbox traffic still goes through `sandbox-proxy` (which rewrites the URL base at `WHATSAPP_API_URL`); your own channel routes through the gateway at `META_GRAPH_API_URL`. Your app code does not change between the two. Instagram uses a different endpoint base and body shape; see the Instagram section below.
+
+> **Direct Meta access still works.** If you already call `https://graph.facebook.com/v22.0` with your own Meta token, that path is unaffected and keeps working. The gateway is the recommended path for new setups: you carry a revocable `hmp_` key instead of the long-lived Meta token, scoped to a single connection.
 
 ## JavaScript / TypeScript (`fetch`)
 
 ```js
 // sendMessage.js
-const API_URL = process.env.WHATSAPP_API_URL || 'https://graph.facebook.com/v22.0';
+// Real channel: META_GRAPH_API_URL is the versioned gateway base
+// (https://gateway.hookmyapp.com/meta/v22.0). Sandbox: WHATSAPP_API_URL
+// points at sandbox-proxy. The fallback below is the gateway default.
+const API_URL =
+  process.env.WHATSAPP_API_URL ||
+  process.env.META_GRAPH_API_URL ||
+  'https://gateway.hookmyapp.com/meta/v22.0';
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-const ACCESS_TOKEN = process.env.WHATSAPP_ACCESS_TOKEN;
+// Real channel: a gateway API key (hmp_…). Sandbox: the sandbox-proxy key.
+const HOOKMYAPP_KEY = process.env.WHATSAPP_ACCESS_TOKEN;
 
 /**
  * Send a plain text WhatsApp message.
@@ -24,7 +33,7 @@ export async function sendMessage(to, text) {
   const res = await fetch(`${API_URL}/${PHONE_NUMBER_ID}/messages`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      Authorization: `Bearer ${HOOKMYAPP_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -52,7 +61,7 @@ export async function sendTemplate(to, templateName, languageCode = 'en_US') {
   const res = await fetch(`${API_URL}/${PHONE_NUMBER_ID}/messages`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${ACCESS_TOKEN}`,
+      Authorization: `Bearer ${HOOKMYAPP_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -80,14 +89,17 @@ export async function sendTemplate(to, templateName, languageCode = 'en_US') {
 import os
 import httpx
 
-API_URL = os.environ.get("WHATSAPP_API_URL", "https://graph.facebook.com/v22.0")
+API_URL = os.environ.get(
+    "WHATSAPP_API_URL",
+    os.environ.get("META_GRAPH_API_URL", "https://gateway.hookmyapp.com/meta/v22.0"),
+)
 PHONE_NUMBER_ID = os.environ["WHATSAPP_PHONE_NUMBER_ID"]
-ACCESS_TOKEN = os.environ["WHATSAPP_ACCESS_TOKEN"]
+HOOKMYAPP_KEY = os.environ["WHATSAPP_ACCESS_TOKEN"]
 
 def send_message(to: str, text: str) -> dict:
     resp = httpx.post(
         f"{API_URL}/{PHONE_NUMBER_ID}/messages",
-        headers={"Authorization": f"Bearer {ACCESS_TOKEN}"},
+        headers={"Authorization": f"Bearer {HOOKMYAPP_KEY}"},
         json={
             "messaging_product": "whatsapp",
             "to": to,
@@ -104,19 +116,20 @@ The `requests` library works identically — swap `httpx.post` for `requests.pos
 
 ## Instagram (`{recipient,message}` shape)
 
-Instagram outbound is a POST to the Instagram Graph API base (`INSTAGRAM_GRAPH_API_URL` for a real channel, `INSTAGRAM_API_URL` for sandbox) with a different body shape than WhatsApp. The recipient is the sender's IGSID (Instagram-scoped id), captured from the inbound webhook.
+Instagram outbound is a POST to the Instagram Graph API base. For a real channel `INSTAGRAM_GRAPH_API_URL` is the versioned gateway base (`https://gateway.hookmyapp.com/meta/v25.0`); for sandbox `INSTAGRAM_API_URL` points at the sandbox proxy. The body shape differs from WhatsApp. The recipient is the sender's IGSID (Instagram-scoped id), captured from the inbound webhook.
 
 ```js
 // sendInstagram.js
 const IG_API_URL = process.env.INSTAGRAM_API_URL || process.env.INSTAGRAM_GRAPH_API_URL;
 const IG_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID || process.env.INSTAGRAM_USER_ID;
-const IG_ACCESS_TOKEN = process.env.INSTAGRAM_ACCESS_TOKEN;
+// Real channel: a gateway API key (hmp_…). Sandbox: the sandbox-proxy key.
+const IG_HOOKMYAPP_KEY = process.env.INSTAGRAM_ACCESS_TOKEN;
 
 export async function sendInstagram(recipientIgsid, text) {
   const res = await fetch(`${IG_API_URL}/${IG_ACCOUNT_ID}/messages`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${IG_ACCESS_TOKEN}`,
+      Authorization: `Bearer ${IG_HOOKMYAPP_KEY}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({

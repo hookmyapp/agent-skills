@@ -10,13 +10,15 @@ metadata:
 
 # Integrate HookMyApp
 
-HookMyApp is a passthrough for WhatsApp and Instagram: the user keeps their own Meta token, and HookMyApp forwards inbound messages to their code and sends their replies straight through Meta (it is not a BSP middleman). This skill teaches AI coding agents how to drive the `@gethookmyapp/cli` to integrate a user's app with either a sandbox account (for dev and testing) or the user's own WhatsApp number / Instagram account (connected via Meta embedded signup). The CLI owns credential issuance, tunnel lifecycle, and webhook configuration — your code never needs to call the HookMyApp API directly.
+HookMyApp is a passthrough for WhatsApp and Instagram: the user keeps their own Meta token inside HookMyApp, HookMyApp forwards inbound messages to their code, and their replies go straight through Meta (it is not a BSP middleman). Outbound sends route through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`): the user's app carries a minted `hmp_` gateway API key, the gateway swaps it for the underlying Meta token server-side, and the path after `/meta` is verbatim Meta Graph API. This skill teaches AI coding agents how to drive the `@gethookmyapp/cli` to integrate a user's app with either a sandbox account (for dev and testing) or the user's own WhatsApp number / Instagram account (connected via Meta embedded signup). The CLI owns credential issuance, tunnel lifecycle, and webhook configuration. Your code never needs to call the HookMyApp API directly.
+
+> **Direct Meta access still works.** Integrations that already call `https://graph.facebook.com` with their own Meta token are unaffected. The gateway with a minted `hmp_` key is the recommended path for new setups: the key is scoped to one channel and revocable, and the Meta token never leaves HookMyApp.
 
 ## Agent Guidance
 
 ### Key Principles
 
-- **The CLI is the source of truth.** Never embed credentials inline in generated code. Run `hookmyapp sandbox env --write .env` or `hookmyapp channels env <channel>` and let the user's app read from environment variables.
+- **The CLI is the source of truth.** Never embed credentials inline in generated code. Run `hookmyapp sandbox env --write .env` or `hookmyapp channels env <channel> --write` (which mints a fresh gateway `hmp_` key) and let the user's app read from environment variables.
 - **There is no environment to select.** Every command runs against the live HookMyApp service. Pass `--workspace <id>` only when the user has multiple workspaces and a command must hit one other than the active default.
 - **Browser steps cannot be automated.** `login` and `channels connect` both open browser tabs the human must complete. Do not pretend to automate them — hand the terminal back with a clear instruction.
 - **Sandbox is not your own channel.** Sandbox is a HookMyApp-hosted test account with 5 env keys, no templates, and recipient pinned to the session phone. Your own channel is your WhatsApp number or Instagram account, with 6 env keys (from `channels env`) and full template support. The two are not interchangeable — pick one based on the user's goal before generating code.
@@ -30,11 +32,11 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 - `hookmyapp channels connect` — opens Meta's embedded-signup popup; user picks business, WABA, and phone number.
 - `hookmyapp channels listen` — long-running foreground process; the human must keep the terminal open (or background it via `nohup …  &` for 24/7 use). Test inbound webhook delivery by sending a real WhatsApp message to the channel's number.
 - Any destructive operation (`webhook set`, `logout`); confirm intent before running.
-- Rotating a leaked `ACCESS_TOKEN` — must happen in the Meta App Dashboard, not via CLI.
+- Rotating a leaked gateway `hmp_` key, via `hookmyapp keys revoke <key-id>` then `hookmyapp keys create <channel>` (no Meta App Dashboard trip; the Meta token is untouched).
 
 ### Safety Rules
 
-- **Never paste `channels env <channel>` or `channels token <channel>` output into chat, tickets, or logs.** Redirect to a secret manager or `.env` file the user controls.
+- **Never paste `channels env <channel>` or `hookmyapp keys create <channel>` output (the `hmp_` key) into chat, tickets, or logs.** Redirect to a secret manager or `.env` file the user controls.
 - **Never run `workspace use` without confirming the target ID.** Running commands against the wrong workspace can mutate the wrong WABA.
 - **Never run `webhook set` without explicit human confirmation of the URL.** Pointing your channel's webhooks at a dev URL silently drops inbound customer messages.
 - **Never generate sandbox template-message examples.** Templates are rejected by sandbox-proxy; generating such code only wastes the user's time.
@@ -181,15 +183,15 @@ hookmyapp channels list
 **5. Pull your channel's env keys**
 
 ```bash
-hookmyapp channels env ch_AAAAAAAA > .env.whatsapp
+hookmyapp channels env ch_AAAAAAAA --write .env.whatsapp
 ```
 
-`hookmyapp channels env <channel>` emits the six WhatsApp keys your app reads directly (no hand-mapping needed):
+`hookmyapp channels env <channel> --write` mints a fresh gateway `hmp_` key and writes the six WhatsApp keys your app reads directly (no hand-mapping needed):
 
 | Key | Notes |
 |---|---|
-| `META_GRAPH_API_URL` | Meta Graph API base (e.g. `https://graph.facebook.com/v22.0`). |
-| `WHATSAPP_ACCESS_TOKEN` | Long-lived system-user access token. |
+| `META_GRAPH_API_URL` | Versioned gateway base (`https://gateway.hookmyapp.com/meta/v22.0`); your app appends `/{phone_number_id}/messages`. |
+| `WHATSAPP_ACCESS_TOKEN` | A gateway API key (`hmp_…`), sent as `Authorization: Bearer`. Rotate via `hookmyapp keys revoke` + `keys create`. |
 | `WHATSAPP_PHONE_NUMBER_ID` | Meta phone number id. |
 | `WHATSAPP_WABA_ID` | WhatsApp Business Account id (reference). |
 | `HOOKMYAPP_CHANNEL_ID` | The HookMyApp channel publicId. |
@@ -259,7 +261,7 @@ The CLI does five things on startup: provisions a Cloudflare Tunnel for the chan
 
 **Mid-listen URL-set behavior (important).** If the user (or anyone else with dashboard access) sets a webhook URL on the channel while the CLI is mid-listen, the URL wins — the CLI exits cleanly with code 0 on its next heartbeat, printing the userMessage from the backend's `410 CHANNEL_TUNNEL_RECLAIMED` response. This is expected behavior, not an error. If the user wants to switch back to CLI delivery, they click "Go back to HookMyAppCLI" in the dashboard (clears the URL), or run `hookmyapp channels webhook clear <channel>`, and re-run `hookmyapp channels listen`.
 
-**No env keys for inbound.** The CLI-tunnel path does not require any `WHATSAPP_*` env keys for inbound webhooks — the local server just needs to listen on the port passed to `--port`. **Outbound** message sending still uses `hookmyapp channels env <channel>` env keys (Meta's Graph API; HookMyApp doesn't proxy outbound for real channels).
+**No env keys for inbound.** The CLI-tunnel path does not require any `WHATSAPP_*` env keys for inbound webhooks — the local server just needs to listen on the port passed to `--port`. **Outbound** message sending still uses `hookmyapp channels env <channel>` env keys (the gateway base + a minted `hmp_` key; the gateway forwards verbatim to Meta).
 
 ## Command Reference
 
@@ -267,7 +269,8 @@ The CLI does five things on startup: provisions a Cloudflare Tunnel for the chan
 |-------|---------|----------------|
 | auth | Log in and log out. | [references/auth.md](references/auth.md) |
 | billing | Show subscription status, open Stripe portal, upgrade plan. | [references/billing.md](references/billing.md) |
-| channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `env`/`token`/`health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
+| channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `env`/`health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
+| keys | Mint, list, and revoke gateway API keys (`hmp_…`) for a channel via `keys {create,list,revoke}`. | [references/token.md](references/token.md) |
 | config | Set/get/unset persistent CLI config (e.g., `telemetry` crash-reporting on/off). | [references/config.md](references/config.md) |
 | sandbox | Start a session `[whatsapp|instagram]`, write the env file, open a tunnel, send test messages, `webhook {show,set,clear}`, `logs`. | [references/sandbox.md](references/sandbox.md) |
 | workspace | List, select, rename, and manage workspace members (tenancy scope). | [references/workspace.md](references/workspace.md) |
@@ -284,9 +287,9 @@ Every command accepts these flags:
 
 ## Sending Messages
 
-Once env is populated, sending is a single HTTP POST to Meta's Graph API v22.0 (or the sandbox proxy, when `WHATSAPP_API_URL` is overridden). Bearer token in the Authorization header, JSON body with `messaging_product: "whatsapp"`, destination number (E.164), and `type: "text"` or `type: "template"`.
+Once env is populated, sending is a single HTTP POST to the gateway at `https://gateway.hookmyapp.com/meta/v22.0` (`META_GRAPH_API_URL`), or to the sandbox proxy when `WHATSAPP_API_URL` is set. The path after `/meta` is verbatim Meta Graph API. The Authorization header carries a Bearer gateway `hmp_` key; the JSON body has `messaging_product: "whatsapp"`, destination number (E.164), and `type: "text"` or `type: "template"`.
 
-Your app code does not change between sandbox and your own channel — only the env values change. Full code samples (JS with `fetch`, Python with `httpx`, template payloads) live in [references/sending-messages.md](references/sending-messages.md).
+Your app code does not change between sandbox and your own channel; only the env values change. Full code samples (JS with `fetch`, Python with `httpx`, template payloads) live in [references/sending-messages.md](references/sending-messages.md). Integrations that prefer to call `https://graph.facebook.com` directly with their own Meta token still work; the gateway is the recommended path for new setups.
 
 Instagram outbound uses a different body shape (`{"recipient":{"id":"<IGSID>"},"message":{"text":"..."}}`) against the Instagram Graph API base, not WhatsApp's `messaging_product`/`to` shape. See [references/sending-messages.md](references/sending-messages.md) for both.
 
@@ -380,7 +383,7 @@ For sandbox, the equivalent smoke is `sandbox status` plus sending a WhatsApp me
 
 | Symptom | Fix |
 |---------|-----|
-| `401 invalid_token` from Meta | Re-run `hookmyapp channels token <channel>`; if still fails, `channels connect` to re-mint. |
+| `401` from the gateway | The `hmp_` key is revoked or wrong. Mint a fresh one with `hookmyapp keys create <channel>` (or `channels env <channel> --write`); if Meta still rejects, `channels connect` to re-link. |
 | `403 forbidden_waba` | WABA was disconnected in Meta dashboard — reconnect via `channels connect`. |
 | Webhook verify GET returns `404` | Ensure your server serves `GET /webhook` (default) with `VERIFY_TOKEN` body. |
 | `sandbox listen: tunnel closed` / cloudflared errors | Re-run with `hookmyapp sandbox listen --reinstall-tunnel-binary` to force re-download cloudflared. Then check outbound 443 to `*.trycloudflare.com` is not firewalled. |
