@@ -5,9 +5,9 @@ description: Send WhatsApp or Instagram messages from your app against Meta Grap
 
 # Sending Messages
 
-Once your env is populated (either `sandbox env --write` or `channels env <channel>`), sending a WhatsApp message is a single HTTP POST to `https://gateway.hookmyapp.com/meta/v22.0/${PHONE_NUMBER_ID}/messages` with a Bearer gateway API key (the `hmp_…` key minted by `channels env --write` or `hookmyapp keys create <channel>`). The path after `/meta` is verbatim Meta Graph API: the gateway forwards your request to Meta using the underlying Meta token (which never leaves HookMyApp) and returns Meta's response unchanged. Our docs here are Meta's docs. Sandbox traffic still goes through `sandbox-proxy` (which rewrites the URL base at `WHATSAPP_API_URL`); your own channel routes through the gateway at `META_GRAPH_API_URL`. Your app code does not change between the two. Instagram uses a different endpoint base and body shape; see the Instagram section below.
+Once your env is populated (either `sandbox env --write` or `channels env <channel>`), sending a WhatsApp message is a single HTTP POST to `https://gateway.hookmyapp.com/meta/v22.0/${PHONE_NUMBER_ID}/messages` with a Bearer gateway access token (the `hmat_…` key minted by `channels env --write` or `hookmyapp access-tokens create <channel>`). The path after `/meta` is verbatim Meta Graph API: the gateway forwards your request to Meta using the underlying Meta token (which never leaves HookMyApp) and returns Meta's response unchanged. Our docs here are Meta's docs. Sandbox traffic still goes through `sandbox-proxy` (which rewrites the URL base at `WHATSAPP_API_URL`); your own channel routes through the gateway at `META_GRAPH_API_URL`. Your app code does not change between the two. Instagram uses a different endpoint base and body shape; see the Instagram section below.
 
-> **Direct Meta access still works.** If you already call `https://graph.facebook.com/v22.0` with your own Meta token, that path is unaffected and keeps working. The gateway is the recommended path for new setups: you carry a revocable `hmp_` key instead of the long-lived Meta token, scoped to a single connection.
+> **Direct Meta access still works.** If you already call `https://graph.facebook.com/v22.0` with your own Meta token, that path is unaffected and keeps working. The gateway is the recommended path for new setups: you carry a revocable `hmat_` access token instead of the long-lived Meta token, scoped to a single connection.
 
 ## JavaScript / TypeScript (`fetch`)
 
@@ -21,7 +21,7 @@ const API_URL =
   process.env.META_GRAPH_API_URL ||
   'https://gateway.hookmyapp.com/meta/v22.0';
 const PHONE_NUMBER_ID = process.env.WHATSAPP_PHONE_NUMBER_ID;
-// Real channel: a gateway API key (hmp_…). Sandbox: the sandbox-proxy key.
+// Real channel: a gateway access token (hmat_…). Sandbox: the sandbox-proxy key.
 const HOOKMYAPP_KEY = process.env.WHATSAPP_ACCESS_TOKEN;
 
 /**
@@ -122,7 +122,7 @@ Instagram outbound is a POST to the Instagram Graph API base. For a real channel
 // sendInstagram.js
 const IG_API_URL = process.env.INSTAGRAM_API_URL || process.env.INSTAGRAM_GRAPH_API_URL;
 const IG_ACCOUNT_ID = process.env.INSTAGRAM_ACCOUNT_ID || process.env.INSTAGRAM_USER_ID;
-// Real channel: a gateway API key (hmp_…). Sandbox: the sandbox-proxy key.
+// Real channel: a gateway access token (hmat_…). Sandbox: the sandbox-proxy key.
 const IG_HOOKMYAPP_KEY = process.env.INSTAGRAM_ACCESS_TOKEN;
 
 export async function sendInstagram(recipientIgsid, text) {
