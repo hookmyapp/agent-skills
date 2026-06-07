@@ -1,0 +1,20 @@
+{
+  "messaging_product": "whatsapp",
+  "recipient_type": "individual",
+  "to": "+15557654321",
+  "type": "template",
+  "template": {
+    "name": "order_status_update",
+    "language": { "code": "en_US" },
+    "components": [
+      {
+        "type": "body",
+        "parameters": [
+          { "type": "text", "parameter_name": "customer_name", "text": "Sam" },
+          { "type": "text", "parameter_name": "order_id", "text": "A1234" },
+          { "type": "text", "parameter_name": "status", "text": "shipped" }
+        ]
+      }
+    ]
+  }
+}

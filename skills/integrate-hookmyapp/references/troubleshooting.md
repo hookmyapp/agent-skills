@@ -28,7 +28,7 @@ Start:  Can you run `hookmyapp channels list` and see at least one WABA?
   ├─ Check your server logs for inbound POST /webhook requests — if the CLI terminal shows bodies but your server shows nothing, the issue is your server/DNS/TLS (not the forwarder).
   ├─ Check Meta App Dashboard → Webhooks → "Recent Deliveries" for 4xx/5xx responses.
   ├─ Check that `hookmyapp channels show <channel>` reports `forwarding: enabled` — `channels disable` would silently drop all inbound messages.
-  └─ Verify your `X-HookMyApp-Signature-256` HMAC check against the `VERIFY_TOKEN` — a mismatch silently drops messages on the receiver side. See SKILL.md "Signature verification" for the two byte-equivalent shapes (parsed+`JSON.stringify` vs raw-body).
+  └─ Verify your `X-HookMyApp-Signature-256` HMAC check against the `VERIFY_TOKEN` — a mismatch silently drops messages on the receiver side. Hash exactly the bytes you received (`JSON.stringify(req.body)` with `express.json()`, or the raw string with `express.raw()`). See SKILL.md "Signature verification".
 ```
 
 ## Error → Fix Table

@@ -71,7 +71,7 @@ Because `--write` mints a fresh access token on every run, re-running it rotates
 # Write the keys (and a fresh hmat_ gateway access token) straight into .env
 hookmyapp channels env ch_AAAAAAAA --write
 
-# Write to a named file
+# Write to a named file (bundled scripts then need --dotenv .env.whatsapp, since they default to ./.env)
 hookmyapp channels env ch_AAAAAAAA --write .env.whatsapp
 
 # JSON for programmatic use (mints a key)

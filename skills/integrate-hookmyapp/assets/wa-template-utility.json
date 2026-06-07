@@ -1,0 +1,19 @@
+{
+  "name": "order_status_update",
+  "language": "en_US",
+  "category": "UTILITY",
+  "parameter_format": "NAMED",
+  "components": [
+    {
+      "type": "BODY",
+      "text": "Hi {{customer_name}}, your order {{order_id}} is now {{status}}.",
+      "example": {
+        "body_text_named_params": [
+          { "param_name": "customer_name", "example": "Sam" },
+          { "param_name": "order_id", "example": "A1234" },
+          { "param_name": "status", "example": "shipped" }
+        ]
+      }
+    }
+  ]
+}
