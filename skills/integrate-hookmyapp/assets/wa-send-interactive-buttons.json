@@ -1,0 +1,16 @@
+{
+  "messaging_product": "whatsapp",
+  "recipient_type": "individual",
+  "to": "+15557654321",
+  "type": "interactive",
+  "interactive": {
+    "type": "button",
+    "body": { "text": "Did this answer your question?" },
+    "action": {
+      "buttons": [
+        { "type": "reply", "reply": { "id": "yes", "title": "Yes" } },
+        { "type": "reply", "reply": { "id": "no", "title": "No, contact support" } }
+      ]
+    }
+  }
+}

@@ -29,7 +29,7 @@ The integration skill guides your AI coding agent through:
 2. Connecting a WhatsApp Business or Instagram account (via Meta embedded signup or sandbox)
 3. Configuring webhook forwarding to your application
 4. Retrieving API credentials (channel id, a minted gateway access token, phone number id or Instagram account id)
-5. Sending WhatsApp messages (text and template) from your code
+5. Sending WhatsApp and Instagram messages (raw HTTP from your code, or the typed `whatsapp` / `instagram` CLI commands for scripting) plus managing templates, media, the business profile, and Instagram comment moderation
 
 Browser-only steps (login, embedded signup) are clearly marked so your agent knows when to prompt you for action.
 

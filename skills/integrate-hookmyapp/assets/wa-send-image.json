@@ -1,0 +1,10 @@
+{
+  "messaging_product": "whatsapp",
+  "recipient_type": "individual",
+  "to": "+15557654321",
+  "type": "image",
+  "image": {
+    "id": "<MEDIA_ID_FROM_wa-upload-media>",
+    "caption": "Optional caption"
+  }
+}

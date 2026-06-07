@@ -1,0 +1,4 @@
+{
+  "recipient": { "id": "<RECIPIENT_IGSID_FROM_WEBHOOK>" },
+  "message": { "text": "Thanks for reaching out! How can we help?" }
+}

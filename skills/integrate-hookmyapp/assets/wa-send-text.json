@@ -1,0 +1,7 @@
+{
+  "messaging_product": "whatsapp",
+  "recipient_type": "individual",
+  "to": "+15557654321",
+  "type": "text",
+  "text": { "body": "Hello from HookMyApp" }
+}
