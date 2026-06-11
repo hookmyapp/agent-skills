@@ -137,4 +137,4 @@ hookmyapp channels disable ch_AAAAAAAA
 
 ## Other channel subcommands
 
-`channels` also exposes per-channel `env`, `health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]`; gateway access tokens are managed with the top-level `access-tokens {create,list,revoke}` group. Each has its own reference: [env](env.md), [access tokens](access-tokens.md), [health](health.md), [webhook](webhook.md). `logs` and `listen` are documented inline in [SKILL.md](../SKILL.md).
+`channels` also exposes per-channel `env`, `health`, `token [--rotate]`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]`; the channel's gateway access token is read and rotated with `channels token` (one active token per channel — there is no separate access-tokens command group). Each has its own reference: [env](env.md), [access tokens](access-tokens.md), [health](health.md), [webhook](webhook.md). `logs` and `listen` are documented inline in [SKILL.md](../SKILL.md).

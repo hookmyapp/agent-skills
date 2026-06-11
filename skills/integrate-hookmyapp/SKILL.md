@@ -32,11 +32,11 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 - `hookmyapp channels connect` — opens Meta's embedded-signup popup; user picks business, WABA, and phone number.
 - `hookmyapp channels listen` — long-running foreground process; the human must keep the terminal open (or background it via `nohup …  &` for 24/7 use). Test inbound webhook delivery by sending a real WhatsApp message to the channel's number.
 - Any destructive operation (`webhook set`, `logout`); confirm intent before running.
-- Rotating a leaked gateway `hmat_` access token, via `hookmyapp access-tokens revoke <token-id>` then `hookmyapp access-tokens create <channel>` (no Meta App Dashboard trip; the Meta token is untouched).
+- Rotating a leaked gateway `hmat_` access token, via `hookmyapp channels token <channel> --rotate` (no Meta App Dashboard trip; the Meta token is untouched, and the old token dies immediately).
 
 ### Safety Rules
 
-- **Never paste `channels env <channel>` or `hookmyapp access-tokens create <channel>` output (the `hmat_` access token) into chat, tickets, or logs.** Redirect to a secret manager or `.env` file the user controls.
+- **Never paste `channels env <channel>` or `hookmyapp channels token <channel>` output (the `hmat_` access token) into chat, tickets, or logs.** Redirect to a secret manager or `.env` file the user controls.
 - **Never run `workspace use` without confirming the target ID.** Running commands against the wrong workspace can mutate the wrong WABA.
 - **Never run `webhook set` without explicit human confirmation of the URL.** Pointing your channel's webhooks at a dev URL silently drops inbound customer messages.
 - **Never generate sandbox template-message examples.** Templates are rejected by sandbox-proxy; generating such code only wastes the user's time.
@@ -92,7 +92,7 @@ Read that file when starting a fresh integration; the sections below are the per
 | channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `env`/`health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
 | whatsapp (`wa`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `templates {list,get,create,delete}`, `media {upload,get,download,delete}`, `profile {get,update}`. | [references/whatsapp.md](references/whatsapp.md) |
 | instagram (`ig`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `comments {list,get,reply,private-reply,hide,delete}`. | [references/instagram.md](references/instagram.md) |
-| access-tokens | Mint, list, and revoke gateway access tokens (`hmat_…`) for a channel via `access-tokens {create,list,revoke}`. | [references/access-tokens.md](references/access-tokens.md) |
+| access-tokens | Read and rotate the channel's gateway access token (`hmat_…`) via `channels token [--rotate]` (one active token per channel). | [references/access-tokens.md](references/access-tokens.md) |
 | config | Set/get/unset persistent CLI config (e.g., `telemetry` crash-reporting on/off). | [references/config.md](references/config.md) |
 | sandbox | Start a session `[whatsapp|instagram]`, write the env file, open a tunnel, send test messages, `webhook {show,set,clear}`, `logs`. | [references/sandbox.md](references/sandbox.md) |
 | workspace | List, select, rename, and manage workspace members (tenancy scope). | [references/workspace.md](references/workspace.md) |
@@ -209,7 +209,7 @@ For sandbox, the equivalent smoke is `sandbox status` plus sending a WhatsApp me
 
 | Symptom | Fix |
 |---------|-----|
-| `401` from the gateway | The `hmat_` access token is revoked or wrong. Mint a fresh one with `hookmyapp access-tokens create <channel>` (or `channels env <channel> --write`); if Meta still rejects, `channels connect` to re-link. |
+| `401` from the gateway | The `hmat_` access token is rotated or wrong. Re-read the current one with `hookmyapp channels token <channel>` (or `channels env <channel> --write`); if Meta still rejects, `channels connect` to re-link. |
 | `403 forbidden_waba` | WABA was disconnected in Meta dashboard — reconnect via `channels connect`. |
 | Webhook verify GET returns `404` | Ensure your server serves `GET /webhook` (default) with `VERIFY_TOKEN` body. |
 | `sandbox listen: tunnel closed` / cloudflared errors | Re-run with `hookmyapp sandbox listen --reinstall-tunnel-binary` to force re-download cloudflared. Then check outbound 443 to `*.trycloudflare.com` is not firewalled. |

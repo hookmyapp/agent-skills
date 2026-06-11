@@ -130,7 +130,7 @@ Write to `.env` so the bundled scripts ([whatsapp.md](whatsapp.md), [instagram.m
 | Key | Notes |
 |---|---|
 | `META_GRAPH_API_URL` | Versioned gateway base (`https://gateway.hookmyapp.com/meta/v22.0`); your app appends `/{phone_number_id}/messages`. |
-| `WHATSAPP_ACCESS_TOKEN` | A gateway access token (`hmat_…`), sent as `Authorization: Bearer`. Rotate via `hookmyapp access-tokens revoke` + `access-tokens create`. |
+| `WHATSAPP_ACCESS_TOKEN` | The channel's gateway access token (`hmat_…`), sent as `Authorization: Bearer`. Rotate via `hookmyapp channels token <channel> --rotate`. |
 | `WHATSAPP_PHONE_NUMBER_ID` | Meta phone number id. |
 | `WHATSAPP_WABA_ID` | WhatsApp Business Account id (reference). |
 | `HOOKMYAPP_CHANNEL_ID` | The HookMyApp channel publicId. |
