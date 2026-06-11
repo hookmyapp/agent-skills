@@ -37,7 +37,7 @@ For WhatsApp channels (six keys, no `PORT`):
 | Key | Purpose |
 |-----|---------|
 | `META_GRAPH_API_URL` | Versioned gateway base for this channel (`https://gateway.hookmyapp.com/meta/v22.0`). The kit appends `/{phone_number_id}/messages`, so the version segment must be present. |
-| `WHATSAPP_ACCESS_TOKEN` | A gateway access token (`hmat_…`), minted for this channel. Send it as `Authorization: Bearer`. Rotate via `hookmyapp access-tokens revoke` + `hookmyapp access-tokens create` if leaked. |
+| `WHATSAPP_ACCESS_TOKEN` | The channel's gateway access token (`hmat_…`), minted automatically at connect. Send it as `Authorization: Bearer`. Rotate via `hookmyapp channels token <channel> --rotate` if leaked. |
 | `WHATSAPP_PHONE_NUMBER_ID` | The phone number ID for this channel. |
 | `WHATSAPP_WABA_ID` | WhatsApp Business Account ID. |
 | `HOOKMYAPP_CHANNEL_ID` | HookMyApp channel public ID. |
@@ -45,11 +45,11 @@ For WhatsApp channels (six keys, no `PORT`):
 
 Instagram channels print the five-key `INSTAGRAM_*` set: `INSTAGRAM_GRAPH_API_URL` (gateway base `https://gateway.hookmyapp.com/meta/v25.0`), `INSTAGRAM_ACCESS_TOKEN` (a gateway `hmat_…` access token), `INSTAGRAM_USER_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`.
 
-> **Safety:** `WHATSAPP_ACCESS_TOKEN` and `INSTAGRAM_ACCESS_TOKEN` carry a gateway `hmat_` access token, not a Meta token. It is scoped to one channel and revocable via `hookmyapp access-tokens revoke`, but still secret. Never log it, never paste it into a chat, never commit it. Store only in an environment-variable secret manager (e.g. GCP Secret Manager, AWS Secrets Manager, Vault).
+> **Safety:** `WHATSAPP_ACCESS_TOKEN` and `INSTAGRAM_ACCESS_TOKEN` carry a gateway `hmat_` access token, not a Meta token. It is scoped to one channel and rotatable via `hookmyapp channels token <channel> --rotate`, but still secret. Never log it, never paste it into a chat, never commit it. Store only in an environment-variable secret manager (e.g. GCP Secret Manager, AWS Secrets Manager, Vault).
 
 ## channels env --write
 
-`--write` mints a fresh gateway access token and writes a ready-to-read `.env`. The written WhatsApp file looks like this (Instagram swaps in the `INSTAGRAM_*` keys and `/meta/v25.0`):
+`--write` writes a ready-to-read `.env` carrying the channel's current gateway access token. The written WhatsApp file looks like this (Instagram swaps in the `INSTAGRAM_*` keys and `/meta/v25.0`):
 
 ```dotenv
 # .env  (written by: hookmyapp channels env ch_AAAAAAAA --write)
@@ -63,7 +63,7 @@ VERIFY_TOKEN=replace-with-your-32-char-webhook-token
 
 The base URL is always **versioned** (`/meta/v22.0` for WhatsApp, `/meta/v25.0` for Instagram) because your app appends `/{id}/messages` to it. A bare `/meta` base would produce `/{id}/messages` with no API version and Meta would reject it. Never put a bare `/meta` in a customer `.env`.
 
-Because `--write` mints a fresh access token on every run, re-running it rotates the access token in that file. The previously written access token keeps working until you `hookmyapp access-tokens revoke` it.
+Re-running `--write` rewrites the file with the channel's current access token — it does NOT rotate. Each channel has exactly one active token; to replace it, run `hookmyapp channels token <channel> --rotate` (the old token dies immediately), then re-run `channels env <channel> --write` to refresh the file.
 
 **Examples:**
 
