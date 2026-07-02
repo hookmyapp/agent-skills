@@ -125,7 +125,7 @@ hookmyapp channels list
 hookmyapp channels env ch_AAAAAAAA --write .env
 ```
 
-Write to `.env` so the bundled scripts ([whatsapp.md](whatsapp.md), [instagram.md](instagram.md)) auto-load it (they default to `./.env`; use `--dotenv <path>` if you keep credentials elsewhere). `hookmyapp channels env <channel> --write` mints a fresh gateway `hmat_` access token and writes the seven WhatsApp keys your app reads directly (no hand-mapping needed):
+Write to `.env` so the bundled scripts ([whatsapp.md](whatsapp.md), [instagram.md](instagram.md)) auto-load it (they default to `./.env`; use `--dotenv <path>` if you keep credentials elsewhere). `hookmyapp channels env <channel> --write` exports the channel's current gateway `hmat_` access token (minted at connect — export does not rotate it) and writes the seven WhatsApp keys your app reads directly (no hand-mapping needed):
 
 | Key | Notes |
 |---|---|
