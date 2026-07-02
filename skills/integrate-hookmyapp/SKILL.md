@@ -21,7 +21,7 @@ HookMyApp is a passthrough for WhatsApp and Instagram: the user keeps their own 
 - **The CLI is the source of truth.** Never embed credentials inline in generated code. Run `hookmyapp sandbox env --write .env` or `hookmyapp channels env <channel> --write` (which mints a fresh gateway `hmat_` access token) and let the user's app read from environment variables.
 - **There is no environment to select.** Every command runs against the live HookMyApp service. Pass `--workspace <id>` only when the user has multiple workspaces and a command must hit one other than the active default.
 - **Browser steps cannot be automated.** `login` and `channels connect` both open browser tabs the human must complete. Do not pretend to automate them — hand the terminal back with a clear instruction.
-- **Sandbox is not your own channel.** Sandbox is a HookMyApp-hosted test account with 5 env keys, no templates, and recipient pinned to the session phone. Your own channel is your WhatsApp number or Instagram account, with 6 env keys (from `channels env`) and full template support. The two are not interchangeable — pick one based on the user's goal before generating code.
+- **Sandbox is not your own channel.** Sandbox is a HookMyApp-hosted test account with 5 env keys, no templates, and recipient pinned to the session phone. Your own channel is your WhatsApp number or Instagram account, with 7 env keys (from `channels env`) and full template support. The two are not interchangeable — pick one based on the user's goal before generating code.
 - **Your own channel has two webhook-delivery flavors: CLI tunnel OR your own URL.** A connected channel can receive inbound webhooks via either (a) `hookmyapp channels listen` (the CLI provisions a per-channel Cloudflare tunnel — no public HTTPS URL required, designed for local dev / self-hosted agents / 24/7 hobby projects) or (b) `hookmyapp channels webhook set <channel> --url https://...` (your own public HTTPS endpoint, the classic deployed pattern). Pick CLI when the user is developing on localhost or running an always-on self-hosted agent (e.g. on a personal server or Raspberry Pi); pick URL when the user has a deployed backend ready to accept inbound webhooks. The two are mutually exclusive per channel — setting a URL while the CLI is listening evicts the CLI (it exits cleanly with a notice).
 
 ### When to Prompt the Human
@@ -65,7 +65,7 @@ The version string MUST match this skill's `metadata.version` in the frontmatter
 |--------|-------------------------|------------------|
 | Account | HookMyApp-hosted test account | Yours, connected via Meta embedded signup |
 | Setup step | `sandbox start [whatsapp|instagram]` | `channels connect [whatsapp|instagram]` (browser popup) |
-| Env keys | 5 (WhatsApp): `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `VERIFY_TOKEN`, `PORT` | 6 (WhatsApp, from `channels env`): `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN` (no `PORT`). Instagram emits the `INSTAGRAM_*` equivalents. |
+| Env keys | 5 (WhatsApp): `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `VERIFY_TOKEN`, `PORT` | 7 (WhatsApp, from `channels env`): `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`). Instagram emits the `INSTAGRAM_*` equivalents. |
 | Inbound tunnel | `sandbox listen` (Cloudflare) | Your own public HTTPS URL (`webhook set --verify-token`) **or** the CLI tunnel (`channels listen`) |
 | Recipient | Pinned to session phone server-side | Any WhatsApp user who messaged you first |
 | Templates | Blocked (text only) | Supported |
@@ -92,8 +92,9 @@ Read that file when starting a fresh integration; the sections below are the per
 | channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `env`/`health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
 | whatsapp (`wa`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `templates {list,get,create,delete}`, `media {upload,get,download,delete}`, `profile {get,update}`. | [references/whatsapp.md](references/whatsapp.md) |
 | instagram (`ig`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `comments {list,get,reply,private-reply,hide,delete}`. | [references/instagram.md](references/instagram.md) |
-| access-tokens | Read and rotate the channel's gateway access token (`hmat_…`) via `channels token [--rotate]` (one active token per channel). | [references/access-tokens.md](references/access-tokens.md) |
+| channel tokens | Read and rotate the channel's gateway access token (`hmat_…`) via `channels token [--rotate]` (one active token per channel). | [references/access-tokens.md](references/access-tokens.md) |
 | config | Set/get/unset persistent CLI config (e.g., `telemetry` crash-reporting on/off). | [references/config.md](references/config.md) |
+| customers | SaaS customer workspaces: `list`, `new`, `use`, `current`, and `onboarding-links {list,create}` — mint connect links your end-customers open to connect their channel (no HookMyApp account needed). | [references/customers.md](references/customers.md) |
 | sandbox | Start a session `[whatsapp|instagram]`, write the env file, open a tunnel, send test messages, `webhook {show,set,clear}`, `logs`. | [references/sandbox.md](references/sandbox.md) |
 | workspace | List, select, rename, and manage workspace members (tenancy scope). | [references/workspace.md](references/workspace.md) |
 
@@ -173,20 +174,23 @@ HookMyApp's forwarder signs every outbound webhook — **in both sandbox and you
 
 - Header: `X-HookMyApp-Signature-256`
 - Format: `sha256=<hex>`
-- HMAC key: the customer's `VERIFY_TOKEN` (sandbox: CLI-issued per session; your own channel: set via `hookmyapp channels webhook set <channel> --verify-token <token>`)
+- HMAC key: the channel's **HMAC signing secret** — `WEBHOOK_HMAC_SECRET`, exported by `hookmyapp channels env <channel>`. Sandbox is the one exception: `sandbox env` exports the session's signing secret as `VERIFY_TOKEN`, so in the sandbox one value plays both roles.
 - Body: `JSON.stringify(parsedBody)` on the forwarder's side (deterministic in V8)
 
-Meta's own `X-Hub-Signature-256` / `APP_SECRET` path is **internal to the forwarder** — the forwarder verifies Meta's signature before re-signing with the customer's `VERIFY_TOKEN`. Customers never see `X-Hub-Signature-256` and do not need `APP_SECRET`. `hookmyapp channels env <channel>` does NOT emit `APP_SECRET`.
+`VERIFY_TOKEN` is a **separate value with one job**: the plain-text body your endpoint returns on the webhook verify GET (set via `hookmyapp channels webhook set <channel> --verify-token <token>`). Never use it as the HMAC key on a real channel — channels created before the two were split (2026-06-24) happen to carry the same value in both, but new channels get two independent values.
+
+Meta's own `X-Hub-Signature-256` / `APP_SECRET` path is **internal to the forwarder** — the forwarder verifies Meta's signature before re-signing with the customer's `WEBHOOK_HMAC_SECRET`. Customers never see `X-Hub-Signature-256` and do not need `APP_SECRET`. `hookmyapp channels env <channel>` does NOT emit `APP_SECRET`.
 
 Verify it by recomputing the HMAC over the body bytes and comparing to the header:
 
 ```js
 import { createHmac } from 'node:crypto';
 
-function verifySignature(body, signatureHeader, verifyToken) {
+// hmacSecret = WEBHOOK_HMAC_SECRET from `channels env` (sandbox: VERIFY_TOKEN)
+function verifySignature(body, signatureHeader, hmacSecret) {
   // body = JSON.stringify(parsedBody) with express.json(), or the raw string with
   // express.raw(). Both produce identical bytes (V8 JSON.stringify is deterministic).
-  const expected = 'sha256=' + createHmac('sha256', verifyToken).update(body).digest('hex');
+  const expected = 'sha256=' + createHmac('sha256', hmacSecret).update(body).digest('hex');
   return signatureHeader === expected;
 }
 ```
@@ -227,7 +231,7 @@ Full decision tree and error table: [references/troubleshooting.md](references/t
 [integrate-hookmyapp file map]|root: .
 |.:{package.json,SKILL.md}
 |assets:{ig-send-dm.json,wa-send-image.json,wa-send-interactive-buttons.json,wa-send-template.json,wa-send-text.json,wa-template-utility.json}
-|references:{access-tokens.md,auth.md,billing.md,channels.md,config.md,env.md,getting-started.md,health.md,instagram.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
+|references:{access-tokens.md,auth.md,billing.md,channels.md,config.md,customers.md,env.md,getting-started.md,health.md,instagram.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
 |scripts:{ig-list-comments.mjs,ig-mark-seen.mjs,ig-reply-comment.mjs,ig-send-dm.mjs,wa-create-template.mjs,wa-list-templates.mjs,wa-mark-read.mjs,wa-send-message.mjs,wa-send-template.mjs,wa-update-profile.mjs,wa-upload-media.mjs}
 |scripts/lib:{args.mjs,env.mjs,gateway.mjs,output.mjs}
 ```

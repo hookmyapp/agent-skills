@@ -28,7 +28,7 @@ Start:  Can you run `hookmyapp channels list` and see at least one WABA?
   ├─ Check your server logs for inbound POST /webhook requests — if the CLI terminal shows bodies but your server shows nothing, the issue is your server/DNS/TLS (not the forwarder).
   ├─ Check Meta App Dashboard → Webhooks → "Recent Deliveries" for 4xx/5xx responses.
   ├─ Check that `hookmyapp channels show <channel>` reports `forwarding: enabled` — `channels disable` would silently drop all inbound messages.
-  └─ Verify your `X-HookMyApp-Signature-256` HMAC check against the `VERIFY_TOKEN` — a mismatch silently drops messages on the receiver side. Hash exactly the bytes you received (`JSON.stringify(req.body)` with `express.json()`, or the raw string with `express.raw()`). See SKILL.md "Signature verification".
+  └─ Verify your `X-HookMyApp-Signature-256` HMAC check is keyed on `WEBHOOK_HMAC_SECRET` (sandbox: the session exports its signing secret as `VERIFY_TOKEN`) — a wrong key or mismatched bytes silently drops messages on the receiver side. Hash exactly the bytes you received (`JSON.stringify(req.body)` with `express.json()`, or the raw string with `express.raw()`). See SKILL.md "Signature verification".
 ```
 
 ## Error → Fix Table
@@ -47,7 +47,7 @@ Start:  Can you run `hookmyapp channels list` and see at least one WABA?
 | `channels connect instagram`: popup blocked | Browser blocked Meta's OAuth popup | Allow popups from `app.hookmyapp.com`, or open the printed URL manually. Same behavior as WhatsApp connect. |
 | `workspace use: not a member of workspace` | The workspace ID is valid but your user isn't a member | Ask the workspace owner to invite you, or run `workspace list` to find one you own. |
 | `webhook set` fails with "URL did not pass Meta's verify GET" | Your server isn't up, or it isn't returning `VERIFY_TOKEN` as the response body | Start your server first, confirm `curl https://<your-domain>/webhook` returns the verify-token plaintext, then re-run `webhook set`. |
-| Webhook POSTs arrive but signature check fails | Mismatched body-shape between forwarder signing and your verification, or wrong HMAC key | HookMyApp's forwarder signs EVERY outbound webhook (sandbox AND your own channel) as `X-HookMyApp-Signature-256` keyed on your `VERIFY_TOKEN` over `JSON.stringify(parsedBody)`. If your server uses `express.json()`, hash `JSON.stringify(req.body)`; if it uses `express.raw({ type: 'application/json' })`, hash the raw bytes. Both are byte-equivalent. `X-Hub-Signature-256` / `APP_SECRET` is internal to the forwarder — customers never see it. See SKILL.md "Signature verification". |
+| Webhook POSTs arrive but signature check fails | Mismatched body-shape between forwarder signing and your verification, or wrong HMAC key | HookMyApp's forwarder signs EVERY outbound webhook (sandbox AND your own channel) as `X-HookMyApp-Signature-256` keyed on your channel's `WEBHOOK_HMAC_SECRET` (sandbox exports its one session secret as `VERIFY_TOKEN`) over `JSON.stringify(parsedBody)`. Keying the check on a real channel's `VERIFY_TOKEN` is the classic mistake — that value is only the verify-GET handshake response. If your server uses `express.json()`, hash `JSON.stringify(req.body)`; if it uses `express.raw({ type: 'application/json' })`, hash the raw bytes. Both are byte-equivalent. `X-Hub-Signature-256` / `APP_SECRET` is internal to the forwarder — customers never see it. See SKILL.md "Signature verification". |
 
 ## CLI exit codes (global conventions)
 

@@ -83,7 +83,7 @@ Global flags: `--json`, `--workspace`.
 
 | Key | Purpose |
 |-----|---------|
-| `VERIFY_TOKEN` | Per-session HMAC secret. Used as the webhook verify-GET response body AND the HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256`. |
+| `VERIFY_TOKEN` | Per-session secret. **Sandbox-specific:** this one value plays both roles — the webhook verify-GET response body AND the HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256`. On a real channel these are two distinct values (`VERIFY_TOKEN` + `WEBHOOK_HMAC_SECRET` from `channels env`). |
 | `PORT` | Port your local server listens on (default `3000`). |
 | `WHATSAPP_API_URL` | Sandbox proxy base URL. |
 | `WHATSAPP_ACCESS_TOKEN` | Sandbox activation code. |
@@ -93,7 +93,7 @@ Global flags: `--json`, `--workspace`.
 
 | Key | Purpose |
 |-----|---------|
-| `VERIFY_TOKEN` | Per-session HMAC secret. Used as the webhook verify-GET response body AND the HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256`. |
+| `VERIFY_TOKEN` | Per-session secret. **Sandbox-specific:** this one value plays both roles — the webhook verify-GET response body AND the HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256`. On a real channel these are two distinct values (`VERIFY_TOKEN` + `WEBHOOK_HMAC_SECRET` from `channels env`). |
 | `PORT` | Port your local server listens on (default `3000`). |
 | `INSTAGRAM_API_URL` | Sandbox proxy base URL for Instagram. |
 | `INSTAGRAM_ACCESS_TOKEN` | Sandbox activation code. |
