@@ -76,10 +76,10 @@ hookmyapp channels env ch_AAAAAAAA --write
 # Write to a named file (bundled scripts then need --dotenv .env.whatsapp, since they default to ./.env)
 hookmyapp channels env ch_AAAAAAAA --write .env.whatsapp
 
-# JSON for programmatic use (mints a key)
+# JSON for programmatic use (exports the current token — no minting)
 hookmyapp channels env ch_AAAAAAAA --json
 ```
 
 > **Direct Meta access still works.** Existing integrations that read a raw Meta token and call `https://graph.facebook.com` are unaffected. The gateway `.env` above is the recommended shape for new setups.
 
-**Exit codes:** `0` success · `1` channel not found · `2` key minting failed (re-run `channels connect`).
+**Exit codes:** `0` success · `1` channel not found · `2` no token to export (re-run `channels connect`, which mints one).
