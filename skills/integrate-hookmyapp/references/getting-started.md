@@ -125,18 +125,19 @@ hookmyapp channels list
 hookmyapp channels env ch_AAAAAAAA --write .env
 ```
 
-Write to `.env` so the bundled scripts ([whatsapp.md](whatsapp.md), [instagram.md](instagram.md)) auto-load it (they default to `./.env`; use `--dotenv <path>` if you keep credentials elsewhere). `hookmyapp channels env <channel> --write` mints a fresh gateway `hmat_` access token and writes the six WhatsApp keys your app reads directly (no hand-mapping needed):
+Write to `.env` so the bundled scripts ([whatsapp.md](whatsapp.md), [instagram.md](instagram.md)) auto-load it (they default to `./.env`; use `--dotenv <path>` if you keep credentials elsewhere). `hookmyapp channels env <channel> --write` mints a fresh gateway `hmat_` access token and writes the seven WhatsApp keys your app reads directly (no hand-mapping needed):
 
 | Key | Notes |
 |---|---|
 | `META_GRAPH_API_URL` | Versioned gateway base (`https://gateway.hookmyapp.com/meta/v22.0`); your app appends `/{phone_number_id}/messages`. |
 | `WHATSAPP_ACCESS_TOKEN` | The channel's gateway access token (`hmat_…`), sent as `Authorization: Bearer`. Rotate via `hookmyapp channels token <channel> --rotate`. |
-| `WHATSAPP_PHONE_NUMBER_ID` | Meta phone number id. |
+| `WHATSAPP_PHONE_NUMBER_ID` | Meta phone number id. Always this channel's own number — a WABA can hold several numbers, each connected as its own channel. |
 | `WHATSAPP_WABA_ID` | WhatsApp Business Account id (reference). |
 | `HOOKMYAPP_CHANNEL_ID` | The HookMyApp channel publicId. |
-| `VERIFY_TOKEN` | HMAC key for `X-HookMyApp-Signature-256`; set when you configure the webhook (step 6). |
+| `VERIFY_TOKEN` | Verify-GET handshake response value; set when you configure the webhook (step 6). NOT the HMAC key. |
+| `WEBHOOK_HMAC_SECRET` | HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks. |
 
-There is NO `PORT` key in `channels env` output (that key only appears in `sandbox env`). For Instagram, `channels env <channel>` emits `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`. See [env.md](env.md) for both shapes and secrets-management guidance.
+There is NO `PORT` key in `channels env` output (that key only appears in `sandbox env`). For Instagram, `channels env <channel>` emits `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET`. See [env.md](env.md) for both shapes and secrets-management guidance.
 
 **6. Configure the webhook URL**
 
@@ -146,7 +147,7 @@ hookmyapp channels webhook set ch_AAAAAAAA \
   --verify-token <your-chosen-token>
 ```
 
-Pick a strong random `VERIFY_TOKEN` (32+ chars) and pass it via `--verify-token`. This is the HMAC key the forwarder will sign every inbound webhook with (`X-HookMyApp-Signature-256`).
+Pick a strong random verify token (32+ chars) and pass it via `--verify-token`. This is ONLY the plain-text value your endpoint returns on the webhook verify GET. It is NOT the HMAC key — the forwarder signs every inbound webhook (`X-HookMyApp-Signature-256`) with the separate `WEBHOOK_HMAC_SECRET`, which `channels env <channel>` exports alongside the other keys.
 
 **On first-time setup, `--verify-token` is required** — the forwarder has no prior token to preserve. On subsequent `channels webhook set` calls, you may omit `--verify-token` for URL-only rotation (the previously-set token stays in effect).
 

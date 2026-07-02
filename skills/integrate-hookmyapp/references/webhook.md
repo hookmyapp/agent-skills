@@ -20,7 +20,7 @@ Set the webhook URL for a specific channel.
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--url` | URL | yes | — | Public HTTPS URL. Must respond `200` with `VERIFY_TOKEN` body on Meta's verify GET. |
-| `--verify-token` | string | no | (prior token) | HMAC key for `X-HookMyApp-Signature-256` signature verification on forwarded webhooks. Pick a strong random 32+ char token. Omitting the flag leaves the prior token in place (desirable for URL-only rotation; undesirable when you want to rotate the token itself). See SKILL.md "Signature verification" for how the token is used. |
+| `--verify-token` | string | no | (prior token) | Plain-text value your endpoint must return on the webhook verify GET. Pick a strong random 32+ char token. NOT the HMAC signing key — `X-HookMyApp-Signature-256` is keyed on the channel's separate `WEBHOOK_HMAC_SECRET` (exported by `channels env`), which this command never touches. Omitting the flag leaves the prior token in place (desirable for URL-only rotation; undesirable when you want to rotate the token itself). See SKILL.md "Signature verification". |
 
 Global flags: `--workspace`, `--json`.
 
@@ -46,15 +46,16 @@ hookmyapp channels webhook set ch_AAAAAAAA --url https://new-host.acme.com/webho
 
 ### Rotating VERIFY_TOKEN
 
-Server-side rotation is a two-step dance: the CLI changes the forwarder's signing key, and your server has to read the new token from `.env` simultaneously. A gap between the two breaks signature verification (your handler decides the response — the starter kit returns `401`; your implementation may differ) until both sides agree.
+Two distinct secrets, only one of which this command rotates:
+
+- **`VERIFY_TOKEN`** (rotated by `--verify-token`) — the verify-GET handshake value. Roll your server's `VERIFY_TOKEN` env var in the same deploy; the URL re-verification probe fails until your endpoint returns the new value.
+- **`WEBHOOK_HMAC_SECRET`** (NOT touched by this command) — the HMAC-SHA256 key for `X-HookMyApp-Signature-256`. Signature verification keeps working across a verify-token rotation. Re-pull it any time with `hookmyapp channels env <channel>`.
 
 ```bash
 hookmyapp channels webhook set ch_AAAAAAAA \
   --url https://api.acme.com/whatsapp/webhook \
   --verify-token <new-token>
 ```
-
-Roll your server's `VERIFY_TOKEN` env var at the same time (same deploy, ideally) — otherwise inbound traffic will fail signature verification during the window between server restart and `webhook set`, and your handler will reject each request with whatever status it returns on HMAC mismatch.
 
 **Exit codes:** `0` success · `1` URL did not pass Meta's verify GET · `2` WABA not found in workspace · `3` not authorized for WABA.
 

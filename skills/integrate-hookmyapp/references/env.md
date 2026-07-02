@@ -9,7 +9,7 @@ description: Print or write the env keys for a connected channel (`channels env`
 
 | Context | Command | WhatsApp keys | Instagram keys |
 |---|---|---|---|
-| Real channel | `channels env <channel>` | `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN` (no `PORT`) | `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN` (no `PORT`) |
+| Real channel | `channels env <channel>` | `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`) | `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`) |
 | Sandbox | `sandbox env` | `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `VERIFY_TOKEN`, `PORT` | `INSTAGRAM_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `VERIFY_TOKEN`, `PORT` |
 
 > For a real channel `META_GRAPH_API_URL` is the **versioned** gateway base `https://gateway.hookmyapp.com/meta/v22.0` for WhatsApp, and `INSTAGRAM_GRAPH_API_URL` is `https://gateway.hookmyapp.com/meta/v25.0` for Instagram. The base-URL key and the account-id key are NAMED differently per context: real-channel WhatsApp uses `META_GRAPH_API_URL`, sandbox uses `WHATSAPP_API_URL`; real-channel Instagram uses `INSTAGRAM_GRAPH_API_URL` + `INSTAGRAM_USER_ID`, sandbox uses `INSTAGRAM_API_URL` + `INSTAGRAM_ACCOUNT_ID`. The table above is the complete key set for each context.
@@ -32,18 +32,19 @@ Print (or write) credentials for a connected channel.
 
 **Keys printed:**
 
-For WhatsApp channels (six keys, no `PORT`):
+For WhatsApp channels (seven keys, no `PORT`):
 
 | Key | Purpose |
 |-----|---------|
 | `META_GRAPH_API_URL` | Versioned gateway base for this channel (`https://gateway.hookmyapp.com/meta/v22.0`). The kit appends `/{phone_number_id}/messages`, so the version segment must be present. |
 | `WHATSAPP_ACCESS_TOKEN` | The channel's gateway access token (`hmat_…`), minted automatically at connect. Send it as `Authorization: Bearer`. Rotate via `hookmyapp channels token <channel> --rotate` if leaked. |
-| `WHATSAPP_PHONE_NUMBER_ID` | The phone number ID for this channel. |
+| `WHATSAPP_PHONE_NUMBER_ID` | The phone number ID for this channel. A WABA can hold several numbers — each connects as its own channel, and each channel's env carries that channel's own number ID. |
 | `WHATSAPP_WABA_ID` | WhatsApp Business Account ID. |
 | `HOOKMYAPP_CHANNEL_ID` | HookMyApp channel public ID. |
-| `VERIFY_TOKEN` | Per-channel HMAC secret for webhook verification. |
+| `VERIFY_TOKEN` | Webhook verify-GET handshake response value (what your endpoint returns on the verify GET). NOT the HMAC key. |
+| `WEBHOOK_HMAC_SECRET` | Per-channel HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks. |
 
-Instagram channels print the five-key `INSTAGRAM_*` set: `INSTAGRAM_GRAPH_API_URL` (gateway base `https://gateway.hookmyapp.com/meta/v25.0`), `INSTAGRAM_ACCESS_TOKEN` (a gateway `hmat_…` access token), `INSTAGRAM_USER_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`.
+Instagram channels print the six-key `INSTAGRAM_*` set: `INSTAGRAM_GRAPH_API_URL` (gateway base `https://gateway.hookmyapp.com/meta/v25.0`), `INSTAGRAM_ACCESS_TOKEN` (a gateway `hmat_…` access token), `INSTAGRAM_USER_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET`.
 
 > **Safety:** `WHATSAPP_ACCESS_TOKEN` and `INSTAGRAM_ACCESS_TOKEN` carry a gateway `hmat_` access token, not a Meta token. It is scoped to one channel and rotatable via `hookmyapp channels token <channel> --rotate`, but still secret. Never log it, never paste it into a chat, never commit it. Store only in an environment-variable secret manager (e.g. GCP Secret Manager, AWS Secrets Manager, Vault).
 
@@ -58,7 +59,8 @@ WHATSAPP_ACCESS_TOKEN=hmat_live_AbCdEf0123456789AbCdEf0123456789
 WHATSAPP_PHONE_NUMBER_ID=1080996501762047
 WHATSAPP_WABA_ID=1276334778010256
 HOOKMYAPP_CHANNEL_ID=ch_AAAAAAAA
-VERIFY_TOKEN=replace-with-your-32-char-webhook-token
+VERIFY_TOKEN=0f47ac10b58cc4372a5670e02b2c3d47
+WEBHOOK_HMAC_SECRET=9b2f1c8e4d6a0b3f5e7c9d1a2b4c6d8e
 ```
 
 The base URL is always **versioned** (`/meta/v22.0` for WhatsApp, `/meta/v25.0` for Instagram) because your app appends `/{id}/messages` to it. A bare `/meta` base would produce `/{id}/messages` with no API version and Meta would reject it. Never put a bare `/meta` in a customer `.env`.
