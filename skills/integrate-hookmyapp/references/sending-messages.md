@@ -145,4 +145,4 @@ export async function sendInstagram(recipientIgsid, text) {
 }
 ```
 
-The env-key fallbacks (`INSTAGRAM_API_URL` then `INSTAGRAM_GRAPH_API_URL`; `INSTAGRAM_ACCOUNT_ID` then `INSTAGRAM_USER_ID`) bridge the sandbox vs real-channel key-name split documented in [env.md](env.md).
+The env-key fallbacks (`INSTAGRAM_API_URL` then `INSTAGRAM_GRAPH_API_URL`; `INSTAGRAM_ACCOUNT_ID` then `INSTAGRAM_USER_ID`) bridge the sandbox vs real-channel base-URL key split documented in [env.md](env.md), plus the legacy `INSTAGRAM_USER_ID` alias from older `.env` files (both contexts now emit `INSTAGRAM_ACCOUNT_ID`).

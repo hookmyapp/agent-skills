@@ -6,7 +6,7 @@ function usage() {
   return {
     usage:
       'node scripts/ig-reply-comment.mjs --comment <id> --text "thanks!"   (add --private for a DM reply instead)',
-    env: ['INSTAGRAM_ACCESS_TOKEN', 'INSTAGRAM_USER_ID', 'INSTAGRAM_GRAPH_API_URL'],
+    env: ['INSTAGRAM_ACCESS_TOKEN', 'INSTAGRAM_ACCOUNT_ID', 'INSTAGRAM_GRAPH_API_URL'],
     notes: [
       'Default: public reply under the comment (POST /{comment-id}/replies).',
       '--private: send a private DM in response to the comment (one per comment, within the window).',
@@ -27,7 +27,7 @@ async function main() {
     let res;
     if (isPrivate) {
       const id = getFlag(flags, ['ig-id', 'ig_id']) || igId;
-      if (!id) throw new Error('No IG user id: set INSTAGRAM_USER_ID or pass --ig-id (needed for --private)');
+      if (!id) throw new Error('No IG user id: set INSTAGRAM_ACCOUNT_ID or pass --ig-id (needed for --private)');
       const body = { recipient: { comment_id: comment }, message: { text } };
       res = await gatewayRequest({ baseUrl, token, method: 'POST', path: `${id}/messages`, body });
     } else {

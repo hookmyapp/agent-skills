@@ -5,7 +5,7 @@ import { ok, err, printResult } from './lib/output.mjs';
 function usage() {
   return {
     usage: 'node scripts/ig-mark-seen.mjs --to <igsid>',
-    env: ['INSTAGRAM_ACCESS_TOKEN', 'INSTAGRAM_USER_ID', 'INSTAGRAM_GRAPH_API_URL'],
+    env: ['INSTAGRAM_ACCESS_TOKEN', 'INSTAGRAM_ACCOUNT_ID', 'INSTAGRAM_GRAPH_API_URL'],
     notes: ['Marks the DM thread with this sender as seen.'],
   };
 }
@@ -17,7 +17,7 @@ async function main() {
   try {
     const { baseUrl, token, igId } = instagramConfig();
     const id = getFlag(flags, ['ig-id', 'ig_id']) || igId;
-    if (!id) throw new Error('No IG user id: set INSTAGRAM_USER_ID or pass --ig-id');
+    if (!id) throw new Error('No IG user id: set INSTAGRAM_ACCOUNT_ID or pass --ig-id');
     const to = requireFlag(flags, ['to'], 'to');
 
     const body = { recipient: { id: to }, sender_action: 'mark_seen' };

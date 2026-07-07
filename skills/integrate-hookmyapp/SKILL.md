@@ -18,9 +18,9 @@ HookMyApp is a passthrough for WhatsApp and Instagram: the user keeps their own 
 
 ### Key Principles
 
-- **The CLI is the source of truth.** Never embed credentials inline in generated code. Run `hookmyapp sandbox env --write .env` or `hookmyapp channels env <channel> --write` (which mints a fresh gateway `hmat_` access token) and let the user's app read from environment variables.
+- **The CLI is the source of truth.** Never embed credentials inline in generated code. Run `hookmyapp sandbox env --write .env` or `hookmyapp channels env <channel> --write` (which exports the channel's current gateway `hmat_` access token — only `channels token --rotate` mints a new one) and let the user's app read from environment variables.
 - **There is no environment to select.** Every command runs against the live HookMyApp service. Pass `--workspace <id>` only when the user has multiple workspaces and a command must hit one other than the active default.
-- **Browser steps cannot be automated.** `login` and `channels connect` both open browser tabs the human must complete. Do not pretend to automate them — hand the terminal back with a clear instruction.
+- **Browser steps cannot be automated.** `login` and `channels connect` both open browser tabs the human must complete. Do not pretend to automate them — hand the terminal back with a clear instruction. Exception: `hookmyapp login --email <addr>` is a browser-free login (an OTP code arrives at the human's email; they paste it back) — prefer it in agent/CI contexts. See [references/auth.md](references/auth.md).
 - **Sandbox is not your own channel.** Sandbox is a HookMyApp-hosted test account with 5 env keys, no templates, and recipient pinned to the session phone. Your own channel is your WhatsApp number or Instagram account, with 7 env keys (from `channels env`) and full template support. The two are not interchangeable — pick one based on the user's goal before generating code.
 - **Your own channel has two webhook-delivery flavors: CLI tunnel OR your own URL.** A connected channel can receive inbound webhooks via either (a) `hookmyapp channels listen` (the CLI provisions a per-channel Cloudflare tunnel — no public HTTPS URL required, designed for local dev / self-hosted agents / 24/7 hobby projects) or (b) `hookmyapp channels webhook set <channel> --url https://...` (your own public HTTPS endpoint, the classic deployed pattern). Pick CLI when the user is developing on localhost or running an always-on self-hosted agent (e.g. on a personal server or Raspberry Pi); pick URL when the user has a deployed backend ready to accept inbound webhooks. The two are mutually exclusive per channel — setting a URL while the CLI is listening evicts the CLI (it exits cleanly with a notice).
 
@@ -49,9 +49,17 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 - A HookMyApp account. Sign up at <https://app.hookmyapp.com/signup>.
 - To connect your own channel: a Facebook Business Manager account (for `channels connect` embedded signup).
 
-## Skill Setup (run once before any CLI command)
+## Skill Setup (run before any CLI command)
 
-Before invoking any `hookmyapp` CLI command on the user's machine, write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
+Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the user's machine:
+
+```bash
+command -v hookmyapp >/dev/null 2>&1 || npm install -g @gethookmyapp/cli
+```
+
+If `npm` is missing or global installs are blocked, stop and tell the user to install Node.js 18+ and the CLI with `npm install -g @gethookmyapp/cli`. Do not continue with guessed commands or raw API calls just because the CLI is absent.
+
+Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
 mkdir -p ~/.config/hookmyapp && echo "0.8.0" > ~/.config/hookmyapp/skill-version
@@ -87,9 +95,9 @@ Read that file when starting a fresh integration; the sections below are the per
 
 | Group | Purpose | Full reference |
 |-------|---------|----------------|
-| auth | Log in and log out. | [references/auth.md](references/auth.md) |
-| billing | Show subscription status, open Stripe portal, upgrade plan. | [references/billing.md](references/billing.md) |
-| channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `env`/`health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
+| auth | Log in (browser, bootstrap code, or browser-free email OTP via `login --email`) and log out; `credentials {list,revoke}` manages the agent credentials `login --email` mints. | [references/auth.md](references/auth.md) |
+| billing | Show subscription status, open the app Billing page, upgrade plan (billing is pooled across your organization). | [references/billing.md](references/billing.md) |
+| channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `move <channel> <target>` (to another workspace or customer), `env`/`health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
 | whatsapp (`wa`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `templates {list,get,create,delete}`, `media {upload,get,download,delete}`, `profile {get,update}`. | [references/whatsapp.md](references/whatsapp.md) |
 | instagram (`ig`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `comments {list,get,reply,private-reply,hide,delete}`. | [references/instagram.md](references/instagram.md) |
 | channel tokens | Read and rotate the channel's gateway access token (`hmat_…`) via `channels token [--rotate]` (one active token per channel). | [references/access-tokens.md](references/access-tokens.md) |
