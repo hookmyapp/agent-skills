@@ -56,10 +56,10 @@ Comment and media ids come from the inbound webhook (the `comments` field) or `c
 
 | Script | Does | Env it reads |
 |--------|------|--------------|
-| `ig-send-dm.mjs` | Send a DM (`--to --text`, or `--file`) | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID`, `INSTAGRAM_GRAPH_API_URL` |
+| `ig-send-dm.mjs` | Send a DM (`--to --text`, or `--file`) | `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `INSTAGRAM_GRAPH_API_URL` |
 | `ig-mark-seen.mjs` | Mark a DM thread seen (`--to`) | same |
 | `ig-list-comments.mjs` | List comments on a media (`--media --limit`) | `INSTAGRAM_ACCESS_TOKEN` |
-| `ig-reply-comment.mjs` | Public reply, or `--private` DM (`--comment --text`) | + `INSTAGRAM_USER_ID` for `--private` |
+| `ig-reply-comment.mjs` | Public reply, or `--private` DM (`--comment --text`) | + `INSTAGRAM_ACCOUNT_ID` for `--private` |
 
 Run any script with `--help`. Scripts auto-load `./.env` (override with `--dotenv <path>`) and print a JSON `{ok,...}` envelope, exit `0` on success, `2` on error.
 

@@ -16,11 +16,13 @@ See [env.md](env.md) for the exact env-key shapes each path produces, and the "T
 
 Seven steps from zero to a running webhook receiver that echoes inbound WhatsApp messages:
 
-**1. Install the CLI**
+**1. Make sure the CLI is installed**
 
 ```bash
-npm install -g @gethookmyapp/cli
+command -v hookmyapp >/dev/null 2>&1 || npm install -g @gethookmyapp/cli
 ```
+
+If the install fails because `npm` is missing or global installs are blocked, stop and ask the human to install Node.js 18+ and run `npm install -g @gethookmyapp/cli`.
 
 **2. Log in**
 
@@ -137,7 +139,7 @@ Write to `.env` so the bundled scripts ([whatsapp.md](whatsapp.md), [instagram.m
 | `VERIFY_TOKEN` | Verify-GET handshake response value; set when you configure the webhook (step 6). NOT the HMAC key. |
 | `WEBHOOK_HMAC_SECRET` | HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks. |
 
-There is NO `PORT` key in `channels env` output (that key only appears in `sandbox env`). For Instagram, `channels env <channel>` emits `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET`. See [env.md](env.md) for both shapes and secrets-management guidance.
+There is NO `PORT` key in `channels env` output (that key only appears in `sandbox env`). For Instagram, `channels env <channel>` emits `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET`. See [env.md](env.md) for both shapes and secrets-management guidance.
 
 **6. Configure the webhook URL**
 

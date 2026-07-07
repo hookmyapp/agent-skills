@@ -5,7 +5,7 @@ import { ok, err, printResult } from './lib/output.mjs';
 function usage() {
   return {
     usage: 'node scripts/ig-send-dm.mjs --to <igsid> --text "hi"   (or --file <body.json>)',
-    env: ['INSTAGRAM_ACCESS_TOKEN', 'INSTAGRAM_USER_ID', 'INSTAGRAM_GRAPH_API_URL'],
+    env: ['INSTAGRAM_ACCESS_TOKEN', 'INSTAGRAM_ACCOUNT_ID', 'INSTAGRAM_GRAPH_API_URL'],
     notes: [
       'IGSID is the sender id from the inbound webhook — you can only DM someone who messaged you first.',
       'Body shape is {recipient:{id},message:{text}} (not WhatsApp messaging_product).',
@@ -20,7 +20,7 @@ async function main() {
   try {
     const { baseUrl, token, igId } = instagramConfig();
     const id = getFlag(flags, ['ig-id', 'ig_id']) || igId;
-    if (!id) throw new Error('No IG user id: set INSTAGRAM_USER_ID or pass --ig-id');
+    if (!id) throw new Error('No IG user id: set INSTAGRAM_ACCOUNT_ID or pass --ig-id');
 
     let body;
     if (getFlag(flags, ['file', 'json', 'body'])) {

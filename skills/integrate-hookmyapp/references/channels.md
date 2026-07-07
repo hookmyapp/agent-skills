@@ -135,6 +135,19 @@ Disable inbound webhook forwarding for a channel. Outbound sends still work; inb
 hookmyapp channels disable ch_AAAAAAAA
 ```
 
+## channels move
+
+Move a channel to another workspace or customer in the same organization.
+
+```bash
+hookmyapp channels move ch_AAAAAAAA "Acme Cafe"     # target by name
+hookmyapp channels move ch_AAAAAAAA ws_BBBBBBBB     # target by publicId
+```
+
+**Arguments:** `<channel>` (`ch_xxxxxxxx`, phone number, or `@<username>`) and `<target>` (workspace/customer `ws_xxxxxxxx` or name). Cross-kind moves (team workspace ↔ customer) are allowed. Global `--json` returns the machine-readable result.
+
+**Browser step required:** No
+
 ## Other channel subcommands
 
 `channels` also exposes per-channel `env`, `health`, `token [--rotate]`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]`; the channel's gateway access token is read and rotated with `channels token` (one active token per channel — there is no separate access-tokens command group). Each has its own reference: [env](env.md), [access tokens](access-tokens.md), [health](health.md), [webhook](webhook.md). `logs` and `listen` are documented inline in [SKILL.md](../SKILL.md).

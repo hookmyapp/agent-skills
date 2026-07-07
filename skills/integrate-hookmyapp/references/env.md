@@ -9,10 +9,10 @@ description: Print or write the env keys for a connected channel (`channels env`
 
 | Context | Command | WhatsApp keys | Instagram keys |
 |---|---|---|---|
-| Real channel | `channels env <channel>` | `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`) | `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_USER_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`) |
+| Real channel | `channels env <channel>` | `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`) | `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`) |
 | Sandbox | `sandbox env` | `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `VERIFY_TOKEN`, `PORT` | `INSTAGRAM_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `VERIFY_TOKEN`, `PORT` |
 
-> For a real channel `META_GRAPH_API_URL` is the **versioned** gateway base `https://gateway.hookmyapp.com/meta/v22.0` for WhatsApp, and `INSTAGRAM_GRAPH_API_URL` is `https://gateway.hookmyapp.com/meta/v25.0` for Instagram. The base-URL key and the account-id key are NAMED differently per context: real-channel WhatsApp uses `META_GRAPH_API_URL`, sandbox uses `WHATSAPP_API_URL`; real-channel Instagram uses `INSTAGRAM_GRAPH_API_URL` + `INSTAGRAM_USER_ID`, sandbox uses `INSTAGRAM_API_URL` + `INSTAGRAM_ACCOUNT_ID`. The table above is the complete key set for each context.
+> For a real channel `META_GRAPH_API_URL` is the **versioned** gateway base `https://gateway.hookmyapp.com/meta/v22.0` for WhatsApp, and `INSTAGRAM_GRAPH_API_URL` is `https://gateway.hookmyapp.com/meta/v25.0` for Instagram. The base-URL key is NAMED differently per context: real-channel WhatsApp uses `META_GRAPH_API_URL`, sandbox uses `WHATSAPP_API_URL`; real-channel Instagram uses `INSTAGRAM_GRAPH_API_URL`, sandbox uses `INSTAGRAM_API_URL`. The Instagram account-id key is `INSTAGRAM_ACCOUNT_ID` in both contexts (`INSTAGRAM_USER_ID` is a legacy alias that may linger in older `.env` files; the bundled scripts still accept it as a fallback). The table above is the complete key set for each context.
 
 ## channels env
 
@@ -23,7 +23,7 @@ Print (or write) credentials for a connected channel.
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--workspace` | string | no | active | Target workspace. |
-| `--write [path]` | string | no | | Write the keys to a `.env` file (default `.env`) instead of stdout. Mints a fresh gateway access token in the process. |
+| `--write [path]` | string | no | | Write the keys to a `.env` file (default `.env`) instead of stdout. Exports the channel's current gateway access token — it does NOT mint or rotate. |
 | `--json` | boolean | no | `false` | JSON `{channel_id, ...}` reflecting the channel shape. |
 
 **Arguments:** `<channel>` — e.g. `ch_AAAAAAAA`.
@@ -44,7 +44,7 @@ For WhatsApp channels (seven keys, no `PORT`):
 | `VERIFY_TOKEN` | Webhook verify-GET handshake response value (what your endpoint returns on the verify GET). NOT the HMAC key. |
 | `WEBHOOK_HMAC_SECRET` | Per-channel HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks. |
 
-Instagram channels print the six-key `INSTAGRAM_*` set: `INSTAGRAM_GRAPH_API_URL` (gateway base `https://gateway.hookmyapp.com/meta/v25.0`), `INSTAGRAM_ACCESS_TOKEN` (a gateway `hmat_…` access token), `INSTAGRAM_USER_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET`.
+Instagram channels print the six-key `INSTAGRAM_*` set: `INSTAGRAM_GRAPH_API_URL` (gateway base `https://gateway.hookmyapp.com/meta/v25.0`), `INSTAGRAM_ACCESS_TOKEN` (a gateway `hmat_…` access token), `INSTAGRAM_ACCOUNT_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET`. (Instagram accounts connected via Facebook Login additionally carry `META_PAGE_ID`.)
 
 > **Safety:** `WHATSAPP_ACCESS_TOKEN` and `INSTAGRAM_ACCESS_TOKEN` carry a gateway `hmat_` access token, not a Meta token. It is scoped to one channel and rotatable via `hookmyapp channels token <channel> --rotate`, but still secret. Never log it, never paste it into a chat, never commit it. Store only in an environment-variable secret manager (e.g. GCP Secret Manager, AWS Secrets Manager, Vault).
 
@@ -70,7 +70,7 @@ Re-running `--write` rewrites the file with the channel's current access token �
 **Examples:**
 
 ```bash
-# Write the keys (and a fresh hmat_ gateway access token) straight into .env
+# Write the keys (carrying the channel's current hmat_ gateway access token) straight into .env
 hookmyapp channels env ch_AAAAAAAA --write
 
 # Write to a named file (bundled scripts then need --dotenv .env.whatsapp, since they default to ./.env)
