@@ -1,6 +1,6 @@
 ---
 name: integrate-hookmyapp
-description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, manage WhatsApp templates/media or the business profile, moderate Instagram comments, set up a sandbox session, connect their own WhatsApp number or Instagram account via Meta embedded signup, connect the HookMyApp MCP server to an agent, or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram messaging api, meta instagram api, hookmyapp instagram, hookmyapp mcp."
+description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, manage WhatsApp templates/media or the business profile, moderate Instagram comments, set up a sandbox session, connect their own WhatsApp number or Instagram account via Meta embedded signup, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram messaging api, meta instagram api, hookmyapp instagram, hookmyapp mcp."
 license: Apache-2.0
 metadata:
   author: hookmyapp
@@ -10,7 +10,7 @@ metadata:
 
 # Integrate HookMyApp
 
-HookMyApp is a passthrough for WhatsApp and Instagram: the user keeps their own Meta token inside HookMyApp, HookMyApp forwards inbound messages to their code, and their replies go straight through Meta (it is not a BSP middleman). Outbound sends route through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`): the user's app carries a minted `hmat_` gateway access token, the gateway swaps it for the underlying Meta token server-side, and the path after `/meta` is verbatim Meta Graph API. This skill teaches AI coding agents how to drive the `@gethookmyapp/cli` to integrate a user's app with either a sandbox account (for dev and testing) or the user's own WhatsApp number / Instagram account (connected via Meta embedded signup). The CLI owns credential issuance, tunnel lifecycle, and webhook configuration. Your code never needs to call the HookMyApp API directly.
+HookMyApp is a passthrough for WhatsApp and Instagram: the user keeps their own Meta token inside HookMyApp, HookMyApp forwards inbound messages to their code, and their replies go straight through Meta (it is not a BSP middleman). Outbound sends route through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`): the user's app carries a minted `hmat_` gateway access token, the gateway swaps it for the underlying Meta token server-side, and the path after `/meta` is verbatim Meta Graph API. This skill teaches AI coding agents how to drive the `@gethookmyapp/cli` to integrate a user's app with either a sandbox account (for dev and testing) or the user's own WhatsApp number / Instagram account (connected via Meta embedded signup). The CLI owns credential issuance, tunnel lifecycle, and webhook configuration. For a single own-channel integration your code never needs to call the HookMyApp API directly; SaaS builders whose backend must manage customers at runtime use the [REST API](references/api.md).
 
 > **Direct Meta access still works.** Integrations that already call `https://graph.facebook.com` with their own Meta token are unaffected. The gateway with a minted `hmat_` access token is the recommended path for new setups: the access token is scoped to one channel and revocable, and the Meta token never leaves HookMyApp.
 
@@ -109,6 +109,10 @@ Read that file when starting a fresh integration; the sections below are the per
 ### MCP server (operate HookMyApp without the CLI)
 
 HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 20 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, and message sending. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files). Auth is browser sign-in (OAuth, auto-discovered via `.well-known/oauth-protected-resource/mcp`) or an org API key (`hmok_...`) as `Authorization: Bearer` / `X-API-Key`. Client setup snippets (Codex, Claude Code, Cursor), the full tool table, working order, and safety rules: [references/mcp.md](references/mcp.md).
+
+### REST API (runtime automation from the user's backend)
+
+When the user's own backend must operate HookMyApp at runtime — create a customer and mint an onboarding link when someone signs up in *their* product, read channel tokens, set webhook destinations, list delivery logs — generate code against the public REST API at `https://api.hookmyapp.com` (`hmok_` org API key as `Authorization: Bearer`; customer-channel routes also need `X-Workspace-Id: ws_...`). Pick the surface by caller: CLI for a terminal, MCP for a shell-less agent, REST for code the user ships. Endpoint map, auth, the SaaS runtime flow, and safety rules: [references/api.md](references/api.md).
 
 ### Bundled scripts & assets (runtime fallback, no CLI at send time)
 
@@ -243,7 +247,7 @@ Full decision tree and error table: [references/troubleshooting.md](references/t
 [integrate-hookmyapp file map]|root: .
 |.:{package.json,SKILL.md}
 |assets:{ig-send-dm.json,wa-send-image.json,wa-send-interactive-buttons.json,wa-send-template.json,wa-send-text.json,wa-template-utility.json}
-|references:{access-tokens.md,auth.md,billing.md,channels.md,config.md,customers.md,env.md,getting-started.md,health.md,instagram.md,mcp.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
+|references:{access-tokens.md,api.md,auth.md,billing.md,channels.md,config.md,customers.md,env.md,getting-started.md,health.md,instagram.md,mcp.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
 |scripts:{ig-list-comments.mjs,ig-mark-seen.mjs,ig-reply-comment.mjs,ig-send-dm.mjs,wa-create-template.mjs,wa-list-templates.mjs,wa-mark-read.mjs,wa-send-message.mjs,wa-send-template.mjs,wa-update-profile.mjs,wa-upload-media.mjs}
 |scripts/lib:{args.mjs,env.mjs,gateway.mjs,output.mjs}
 ```
