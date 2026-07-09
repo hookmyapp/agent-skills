@@ -2,6 +2,7 @@
 name: integrate-hookmyapp
 description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, manage WhatsApp templates/media or the business profile, moderate Instagram comments, set up a sandbox session, connect their own WhatsApp number or Instagram account via Meta embedded signup, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram messaging api, meta instagram api, hookmyapp instagram, hookmyapp mcp."
 license: Apache-2.0
+compatibility: Requires Node.js 18+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
   version: "0.8.0"
