@@ -14,7 +14,7 @@ Works with Claude Code, Cursor, Codex CLI, Gemini CLI, and other compatible agen
 
 | Skill | Description |
 |-------|-------------|
-| [integrate-hookmyapp](./skills/integrate-hookmyapp/SKILL.md) | Set up WhatsApp Business or Instagram integration -- receive webhooks and send messages |
+| [integrate-hookmyapp](./skills/integrate-hookmyapp/SKILL.md) | Set up WhatsApp Business or Instagram integration -- receive webhooks and send messages. Covers the CLI, the hosted MCP server, and the public REST API |
 
 ## Prerequisites
 
