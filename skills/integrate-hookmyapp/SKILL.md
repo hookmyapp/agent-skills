@@ -1,6 +1,6 @@
 ---
 name: integrate-hookmyapp
-description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, manage WhatsApp templates/media or the business profile, moderate Instagram comments, set up a sandbox session, connect their own WhatsApp number or Instagram account via Meta embedded signup, or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram messaging api, meta instagram api, hookmyapp instagram."
+description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, manage WhatsApp templates/media or the business profile, moderate Instagram comments, set up a sandbox session, connect their own WhatsApp number or Instagram account via Meta embedded signup, connect the HookMyApp MCP server to an agent, or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram messaging api, meta instagram api, hookmyapp instagram, hookmyapp mcp."
 license: Apache-2.0
 metadata:
   author: hookmyapp
@@ -105,6 +105,10 @@ Read that file when starting a fresh integration; the sections below are the per
 | customers | SaaS customer workspaces: `list`, `new`, `use`, `current`, and `onboarding-links {list,create}` — mint connect links your end-customers open to connect their channel (no HookMyApp account needed). | [references/customers.md](references/customers.md) |
 | sandbox | Start a session `[whatsapp|instagram]`, write the env file, open a tunnel, send test messages, `webhook {show,set,clear}`, `logs`. | [references/sandbox.md](references/sandbox.md) |
 | workspace | List, select, rename, and manage workspace members (tenancy scope). | [references/workspace.md](references/workspace.md) |
+
+### MCP server (operate HookMyApp without the CLI)
+
+HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 20 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, and message sending. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files). Auth is browser sign-in (OAuth, auto-discovered via `.well-known/oauth-protected-resource/mcp`) or an org API key (`hmok_...`) as `Authorization: Bearer` / `X-API-Key`. Client setup snippets (Codex, Claude Code, Cursor), the full tool table, working order, and safety rules: [references/mcp.md](references/mcp.md).
 
 ### Bundled scripts & assets (runtime fallback, no CLI at send time)
 
@@ -239,7 +243,7 @@ Full decision tree and error table: [references/troubleshooting.md](references/t
 [integrate-hookmyapp file map]|root: .
 |.:{package.json,SKILL.md}
 |assets:{ig-send-dm.json,wa-send-image.json,wa-send-interactive-buttons.json,wa-send-template.json,wa-send-text.json,wa-template-utility.json}
-|references:{access-tokens.md,auth.md,billing.md,channels.md,config.md,customers.md,env.md,getting-started.md,health.md,instagram.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
+|references:{access-tokens.md,auth.md,billing.md,channels.md,config.md,customers.md,env.md,getting-started.md,health.md,instagram.md,mcp.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
 |scripts:{ig-list-comments.mjs,ig-mark-seen.mjs,ig-reply-comment.mjs,ig-send-dm.mjs,wa-create-template.mjs,wa-list-templates.mjs,wa-mark-read.mjs,wa-send-message.mjs,wa-send-template.mjs,wa-update-profile.mjs,wa-upload-media.mjs}
 |scripts/lib:{args.mjs,env.mjs,gateway.mjs,output.mjs}
 ```
