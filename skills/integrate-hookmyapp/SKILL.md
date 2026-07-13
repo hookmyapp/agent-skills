@@ -2,7 +2,7 @@
 name: integrate-hookmyapp
 description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, manage WhatsApp templates/media or the business profile, moderate Instagram comments, set up a sandbox session, connect their own WhatsApp number or Instagram account via Meta embedded signup, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram messaging api, meta instagram api, hookmyapp instagram, hookmyapp mcp."
 license: Apache-2.0
-compatibility: Requires Node.js 18+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
+compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
   version: "0.8.0"
@@ -46,7 +46,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 
 ## Prerequisites
 
-- Node.js 18 or newer (for the CLI and the typical webhook server).
+- Node.js 20 or newer (for the CLI and the typical webhook server).
 - A HookMyApp account. Sign up at <https://app.hookmyapp.com/signup>.
 - To connect your own channel: a Facebook Business Manager account (for `channels connect` embedded signup).
 
@@ -58,7 +58,7 @@ Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the use
 command -v hookmyapp >/dev/null 2>&1 || npm install -g @gethookmyapp/cli
 ```
 
-If `npm` is missing or global installs are blocked, stop and tell the user to install Node.js 18+ and the CLI with `npm install -g @gethookmyapp/cli`. Do not continue with guessed commands or raw API calls just because the CLI is absent.
+If `npm` is missing or global installs are blocked, stop and tell the user to install Node.js 20+ and the CLI with `npm install -g @gethookmyapp/cli`. Do not continue with guessed commands or raw API calls just because the CLI is absent.
 
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 

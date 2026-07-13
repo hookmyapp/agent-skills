@@ -18,7 +18,7 @@ Works with Claude Code, Cursor, Codex CLI, Gemini CLI, and other compatible agen
 
 ## Prerequisites
 
-- Node.js >= 18
+- Node.js >= 20
 - A HookMyApp account
 
 The skill checks for the HookMyApp CLI before running commands. If `hookmyapp` is missing, it installs `@gethookmyapp/cli` with npm.
