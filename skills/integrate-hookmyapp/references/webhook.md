@@ -32,7 +32,7 @@ Global flags: `--workspace`, `--json`.
 
 **Examples:**
 
-`--verify-token` is always optional — the backend auto-generates a verify token when the channel has none (the same value `channels env` exports as `VERIFY_TOKEN`). Omit either flag on later calls to keep that field's existing value.
+`--verify-token` is always optional — the backend auto-generates a verify token when the channel has none (the same value `channels env` exports as `VERIFY_TOKEN`). Omit it on later calls to keep the existing token; `--url` is required on every call.
 
 ```bash
 # First-time setup — URL only (verify token auto-generated; read it via `channels env`)

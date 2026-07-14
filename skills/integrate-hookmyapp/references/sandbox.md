@@ -150,7 +150,7 @@ Global flags: `--workspace`.
 
 **Browser step required:** No
 
-**Behavior:** Leaves the process running in the foreground. Ctrl-C terminates the tunnel. Defaults (`port 3000`, `path /webhook`) are aligned with the webhook-starter-kit's Express routes — a fresh `git clone` + `npm start` + `sandbox listen` round-trips Meta's verification GET out of the box.
+**Behavior:** Leaves the process running in the foreground. Ctrl-C terminates the tunnel. Defaults (`port 3000`, `path /webhook`) are aligned with the webhook-starter-kit's Express routes — a fresh `git clone` + `npm start` + `sandbox listen` receives forwarded webhooks out of the box (no verify-GET handshake — the sandbox tunnel never issues one).
 
 **Examples:**
 

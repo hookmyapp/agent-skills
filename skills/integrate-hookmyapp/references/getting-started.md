@@ -148,7 +148,7 @@ hookmyapp channels webhook set ch_AAAAAAAA \
   --url https://api.acme.com/whatsapp/webhook
 ```
 
-`--verify-token` is **always optional** — the backend auto-generates a verify token if the channel doesn't have one (it's the same `VERIFY_TOKEN` value step 5 exported), and omitting the flag on later calls keeps the existing token (URL-only rotation). Pass `--verify-token <token>` only to choose or rotate the value yourself. The verify token is ONLY the plain-text value your endpoint returns on the webhook verify GET. It is NOT the HMAC key — the forwarder signs every inbound webhook (`X-HookMyApp-Signature-256`) with the separate `WEBHOOK_HMAC_SECRET`, which `channels env <channel>` exports alongside the other keys.
+`--verify-token` is **always optional** — the backend auto-generates a verify token if the channel doesn't have one (it's the same `VERIFY_TOKEN` value step 5 exported), and omitting the flag on later calls keeps the existing token (URL-only rotation). Pass `--verify-token <token>` only to choose or rotate the value yourself — deploy your endpoint returning the new value FIRST (the set-time probe checks it), then re-run `channels env --write` so `.env` matches. The verify token is ONLY the plain-text value your endpoint returns on the webhook verify GET. It is NOT the HMAC key — the forwarder signs every inbound webhook (`X-HookMyApp-Signature-256`) with the separate `WEBHOOK_HMAC_SECRET`, which `channels env <channel>` exports alongside the other keys.
 
 > **HUMAN ACTION REQUIRED:** Before running this, confirm with the human that the URL is the intended endpoint. A typo here silently drops inbound customer messages.
 
