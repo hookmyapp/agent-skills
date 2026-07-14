@@ -58,7 +58,7 @@ Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the use
 command -v hookmyapp >/dev/null 2>&1 || npm install -g @gethookmyapp/cli
 ```
 
-If `npm` is missing or global installs are blocked, stop and tell the user to install Node.js 20+ and the CLI with `npm install -g @gethookmyapp/cli`. Do not continue with guessed commands or raw API calls just because the CLI is absent.
+If `npm` is missing, stop and ask the user to install Node.js 20+ (which includes npm). If global installs are blocked, stop and ask the user to install the CLI themselves (`npm install -g @gethookmyapp/cli`) or make `hookmyapp` available on PATH another way — do not retry the blocked command. Do not continue with guessed commands or raw API calls just because the CLI is absent.
 
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 

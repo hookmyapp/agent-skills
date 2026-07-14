@@ -2,8 +2,8 @@
   "name": "integrate-hookmyapp",
   "private": true,
   "type": "module",
-  "description": "Agent skill: integrate WhatsApp/Instagram via HookMyApp. Fallback scripts use only Node 18+ builtins (fetch) — no dependencies.",
+  "description": "Agent skill: integrate WhatsApp/Instagram via HookMyApp. Fallback scripts use only Node 20+ builtins (fetch) — no dependencies.",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

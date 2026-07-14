@@ -22,7 +22,7 @@ Seven steps from zero to a running webhook receiver that echoes inbound WhatsApp
 command -v hookmyapp >/dev/null 2>&1 || npm install -g @gethookmyapp/cli
 ```
 
-If the install fails because `npm` is missing or global installs are blocked, stop and ask the human to install Node.js 20+ and run `npm install -g @gethookmyapp/cli`.
+If the install fails because `npm` is missing, ask the human to install Node.js 20+ (which includes npm). If global installs are blocked, ask the human to install the CLI themselves or make `hookmyapp` available on PATH another way — do not retry the blocked command.
 
 **2. Log in**
 
