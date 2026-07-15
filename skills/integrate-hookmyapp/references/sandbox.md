@@ -83,7 +83,7 @@ Global flags: `--json`, `--workspace`.
 
 | Key | Purpose |
 |-----|---------|
-| `VERIFY_TOKEN` | Per-session secret. **Sandbox-specific:** this one value plays both roles — the webhook verify-GET response body AND the HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256`. On a real channel these are two distinct values (`VERIFY_TOKEN` + `WEBHOOK_HMAC_SECRET` from `channels env`). |
+| `WEBHOOK_HMAC_SECRET` | Per-session HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks — same key name as `channels env`. No `VERIFY_TOKEN` is written: the sandbox tunnel never issues the verify-GET handshake. |
 | `PORT` | Port your local server listens on (default `3000`). |
 | `WHATSAPP_API_URL` | Sandbox proxy base URL. |
 | `WHATSAPP_ACCESS_TOKEN` | Sandbox activation code. |
@@ -93,7 +93,7 @@ Global flags: `--json`, `--workspace`.
 
 | Key | Purpose |
 |-----|---------|
-| `VERIFY_TOKEN` | Per-session secret. **Sandbox-specific:** this one value plays both roles — the webhook verify-GET response body AND the HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256`. On a real channel these are two distinct values (`VERIFY_TOKEN` + `WEBHOOK_HMAC_SECRET` from `channels env`). |
+| `WEBHOOK_HMAC_SECRET` | Per-session HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks — same key name as `channels env`. No `VERIFY_TOKEN` is written: the sandbox tunnel never issues the verify-GET handshake. |
 | `PORT` | Port your local server listens on (default `3000`). |
 | `INSTAGRAM_API_URL` | Sandbox proxy base URL for Instagram. |
 | `INSTAGRAM_ACCESS_TOKEN` | Sandbox activation code. |
@@ -150,7 +150,7 @@ Global flags: `--workspace`.
 
 **Browser step required:** No
 
-**Behavior:** Leaves the process running in the foreground. Ctrl-C terminates the tunnel. Defaults (`port 3000`, `path /webhook`) are aligned with the webhook-starter-kit's Express routes — a fresh `git clone` + `npm start` + `sandbox listen` round-trips Meta's verification GET out of the box.
+**Behavior:** Leaves the process running in the foreground. Ctrl-C terminates the tunnel. Defaults (`port 3000`, `path /webhook`) are aligned with the webhook-starter-kit's Express routes — a fresh `git clone` + `npm start` + `sandbox listen` receives forwarded webhooks out of the box (no verify-GET handshake — the sandbox tunnel never issues one).
 
 **Examples:**
 

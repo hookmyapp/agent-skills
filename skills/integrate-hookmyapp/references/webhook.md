@@ -20,7 +20,7 @@ Set the webhook URL for a specific channel.
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--url` | URL | yes | — | Public HTTPS URL. Must respond `200` with `VERIFY_TOKEN` body on Meta's verify GET. |
-| `--verify-token` | string | no | (prior token) | Plain-text value your endpoint must return on the webhook verify GET. Pick a strong random 32+ char token. NOT the HMAC signing key — `X-HookMyApp-Signature-256` is keyed on the channel's separate `WEBHOOK_HMAC_SECRET` (exported by `channels env`), which this command never touches. Omitting the flag leaves the prior token in place (desirable for URL-only rotation; undesirable when you want to rotate the token itself). See SKILL.md "Signature verification". |
+| `--verify-token` | string | no | (prior token, or auto-generated) | Plain-text value your endpoint must return on the webhook verify GET. NOT the HMAC signing key — `X-HookMyApp-Signature-256` is keyed on the channel's separate `WEBHOOK_HMAC_SECRET` (exported by `channels env`), which this command never touches. Omitting the flag keeps the prior token (URL-only rotation); if the channel has none yet, the backend auto-generates one (the same `VERIFY_TOKEN` that `channels env` exports). See SKILL.md "Signature verification". |
 
 Global flags: `--workspace`, `--json`.
 
@@ -32,10 +32,14 @@ Global flags: `--workspace`, `--json`.
 
 **Examples:**
 
-Either flag is optional except on first-time setup, where `--verify-token` is required (the forwarder has no prior token to preserve). Subsequent calls may omit either flag to keep the existing value on that field.
+`--verify-token` is always optional — the backend auto-generates a verify token when the channel has none (the same value `channels env` exports as `VERIFY_TOKEN`). Omit it on later calls to keep the existing token; `--url` is required on every call.
 
 ```bash
-# First-time setup — set URL and mint a verify token (both required)
+# First-time setup — URL only (verify token auto-generated; read it via `channels env`)
+hookmyapp channels webhook set ch_AAAAAAAA \
+  --url https://api.acme.com/whatsapp/webhook
+
+# Choose your own verify token instead
 hookmyapp channels webhook set ch_AAAAAAAA \
   --url https://api.acme.com/whatsapp/webhook \
   --verify-token $(openssl rand -hex 32)
