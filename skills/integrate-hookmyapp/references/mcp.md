@@ -73,7 +73,7 @@ Cursor (`mcpServers` in settings):
 }
 ```
 
-## Tools (20)
+## Tools (22)
 
 Read:
 
@@ -95,8 +95,10 @@ Write:
 | Tool | Use it for |
 | --- | --- |
 | `create_workspace` | Create a workspace |
+| `delete_workspace` | Deactivate a customer workspace by its `ws_` ID — history is kept, but every channel inside it is disconnected (org admin only; team workspaces are rejected) |
 | `create_customer` | Create a customer (SaaS Mode) |
 | `create_onboarding_link` | Mint a connect link a customer opens to connect their channel |
+| `revoke_onboarding_link` | Revoke an onboarding link by its `ol_` ID so its connect URL stops working (org admin only) |
 | `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object) |
 | `set_webhook_destination` | Set a channel's webhook destination URL (+ optional verify token) |
 | `clear_webhook_destination` | Clear a channel's webhook destination |
@@ -115,7 +117,7 @@ Write:
 
 The skill-wide safety rules apply unchanged over MCP:
 
-- **Confirm before mutating.** `set_webhook_destination`, `clear_webhook_destination`, `set_forwarding` (disabling = silent inbound message drop), `rotate_hmac` (old signatures stop verifying immediately), `set_org_destination`, and `apply_org_destination_to_channels` all change live message routing — get explicit human confirmation, including the exact channel or customer, before calling.
+- **Confirm before mutating.** `set_webhook_destination`, `clear_webhook_destination`, `set_forwarding` (disabling = silent inbound message drop), `rotate_hmac` (old signatures stop verifying immediately), `set_org_destination`, `apply_org_destination_to_channels`, `delete_workspace` (disconnects every channel in the workspace — inbound traffic stops), and `revoke_onboarding_link` (the connect URL stops working immediately) all change live message routing or connectivity — get explicit human confirmation, including the exact channel, customer, workspace, organization, or `ol_` onboarding-link ID, before calling.
 - **`send_message` sends a real message** to a real person. Confirm recipient channel and content.
 - **Never paste `hmok_` API keys** into chat, tickets, or logs. They are org-scoped credentials; the human creates and stores them.
 - **Verify token ≠ HMAC secret.** The verify token answers the webhook subscription handshake; the HMAC secret (rotated by `rotate_hmac`) signs delivered payloads (`X-HookMyApp-Signature-256`). Don't conflate them when reading `get_webhook_config` output back to the human.
