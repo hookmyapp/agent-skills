@@ -148,11 +148,11 @@ hookmyapp channels webhook set ch_AAAAAAAA \
   --url https://api.acme.com/whatsapp/webhook
 ```
 
-`--verify-token` is **always optional** — the backend auto-generates a verify token if the channel doesn't have one (it's the same `VERIFY_TOKEN` value step 5 exported), and omitting the flag on later calls keeps the existing token (URL-only rotation). Pass `--verify-token <token>` only to choose or rotate the value yourself — deploy your endpoint returning the new value FIRST (the set-time probe checks it), then re-run `channels env --write` so `.env` matches. The verify token is ONLY the plain-text value your endpoint returns on the webhook verify GET. It is NOT the HMAC key — the forwarder signs every inbound webhook (`X-HookMyApp-Signature-256`) with the separate `WEBHOOK_HMAC_SECRET`, which `channels env <channel>` exports alongside the other keys.
+`--verify-token` is **always optional** — the backend auto-generates a verify token if the channel doesn't have one (it's the same `VERIFY_TOKEN` value step 5 exported), and omitting the flag on later calls keeps the existing token (URL-only rotation). Pass `--verify-token <token>` only to choose or rotate the value yourself — deploy your endpoint returning the new value FIRST (the set-time probe checks it), then re-run `hookmyapp channels env ch_AAAAAAAA --write .env` so `.env` matches. The verify token is ONLY the plain-text value your endpoint returns on the webhook verify GET. It is NOT the HMAC key — the forwarder signs every inbound webhook (`X-HookMyApp-Signature-256`) with the separate `WEBHOOK_HMAC_SECRET`, which `channels env <channel>` exports alongside the other keys.
 
 > **HUMAN ACTION REQUIRED:** Before running this, confirm with the human that the URL is the intended endpoint. A typo here silently drops inbound customer messages.
 
-The URL must respond `200 OK` with `VERIFY_TOKEN` (the value step 5 wrote to `.env`) as the plain-text body on Meta's verify GET (HookMyApp performs this check on your behalf when you run `channels webhook set`).
+The URL must respond `200 OK` with the channel's current verify token as the plain-text body on the verify GET — the value step 5 wrote to `.env`, or the new value if you passed `--verify-token` (HookMyApp performs this check on your behalf when you run `channels webhook set`).
 
 - `hookmyapp channels webhook clear <channel>` clears the configured override URL and reverts the channel to the HookMyApp CLI tunnel destination (HookMyAppCLI). It is idempotent. This is the command-line equivalent of clicking "Go back to HookMyAppCLI" in the dashboard before re-running `hookmyapp channels listen`.
 
