@@ -109,7 +109,7 @@ Read that file when starting a fresh integration; the sections below are the per
 
 ### MCP server (operate HookMyApp without the CLI)
 
-HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 20 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, and message sending. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files). Auth is browser sign-in (OAuth, auto-discovered via `.well-known/oauth-protected-resource/mcp`) or an org API key (`hmok_...`) as `Authorization: Bearer` / `X-API-Key`. Client setup snippets (Codex, Claude Code, Cursor), the full tool table, working order, and safety rules: [references/mcp.md](references/mcp.md).
+HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 22 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, and message sending. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files). Auth is browser sign-in (OAuth, auto-discovered via `.well-known/oauth-protected-resource/mcp`) or an org API key (`hmok_...`) as `Authorization: Bearer` / `X-API-Key`. Client setup snippets (Codex, Claude Code, Cursor), the full tool table, working order, and safety rules: [references/mcp.md](references/mcp.md).
 
 ### REST API (runtime automation from the user's backend)
 
