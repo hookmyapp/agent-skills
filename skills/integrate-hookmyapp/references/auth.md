@@ -68,6 +68,8 @@ hookmyapp login --email you@example.com --json
 hookmyapp login --email you@example.com --registration-id <id> --otp <code> --json
 ```
 
+Run the initiation command exactly once and retain its `registrationId`. Any unexpired code sent to the same email during the current 10-minute login window can complete that login. If completion fails, preserve the registration ID, stop, and report the exact error. Do not initiate again or request another code unless all existing codes are expired or locked and the human explicitly approves another email.
+
 > **HUMAN ACTION REQUIRED:** The one-time code goes to the human's email inbox. The agent cannot read it — ask the human to paste the 6-digit code.
 
 The minted credential is scoped to one organization and appears in `hookmyapp credentials list`. Revoking it (or `logout`) ends the session.
