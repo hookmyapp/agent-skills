@@ -48,7 +48,7 @@ cd webhook-starter-kit
 npm install
 ```
 
-The starter kit is a minimal Express app with a verified-signature receiver on `/webhook` and a `sendMessage` helper. It reads the five env keys `sandbox env --write` produces.
+The starter kit is a minimal Express app with a verified-signature receiver on `/webhook` and a `sendMessage` helper. It reads the six env keys `sandbox env --write` produces.
 
 **4. Pull env values**
 
@@ -56,7 +56,7 @@ The starter kit is a minimal Express app with a verified-signature receiver on `
 hookmyapp sandbox env --write .env
 ```
 
-Writes `WEBHOOK_HMAC_SECRET`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` into `.env`. (No `VERIFY_TOKEN` — the sandbox tunnel never issues the verify-GET handshake.)
+Writes `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, and `WHATSAPP_PHONE_NUMBER_ID` into `.env`. The sandbox tunnel itself does not issue the verify-GET handshake; `sandbox webhook set` performs it.
 
 **5. Start the server (terminal 1)**
 

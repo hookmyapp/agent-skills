@@ -75,6 +75,7 @@ Full request/response schemas: the OpenAPI spec and per-endpoint pages under the
 |--------|------|---------|
 | POST | `/webhook-config` | Create a webhook destination |
 | GET / PUT / DELETE | `/webhook-config/{channelId}` | Get / update / clear a channel's destination |
+| GET | `/webhook-config/{channelId}/hmac` | Read the current webhook signing secret — backend-only credential: never log it, paste it, or return it to client-visible output; rotate if exposed |
 | POST | `/webhook-config/{channelId}/rotate-hmac` | Rotate the webhook signing secret |
 
 ### Delivery logs (needs `X-Workspace-Id`)
