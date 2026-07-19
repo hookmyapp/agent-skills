@@ -85,7 +85,7 @@ Read:
 | `list_channels` | List channels in one workspace — pass the `ws_` ID from `list_workspaces` |
 | `get_channel` | Read one channel (type, identity, forwarding state, destination) |
 | `get_webhook_config` | Read a channel's webhook destination |
-| `get_hmac_secret` | Read a channel's current webhook signing secret without rotating it |
+| `get_hmac_secret` | Read a channel's current webhook signing secret without rotating it. The value signs every delivered webhook — treat it like a password: never echo it into chat, logs, or client-visible output; if it leaks, `rotate_hmac` |
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
 | `get_org_usage` | Check monthly organization usage |

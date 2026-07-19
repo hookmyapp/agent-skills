@@ -1,6 +1,6 @@
 ---
 name: env
-description: Print or write the env keys for a connected channel (`channels env`), distinct from the five sandbox keys.
+description: Print or write the env keys for a connected channel (`channels env`), distinct from the six sandbox keys.
 ---
 
 # Channel Env
@@ -10,7 +10,7 @@ description: Print or write the env keys for a connected channel (`channels env`
 | Context | Command | WhatsApp keys | Instagram keys |
 |---|---|---|---|
 | Real channel | `channels env <channel>` | `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`) | `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`) |
-| Sandbox | `sandbox env` | `WEBHOOK_HMAC_SECRET`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | `WEBHOOK_HMAC_SECRET`, `PORT`, `INSTAGRAM_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID` |
+| Sandbox | `sandbox env` | `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `INSTAGRAM_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID` |
 
 > For a real channel `META_GRAPH_API_URL` is the **versioned** gateway base `https://gateway.hookmyapp.com/meta/v22.0` for WhatsApp, and `INSTAGRAM_GRAPH_API_URL` is `https://gateway.hookmyapp.com/meta/v25.0` for Instagram. The base-URL key is NAMED differently per context: real-channel WhatsApp uses `META_GRAPH_API_URL`, sandbox uses `WHATSAPP_API_URL`; real-channel Instagram uses `INSTAGRAM_GRAPH_API_URL`, sandbox uses `INSTAGRAM_API_URL`. The Instagram account-id key is `INSTAGRAM_ACCOUNT_ID` in both contexts (`INSTAGRAM_USER_ID` is a legacy alias that may linger in older `.env` files; the bundled scripts still accept it as a fallback). The table above is the complete key set for each context.
 

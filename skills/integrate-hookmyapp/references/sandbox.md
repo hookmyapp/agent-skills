@@ -61,7 +61,7 @@ hookmyapp sandbox stop
 
 ## sandbox env
 
-Print or write the sandbox env keys. WhatsApp and Instagram sessions write different key sets (five keys each, but different names).
+Print or write the sandbox env keys. WhatsApp and Instagram sessions write different key sets (six keys each, but different names).
 
 **Flags:**
 

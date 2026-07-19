@@ -48,7 +48,7 @@ cd webhook-starter-kit
 npm install
 ```
 
-The starter kit is a minimal Express app with a verified-signature receiver on `/webhook` and a `sendMessage` helper. It reads the five env keys `sandbox env --write` produces.
+The starter kit is a minimal Express app with a verified-signature receiver on `/webhook` and a `sendMessage` helper. It reads the six env keys `sandbox env --write` produces.
 
 **4. Pull env values**
 
