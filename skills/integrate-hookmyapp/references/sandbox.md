@@ -79,21 +79,23 @@ Global flags: `--json`, `--workspace`.
 
 **Browser step required:** No
 
-**WhatsApp sandbox keys** (five keys):
+**WhatsApp sandbox keys** (six keys):
 
 | Key | Purpose |
 |-----|---------|
-| `WEBHOOK_HMAC_SECRET` | Per-session HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks — same key name as `channels env`. No `VERIFY_TOKEN` is written: the sandbox tunnel never issues the verify-GET handshake. |
+| `WEBHOOK_HMAC_SECRET` | Per-session HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks — same key name as `channels env`. |
+| `VERIFY_TOKEN` | Plain-text value your endpoint echoes back on the one-time verify GET — `sandbox webhook set` runs this handshake against your URL before saving it. |
 | `PORT` | Port your local server listens on (default `3000`). |
 | `WHATSAPP_API_URL` | Sandbox proxy base URL. |
 | `WHATSAPP_ACCESS_TOKEN` | Sandbox activation code. |
 | `WHATSAPP_PHONE_NUMBER_ID` | Sandbox phone number ID. |
 
-**Instagram sandbox keys** (five keys):
+**Instagram sandbox keys** (six keys):
 
 | Key | Purpose |
 |-----|---------|
-| `WEBHOOK_HMAC_SECRET` | Per-session HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks — same key name as `channels env`. No `VERIFY_TOKEN` is written: the sandbox tunnel never issues the verify-GET handshake. |
+| `WEBHOOK_HMAC_SECRET` | Per-session HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks — same key name as `channels env`. |
+| `VERIFY_TOKEN` | Plain-text value your endpoint echoes back on the one-time verify GET — `sandbox webhook set` runs this handshake against your URL before saving it. |
 | `PORT` | Port your local server listens on (default `3000`). |
 | `INSTAGRAM_API_URL` | Sandbox proxy base URL for Instagram. |
 | `INSTAGRAM_ACCESS_TOKEN` | Sandbox activation code. |

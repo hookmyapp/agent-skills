@@ -48,7 +48,7 @@ Print the WABAs connected to the current workspace.
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--workspace` | string | no | active | Target workspace ID. |
-| `--json` | boolean | no | `false` | JSON rows `{channel_id, name, type, phone_numbers[]|username, status}`. |
+| `--json` | boolean | no | `false` | JSON array of channel objects (camelCase): `id`, `type`, `metaWabaId`, `forwardingEnabled`, plus provider-explicit fields like `whatsappDisplayPhoneNumber`, `whatsappWabaName`, `instagramUsername`. |
 
 **Arguments:** none
 
@@ -58,8 +58,8 @@ Print the WABAs connected to the current workspace.
 
 ```bash
 hookmyapp channels list
-hookmyapp channels list --json | jq '.[] | .channel_id'
-# → "1276334778010256"
+hookmyapp channels list --json | jq '.[] | .id'
+# → "ch_7xGvkTR8"
 ```
 
 **Exit codes:** `0` success · `1` not authenticated · `2` workspace has zero channels (empty table is exit 0, but `--json` prints `[]`).

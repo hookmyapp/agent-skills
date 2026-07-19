@@ -73,7 +73,7 @@ Cursor (`mcpServers` in settings):
 }
 ```
 
-## Tools (22)
+## Tools (23)
 
 Read:
 
@@ -85,6 +85,7 @@ Read:
 | `list_channels` | List channels in one workspace — pass the `ws_` ID from `list_workspaces` |
 | `get_channel` | Read one channel (type, identity, forwarding state, destination) |
 | `get_webhook_config` | Read a channel's webhook destination |
+| `get_hmac_secret` | Read a channel's current webhook signing secret without rotating it |
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
 | `get_org_usage` | Check monthly organization usage |
@@ -95,7 +96,7 @@ Write:
 | Tool | Use it for |
 | --- | --- |
 | `create_workspace` | Create a workspace |
-| `delete_workspace` | Deactivate a customer workspace by its `ws_` ID — history is kept, but every channel inside it is disconnected (org admin only; team workspaces are rejected) |
+| `delete_workspace` | Delete a workspace by its `ws_` ID (org admin only; team and customer workspaces alike). Two outcomes: a workspace with no channels and no usage history is hard-deleted; otherwise it is deprecated — channels disconnected, history kept for stats/billing. The organization's last workspace is refused (`LAST_WORKSPACE`) |
 | `create_customer` | Create a customer (SaaS Mode) |
 | `create_onboarding_link` | Mint a connect link a customer opens to connect their channel |
 | `revoke_onboarding_link` | Revoke an onboarding link by its `ol_` ID so its connect URL stops working (org admin only) |
