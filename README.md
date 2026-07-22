@@ -5,15 +5,15 @@ AI-agent skills for integrating [HookMyApp](https://hookmyapp.com) -- connect Wh
 ## Installation
 
 ```bash
-npx skills add hookmyapp/agent-skills
+npx skills add hookmyapp/agent-skills --all --global
 ```
 
 Works with Claude Code, Cursor, Codex CLI, Gemini CLI, and other compatible agents.
 
 ## Available Skills
 
-| Skill | Description |
-|-------|-------------|
+| Skill                                                        | Description                                                                                                                                             |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [integrate-hookmyapp](./skills/integrate-hookmyapp/SKILL.md) | Set up WhatsApp Business or Instagram integration -- receive webhooks and send messages. Covers the CLI, the hosted MCP server, and the public REST API |
 
 ## Prerequisites
@@ -26,6 +26,7 @@ The skill checks for the HookMyApp CLI before running commands. If `hookmyapp` i
 ## How It Works
 
 The integration skill guides your AI coding agent through:
+
 1. Installing and authenticating the HookMyApp CLI
 2. Connecting a WhatsApp Business or Instagram account (via Meta embedded signup or sandbox)
 3. Configuring webhook forwarding to your application
