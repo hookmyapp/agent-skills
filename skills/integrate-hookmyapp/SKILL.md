@@ -71,15 +71,15 @@ The version string MUST match this skill's `metadata.version` in the frontmatter
 
 ## Two paths: sandbox vs your own channel
 
-| Aspect | Sandbox (dev / testing) | Your own channel |
-|--------|-------------------------|------------------|
-| Account | HookMyApp-hosted test account | Yours, connected through WhatsApp Embedded Signup or Instagram OAuth |
-| Setup step | `sandbox start [whatsapp|instagram]` | `channels connect [whatsapp|instagram]` (browser popup) |
-| Env keys | 6 (WhatsApp): `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | 7 (WhatsApp, from `channels env`): `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`). Instagram emits the `INSTAGRAM_*` equivalents. |
-| Inbound tunnel | `sandbox listen` (Cloudflare) | Your own public HTTPS URL (`webhook set`) **or** the CLI tunnel (`channels listen`) |
-| Recipient | Pinned to session phone server-side | Any WhatsApp user who messaged you first |
-| Templates | Blocked (text only) | Supported |
-| Meta dashboard | Not needed | Required for app review and template approval |
+| Aspect | WhatsApp sandbox | Instagram sandbox | Own WhatsApp | Own Instagram |
+|--------|------------------|-------------------|--------------|---------------|
+| Account | HookMyApp-hosted test number | HookMyApp-hosted test account | Your WABA and number | Your professional account |
+| Setup | `sandbox start whatsapp` | `sandbox start instagram` | `channels connect whatsapp` | `channels connect instagram` |
+| Env keys | 6: `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | 6: `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `INSTAGRAM_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID` | 7: `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` | 6: `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` |
+| Inbound | `sandbox listen` | `sandbox listen` | Public HTTPS URL (`webhook set`) or CLI tunnel (`channels listen`) | Public HTTPS URL (`webhook set`) or CLI tunnel (`channels listen`) |
+| Recipient | Session phone, pinned server-side | Bound Instagram DM thread | WhatsApp user who messaged you first | Instagram user in an active messaging window |
+| Templates | Blocked | Not applicable | Supported | Not applicable |
+| Provider setup | None | None | Facebook Business Manager and WABA | Instagram Business or Creator account; no Facebook Login |
 
 **Pick sandbox** when the user is building or debugging on localhost and wants zero Meta paperwork for day-to-day iteration. **Pick your own channel** when the user is deploying to a real WhatsApp number or Instagram account (provider authorization is required once per channel).
 

@@ -33,7 +33,7 @@ The integration skill guides your AI coding agent through:
 4. Retrieving API credentials (channel id, a minted gateway access token, phone number id or Instagram account id)
 5. Sending WhatsApp and Instagram messages (raw HTTP from your code, or the typed `whatsapp` / `instagram` CLI commands for scripting) plus managing templates, media, the business profile, and Instagram comment moderation
 
-Browser-only steps (login, WhatsApp Embedded Signup, and Instagram OAuth) are clearly marked so your agent knows when to prompt you for action.
+Browser-only steps (the default browser login flow, WhatsApp Embedded Signup, and Instagram OAuth) are clearly marked so your agent knows when to prompt you for action. Browser-free login through email OTP or a bootstrap code remains documented.
 
 ## Links
 
