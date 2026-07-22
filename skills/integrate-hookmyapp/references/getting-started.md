@@ -117,6 +117,7 @@ hookmyapp channels connect whatsapp
 
 ```bash
 hookmyapp channels list
+# id: ch_AAAAAAAA
 # waba_id: 1276334778010256
 # business_name: Acme Inc
 # phone_numbers: [+15551234567]
