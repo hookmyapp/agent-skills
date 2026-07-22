@@ -7,7 +7,7 @@ description: "Manage SaaS customer workspaces and mint onboarding links (`custom
 
 HookMyApp's SaaS-management surface is available to every org, no plan gate. A **customer** is an end-customer of your org, represented as a customer workspace — strictly separate from your team workspaces. `workspace` commands never show customers and `customers` commands never show team workspaces; do not mix the two surfaces.
 
-The customer's channel arrives via an **onboarding link**: you mint a persistent `https://app.hookmyapp.com/connect/<token>` URL and send it to the end-customer. They open it, choose WhatsApp or Instagram, and complete that provider's flow — Meta Embedded Signup for WhatsApp or direct Instagram OAuth for Instagram. **No HookMyApp account is needed on their side.** The connected channel lands in the target customer workspace (or a new customer is created if the link wasn't pinned to one).
+The customer's channel arrives via an **onboarding link**: you mint a persistent `https://app.hookmyapp.com/connect/<token>` URL with a fixed channel type and send it to the end-customer. They open it and complete the selected provider's flow — Meta Embedded Signup for WhatsApp or direct Instagram OAuth for Instagram. **No HookMyApp account is needed on their side.** The connected channel lands in the target customer workspace (or a new customer is created if the link wasn't pinned to one).
 
 Related org-level concepts (dashboard surfaces, no CLI verbs): the **org default destination** (a webhook URL that newly connected customer channels inherit automatically), **admin bulk-apply** (apply that destination to existing channels in one action), and **channel move** (move a channel between workspaces/customers).
 
