@@ -8,7 +8,7 @@ description: "Zero-to-first-message walkthroughs — the sandbox quickstart and 
 HookMyApp is a passthrough: the user keeps their own Meta token inside HookMyApp, inbound messages are forwarded to their code, and replies go straight through Meta. Pick one of two paths before generating code:
 
 - **Sandbox** — a HookMyApp-hosted test account. Zero Meta paperwork; build and debug on localhost. Recipient is pinned to the session phone; no templates.
-- **Your own channel** — your real WhatsApp number or Instagram account, connected via Meta embedded signup (once per channel). Full template support; send to anyone who messaged you first.
+- **Your own channel** — your real WhatsApp number or Instagram account. WhatsApp uses Meta Embedded Signup; Instagram uses direct Instagram OAuth. Authorize once per channel.
 
 See [env.md](env.md) for the exact env-key shapes each path produces, and the "Two paths" table in SKILL.md for a side-by-side.
 
@@ -104,15 +104,16 @@ hookmyapp workspace use <workspace-id>
 hookmyapp workspace new "Acme Inc"
 ```
 
-**3. Connect a WABA**
+**3. Connect a channel**
 
 ```bash
-hookmyapp channels connect
+hookmyapp channels connect whatsapp
+# Or: hookmyapp channels connect instagram
 ```
 
-> **HUMAN ACTION REQUIRED:** Meta's embedded-signup popup opens. Sign in to Facebook Business, pick or create a WABA, pick a phone number, and grant HookMyApp's app access. If the popup is blocked, the CLI prints the URL to open manually.
+> **HUMAN ACTION REQUIRED:** WhatsApp opens Meta Embedded Signup; sign in to Facebook Business, choose a WABA and phone number, and grant access. Instagram opens direct Instagram OAuth; sign in to the Instagram professional account and grant the requested permissions. If the popup is blocked, open the URL printed by the CLI.
 
-**4. Find the WABA ID**
+**4. Find the channel ID**
 
 ```bash
 hookmyapp channels list
@@ -166,7 +167,7 @@ Check that all phone numbers are `VERIFIED`, webhook is `verified: true`, and qu
 
 Your own channel supports template messages — see [whatsapp.md](whatsapp.md) for the create/approve/send recipe and [sending-messages.md](sending-messages.md) for the raw `type: "template"` payload shape.
 
-**Instagram works the same way.** Connect a real IG channel with `hookmyapp channels connect instagram` (Meta OAuth: Instagram login or Instagram-via-Facebook), or start a sandbox IG session with `hookmyapp sandbox start instagram` (or `--type=instagram`) and DM the configured sandbox IG handle. Every `channels.*` verb (`show`, `env`, `token`, `health`, `webhook`, `logs`, `enable`, `disable`, `disconnect`, `listen`) works on an IG channel by passing its `<channel>` ref. Across `sandbox env|send|stop|listen|logs|webhook`, select an IG session by handle with `--username <@handle>` (WhatsApp sessions use `--phone +<E164>`; either context also accepts `--session ssn_XXXXXXXX`).
+**Instagram uses direct Instagram OAuth.** Connect a real IG channel with `hookmyapp channels connect instagram`, or start a sandbox IG session with `hookmyapp sandbox start instagram` (or `--type=instagram`) and DM the configured sandbox IG handle. Facebook Login and WhatsApp Embedded Signup are not part of the Instagram flow. Every `channels.*` verb (`show`, `env`, `token`, `health`, `webhook`, `logs`, `enable`, `disable`, `disconnect`, `listen`) works on an IG channel by passing its `<channel>` ref. Across `sandbox env|send|stop|listen|logs|webhook`, select an IG session by handle with `--username <@handle>` (WhatsApp sessions use `--phone +<E164>`; either context also accepts `--session ssn_XXXXXXXX`).
 
 ## Inbound on your own channel without a public URL (CLI tunnel)
 
