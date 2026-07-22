@@ -1,17 +1,17 @@
 ---
 name: integrate-hookmyapp
-description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, manage WhatsApp templates/media or the business profile, moderate Instagram comments, set up a sandbox session, connect their own WhatsApp number or Instagram account via Meta embedded signup, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram messaging api, meta instagram api, hookmyapp instagram, hookmyapp mcp."
+description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, manage WhatsApp templates/media or the business profile, moderate Instagram comments, set up a sandbox session, connect WhatsApp via Meta Embedded Signup or Instagram via Instagram OAuth, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram messaging api, meta instagram api, hookmyapp instagram, hookmyapp mcp."
 license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.8.1"
+  version: "0.8.2"
   cli-package: "@gethookmyapp/cli"
 ---
 
 # Integrate HookMyApp
 
-HookMyApp is a passthrough for WhatsApp and Instagram: the user keeps their own Meta token inside HookMyApp, HookMyApp forwards inbound messages to their code, and their replies go straight through Meta (it is not a BSP middleman). Outbound sends route through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`): the user's app carries a minted `hmat_` gateway access token, the gateway swaps it for the underlying Meta token server-side, and the path after `/meta` is verbatim Meta Graph API. This skill teaches AI coding agents how to drive the `@gethookmyapp/cli` to integrate a user's app with either a sandbox account (for dev and testing) or the user's own WhatsApp number / Instagram account (connected via Meta embedded signup). The CLI owns credential issuance, tunnel lifecycle, and webhook configuration. For a single own-channel integration your code never needs to call the HookMyApp API directly; SaaS builders whose backend must manage customers at runtime use the [REST API](references/api.md).
+HookMyApp is a passthrough for WhatsApp and Instagram: the user keeps their own Meta token inside HookMyApp, HookMyApp forwards inbound messages to their code, and their replies go straight through Meta (it is not a BSP middleman). Outbound sends route through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`): the user's app carries a minted `hmat_` gateway access token, the gateway swaps it for the underlying Meta token server-side, and the path after `/meta` is verbatim Meta Graph API. This skill teaches AI coding agents how to drive the `@gethookmyapp/cli` to integrate a user's app with either a sandbox account (for dev and testing) or their own channel. WhatsApp uses Meta Embedded Signup; Instagram uses direct Instagram OAuth. The CLI owns credential issuance, tunnel lifecycle, and webhook configuration. For a single own-channel integration your code never needs to call the HookMyApp API directly; SaaS builders whose backend must manage customers at runtime use the [REST API](references/api.md).
 
 > **Direct Meta access still works.** Integrations that already call `https://graph.facebook.com` with their own Meta token are unaffected. The gateway with a minted `hmat_` access token is the recommended path for new setups: the access token is scoped to one channel and revocable, and the Meta token never leaves HookMyApp.
 
@@ -30,7 +30,7 @@ HookMyApp is a passthrough for WhatsApp and Instagram: the user keeps their own 
 Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step is not automatable:
 
 - `hookmyapp login` — opens a browser tab for sign-in.
-- `hookmyapp channels connect` — opens Meta's embedded-signup popup; user picks business, WABA, and phone number.
+- `hookmyapp channels connect` — opens the provider flow: WhatsApp Embedded Signup or direct Instagram OAuth.
 - `hookmyapp channels listen` — long-running foreground process; the human must keep the terminal open (or background it via `nohup …  &` for 24/7 use). Test inbound webhook delivery by sending a real WhatsApp message to the channel's number.
 - Any destructive operation (`webhook set`, `logout`); confirm intent before running.
 - Rotating a leaked gateway `hmat_` access token, via `hookmyapp channels token <channel> --rotate` (no Meta App Dashboard trip; the Meta token is untouched, and the old token dies immediately).
@@ -48,7 +48,8 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 
 - Node.js 20 or newer (for the CLI and the typical webhook server).
 - A HookMyApp account. Sign up at <https://app.hookmyapp.com/signup>.
-- To connect your own channel: a Facebook Business Manager account (for `channels connect` embedded signup).
+- To connect WhatsApp: a Facebook Business Manager account for Embedded Signup.
+- To connect Instagram: an Instagram professional account (Business or Creator) for direct Instagram OAuth.
 
 ## Skill Setup (run before any CLI command)
 
@@ -63,7 +64,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.8.1" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.8.2" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -72,7 +73,7 @@ The version string MUST match this skill's `metadata.version` in the frontmatter
 
 | Aspect | Sandbox (dev / testing) | Your own channel |
 |--------|-------------------------|------------------|
-| Account | HookMyApp-hosted test account | Yours, connected via Meta embedded signup |
+| Account | HookMyApp-hosted test account | Yours, connected through WhatsApp Embedded Signup or Instagram OAuth |
 | Setup step | `sandbox start [whatsapp|instagram]` | `channels connect [whatsapp|instagram]` (browser popup) |
 | Env keys | 6 (WhatsApp): `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | 7 (WhatsApp, from `channels env`): `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` (no `PORT`). Instagram emits the `INSTAGRAM_*` equivalents. |
 | Inbound tunnel | `sandbox listen` (Cloudflare) | Your own public HTTPS URL (`webhook set`) **or** the CLI tunnel (`channels listen`) |
@@ -80,14 +81,14 @@ The version string MUST match this skill's `metadata.version` in the frontmatter
 | Templates | Blocked (text only) | Supported |
 | Meta dashboard | Not needed | Required for app review and template approval |
 
-**Pick sandbox** when the user is building or debugging on localhost and wants zero Meta paperwork for day-to-day iteration. **Pick your own channel** when the user is deploying to a real WhatsApp number or Instagram account (Meta embedded signup required once, per channel).
+**Pick sandbox** when the user is building or debugging on localhost and wants zero Meta paperwork for day-to-day iteration. **Pick your own channel** when the user is deploying to a real WhatsApp number or Instagram account (provider authorization is required once per channel).
 
 ## Getting Started
 
 The end-to-end walkthroughs live in **[references/getting-started.md](references/getting-started.md)**:
 
 - **Quickstart: Sandbox** — install → login → starter kit → `sandbox env`/`listen` → first echoed message.
-- **Full setup: your own channel** — login → workspace → `channels connect` (embedded signup) → `channels env` → `webhook set` → health check. Instagram works identically.
+- **Full setup: your own channel** — login → workspace → `channels connect` (WhatsApp Embedded Signup or Instagram OAuth) → `channels env` → `webhook set` → health check.
 - **CLI-tunnel inbound** — `channels listen` to pipe inbound webhooks to `localhost` with no public URL.
 
 Read that file when starting a fresh integration; the sections below are the per-area reference an agent jumps to mid-task.
