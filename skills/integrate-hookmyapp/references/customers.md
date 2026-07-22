@@ -7,7 +7,7 @@ description: "Manage SaaS customer workspaces and mint onboarding links (`custom
 
 HookMyApp's SaaS-management surface is available to every org, no plan gate. A **customer** is an end-customer of your org, represented as a customer workspace — strictly separate from your team workspaces. `workspace` commands never show customers and `customers` commands never show team workspaces; do not mix the two surfaces.
 
-The customer's channel arrives via an **onboarding link**: you mint a persistent `https://app.hookmyapp.com/connect/<token>` URL and send it to the end-customer. They open it in a browser and complete Meta embedded signup there — **no HookMyApp account needed on their side**. The connected channel lands in the target customer workspace (or a new customer is created if the link wasn't pinned to one).
+The customer's channel arrives via an **onboarding link**: you mint a persistent `https://app.hookmyapp.com/connect/<token>` URL with a fixed channel type and send it to the end-customer. They open it and complete the selected provider's flow — Meta Embedded Signup for WhatsApp or direct Instagram OAuth for Instagram. **No HookMyApp account is needed on their side.** The connected channel lands in the target customer workspace (or a new customer is created if the link wasn't pinned to one).
 
 Related org-level concepts (dashboard surfaces, no CLI verbs): the **org default destination** (a webhook URL that newly connected customer channels inherit automatically), **admin bulk-apply** (apply that destination to existing channels in one action), and **channel move** (move a channel between workspaces/customers).
 
@@ -71,7 +71,7 @@ Mint a connect link to share with an end-customer.
 | `--customer <ws-id>` | string | no | Target an existing customer (`ws_XXXXXXXX`) — the connect lands in that customer. |
 | `--json` | boolean | no | Machine-readable output. |
 
-**Browser step required:** No for you — the end-customer opens the printed URL in their browser and completes Meta embedded signup.
+**Browser step required:** No for you — the end-customer opens the printed URL and completes WhatsApp Embedded Signup or Instagram OAuth.
 
 Prints the link `id`, the shareable `url`, and the `verifyToken` the connected channel's webhook config will use for the verify-GET handshake (it is NOT the HMAC signing secret, and it never becomes a destination token).
 

@@ -44,7 +44,7 @@ For WhatsApp channels (seven keys, no `PORT`):
 | `VERIFY_TOKEN` | Webhook verify-GET handshake response value (what your endpoint returns on the verify GET). NOT the HMAC key. |
 | `WEBHOOK_HMAC_SECRET` | Per-channel HMAC-SHA256 key for verifying `X-HookMyApp-Signature-256` on forwarded webhooks. |
 
-Instagram channels print the six-key `INSTAGRAM_*` set: `INSTAGRAM_GRAPH_API_URL` (gateway base `https://gateway.hookmyapp.com/meta/v25.0`), `INSTAGRAM_ACCESS_TOKEN` (a gateway `hmat_…` access token), `INSTAGRAM_ACCOUNT_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET`. (Instagram accounts connected via Facebook Login additionally carry `META_PAGE_ID`.)
+Instagram channels print the six-key `INSTAGRAM_*` set: `INSTAGRAM_GRAPH_API_URL` (gateway base `https://gateway.hookmyapp.com/meta/v25.0`), `INSTAGRAM_ACCESS_TOKEN` (a gateway `hmat_…` access token), `INSTAGRAM_ACCOUNT_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET`.
 
 > **Safety:** `WHATSAPP_ACCESS_TOKEN` and `INSTAGRAM_ACCESS_TOKEN` carry a gateway `hmat_` access token, not a Meta token. It is scoped to one channel and rotatable via `hookmyapp channels token <channel> --rotate`, but still secret. Never log it, never paste it into a chat, never commit it. Store only in an environment-variable secret manager (e.g. GCP Secret Manager, AWS Secrets Manager, Vault).
 
