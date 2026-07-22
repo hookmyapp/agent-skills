@@ -77,8 +77,8 @@ The version string MUST match this skill's `metadata.version` in the frontmatter
 | Setup | `sandbox start whatsapp` | `sandbox start instagram` | `channels connect whatsapp` | `channels connect instagram` |
 | Env keys | 6: `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | 6: `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `INSTAGRAM_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID` | 7: `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` | 6: `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` |
 | Inbound | `sandbox listen` | `sandbox listen` | Public HTTPS URL (`webhook set`) or CLI tunnel (`channels listen`) | Public HTTPS URL (`webhook set`) or CLI tunnel (`channels listen`) |
-| Recipient | Session phone, pinned server-side | Bound Instagram DM thread | WhatsApp user who messaged you first | Instagram user in an active messaging window |
-| Templates | Blocked | Not applicable | Supported | Not applicable |
+| Recipient | Session phone, pinned server-side | Bound Instagram DM thread | Replies within an active conversation; approved templates may initiate or resume messaging under Meta policy | Instagram user in an active messaging window |
+| Templates | Blocked | Not applicable | Approved templates supported | Not applicable |
 | Provider setup | None | None | Facebook Business Manager and WABA | Instagram Business or Creator account; no Facebook Login |
 
 **Pick sandbox** when the user is building or debugging on localhost and wants zero Meta paperwork for day-to-day iteration. **Pick your own channel** when the user is deploying to a real WhatsApp number or Instagram account (provider authorization is required once per channel).
