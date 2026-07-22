@@ -1,11 +1,11 @@
 ---
 name: channels
-description: Connect and list WhatsApp or Instagram channels via Meta embedded signup.
+description: Connect and list WhatsApp or Instagram channels through their provider authorization flows.
 ---
 
 # Channels
 
-A "channel" is a WhatsApp Business Account (WABA) or an Instagram account attached to your workspace. Connecting a channel runs the Meta embedded-signup flow, which provisions the account inside Meta's systems and hands HookMyApp the long-lived Meta system-user token. That token stays inside HookMyApp; your app authenticates to the gateway with a minted `hmat_` access token instead (see [access tokens](access-tokens.md)). Instagram channels connect the same way via `channels connect instagram` (Meta OAuth: Instagram login or Instagram-via-Facebook).
+A "channel" is a WhatsApp Business Account (WABA) or an Instagram account attached to your workspace. WhatsApp connects through Meta Embedded Signup. Instagram connects through direct Instagram OAuth at `instagram.com`; it does not use Facebook Login or WhatsApp Embedded Signup. The provider token stays inside HookMyApp; your app authenticates to the gateway with a minted `hmat_` access token instead (see [access tokens](access-tokens.md)).
 
 > **Direct Meta access still works.** Existing integrations that call `https://graph.facebook.com` with their own Meta token are unaffected by the gateway. Routing through `https://gateway.hookmyapp.com/meta/...` with a minted `hmat_` access token is the recommended path for new setups.
 
@@ -13,7 +13,7 @@ A "channel" is a WhatsApp Business Account (WABA) or an Instagram account attach
 
 ## channels connect
 
-Run Meta embedded signup. Produces a new channel attached to the current workspace.
+Run the provider authorization flow. Produces a new channel attached to the current workspace.
 
 **Arguments:** `[whatsapp|instagram]` (optional) — channel type to connect. When omitted the CLI prompts interactively. Pass `whatsapp` or `instagram` explicitly to skip the type prompt. There is no default; the CLI always asks if the type is omitted.
 
@@ -26,7 +26,7 @@ Run Meta embedded signup. Produces a new channel attached to the current workspa
 
 **Browser step required:** Yes
 
-> **HUMAN ACTION REQUIRED:** `channels connect` opens a Meta-hosted popup window. The human must sign in to Facebook Business, select or create a WABA, select a phone number, and grant HookMyApp's app access. The popup may be blocked by pop-up blockers — if so the CLI prints the URL for the human to open manually.
+> **HUMAN ACTION REQUIRED:** `channels connect whatsapp` opens Meta Embedded Signup; sign in to Facebook Business, select or create a WABA, select a phone number, and grant access. `channels connect instagram` opens Instagram OAuth; sign in to the Instagram professional account and grant the requested permissions. If the browser blocks the popup, open the URL printed by the CLI.
 
 **Examples:**
 
@@ -41,7 +41,7 @@ hookmyapp channels connect --workspace acme-corp
 
 ## channels list
 
-Print the WABAs connected to the current workspace.
+Print the channels connected to the current workspace.
 
 **Flags:**
 
@@ -66,7 +66,7 @@ hookmyapp channels list --json | jq '.[] | .id'
 
 ## channels show
 
-Display details for a single WABA.
+Display details for a single channel.
 
 **Flags:**
 
