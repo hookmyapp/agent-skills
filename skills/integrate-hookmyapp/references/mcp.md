@@ -18,7 +18,7 @@ The two are interchangeable for management operations; they read and mutate the 
 
 ## MCP is optional — never a setup blocker
 
-Setting up HookMyApp does **not** require MCP. The CLI covers everything MCP does for account operations, plus the things MCP cannot do (env files, tunnels, `hmat_` tokens). Treat MCP as an upgrade for agents that prefer tool calls over shelling out. If MCP is missing, misconfigured, or its tools are dormant, do the work with the CLI and say so plainly — do not tell the user their task is blocked.
+Setting up HookMyApp does **not** require MCP. The CLI covers everything MCP does for account operations, plus the things MCP cannot do (env files, tunnels, `hmat_` tokens). Treat MCP as an upgrade for agents that prefer tool calls over shelling out. If MCP is missing, misconfigured, or its tools are dormant **and you have shell access**, do the work with the CLI and say so plainly — do not tell the user their task is blocked. A shell-less agent with no working MCP connection genuinely cannot proceed: say exactly that (MCP unavailable, no terminal to fall back to) and point the user at the API-key setup below instead of improvising.
 
 ## Authentication
 
@@ -88,10 +88,10 @@ Work top to bottom; each row assumes the ones above it passed.
 
 | Symptom | What it means | Fix |
 |---------|---------------|-----|
-| `mcp__hookmyapp__*` tools absent, but `claude mcp list` says ✔ Connected | The server was installed during this session; tools resolve at session start only | Nothing is broken. Do the task with the CLI now, and tell the user a restart activates the tools. **Never report the task as blocked.** |
-| `claude mcp list` shows `✘ Failed to connect` or `! Needs authentication` | The credential helper produced no token | Run `hookmyapp mcp-headers`. It must print `{"Authorization":"Bearer hmok_…"}`. See the two rows below for the two ways it fails. |
-| `hookmyapp mcp-headers` → `unknown command 'mcp-headers'` | CLI older than 0.14.2 is first on PATH | `npm install -g @gethookmyapp/cli@latest`, confirm with `hookmyapp --version`, then `hookmyapp mcp install --agent claude` |
-| `hookmyapp mcp-headers` → not-logged-in error | No stored credential | `hookmyapp login`, which also reinstalls the MCP entry |
+| `mcp__hookmyapp__*` tools absent, but `claude mcp list` says ✔ Connected | The server was installed during this session; tools resolve at session start only | Nothing is broken. If you have shell access, do the task with the CLI now and tell the user a restart activates the tools — **never report the task as blocked when the CLI is available.** |
+| `claude mcp list` shows `✘ Failed to connect` or `! Needs authentication` | The credential helper produced no token | Run `hookmyapp mcp-headers >/dev/null && echo helper-ok` — **never print its output; it contains a live org credential** that would land in transcripts and logs. If it errors instead of `helper-ok`, see the two rows below. |
+| The helper check errors with `unknown command 'mcp-headers'` | CLI older than 0.14.2 is first on PATH | `npm install -g @gethookmyapp/cli@latest`, confirm with `hookmyapp --version`, then `hookmyapp mcp install --agent claude` |
+| The helper check errors with a not-logged-in message | No stored credential | `hookmyapp login`, which also reinstalls the MCP entry |
 | Helper works in your shell, client still won't authenticate | `hookmyapp` is not on the PATH the client gives the helper process (unusual npm prefix such as `~/.local/node/bin`) | Re-point the entry at an absolute path: `command -v hookmyapp` to find it, then `claude mcp add-json --scope user hookmyapp '{"type":"http","url":"https://api.hookmyapp.com/mcp","headersHelper":"/absolute/path/to/hookmyapp mcp-headers"}'` |
 | Browser sign-in returns `error=invalid_scope` | The OAuth path is not operational | Use CLI header injection or an API key; do not retry the browser flow |
 | A tool call fails with a scope error | The credential lacks that action | Re-run `status`, report the missing scope to the human, do not retry |
