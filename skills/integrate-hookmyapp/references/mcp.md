@@ -73,7 +73,7 @@ Cursor (`mcpServers` in settings):
 }
 ```
 
-## Tools (23)
+## Tools (28)
 
 Read:
 
@@ -90,6 +90,8 @@ Read:
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
 | `get_org_usage` | Check monthly organization usage |
 | `list_onboarding_links` | List customer connect links (SaaS Mode) |
+| `list_instagram_comments` | List comments on an Instagram media (`mediaId`) or the replies of a comment (`commentId`), with explicit `fields` and cursor paging. Instagram channels only |
+| `get_instagram_insights` | Read account or per-media Instagram insights: `target` (`"account"` or a media id), `metrics[]`, optional `period` and `breakdown`. Unavailable metrics come back in an `unavailable[]` list instead of failing the whole call |
 
 Write:
 
@@ -107,6 +109,11 @@ Write:
 | `set_forwarding` | Enable or disable webhook forwarding for a channel |
 | `set_org_destination` | Set the organization default destination seeded onto new customer channels (org admin + SaaS Mode) |
 | `apply_org_destination_to_channels` | Bulk-apply (or clear) the organization destination across customer channels |
+| `publish_instagram_media` | Publish an image, reel, story, or carousel on an Instagram channel: `mediaType`, `imageUrl`/`videoUrl`, `caption`, `children[]` (carousel), `coverUrl`, `shareToFeed`. Runs Meta's container → status poll → publish flow and returns `{mediaId, permalink}` |
+| `reply_instagram_comment` | Public threaded reply to a comment (`commentId`, `text`), or `private: true` to DM the commenter instead (one DM per comment; within 7 days for post/reel comments, Live comments only while the broadcast is live) |
+| `moderate_instagram_comment` | `action`: `hide` \| `unhide` \| `delete` \| `disable_media_comments` \| `enable_media_comments`, with `commentId` (comment actions) or `mediaId` (media-level enable/disable) |
+
+The five Instagram tools require an **Instagram Login** channel whose Meta consent includes the matching permission. A channel connected via Facebook Login returns an **unsupported-login-flow** error — reconnecting won't help; the account must be connected through Instagram OAuth. Reads (`list_instagram_comments`, `get_instagram_insights`) run under the `channel.read` action; mutations (`publish_instagram_media`, `reply_instagram_comment`, `moderate_instagram_comment`) run under `channel.manage`. An Instagram-Login channel connected before these abilities shipped returns a **reconnect-required** error naming the missing permission — the human re-runs `hookmyapp channels connect instagram` for that account, then the tool works. Media constraints, publish quota, insight metric names, and the comment-webhook payload shapes are in [instagram.md](instagram.md).
 
 ## Working order
 
@@ -120,5 +127,6 @@ The skill-wide safety rules apply unchanged over MCP:
 
 - **Confirm before mutating.** `set_webhook_destination`, `clear_webhook_destination`, `set_forwarding` (disabling = silent inbound message drop), `rotate_hmac` (old signatures stop verifying immediately), `set_org_destination`, `apply_org_destination_to_channels`, `delete_workspace` (disconnects every channel in the workspace — inbound traffic stops), and `revoke_onboarding_link` (the connect URL stops working immediately) all change live message routing or connectivity — get explicit human confirmation, including the exact channel, customer, workspace, organization, or `ol_` onboarding-link ID, before calling.
 - **`send_message` sends a real message** to a real person. Confirm recipient channel and content.
+- **`publish_instagram_media` posts real, public content** to the account's feed, reels, or story. `reply_instagram_comment` posts a public reply (or DMs a real user); `moderate_instagram_comment` hides or deletes real comments, and `delete` is irreversible. Confirm channel, target ids, and content with the human before calling any of them.
 - **Never paste `hmok_` API keys** into chat, tickets, or logs. They are org-scoped credentials; the human creates and stores them.
 - **Verify token ≠ HMAC secret.** The verify token answers the webhook subscription handshake; the HMAC secret (rotated by `rotate_hmac`) signs delivered payloads (`X-HookMyApp-Signature-256`). Don't conflate them when reading `get_webhook_config` output back to the human.
