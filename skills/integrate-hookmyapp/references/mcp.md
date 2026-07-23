@@ -16,13 +16,26 @@ https://api.hookmyapp.com/mcp
 
 The two are interchangeable for management operations; they read and mutate the same account. What MCP does NOT do: mint `hmat_` gateway access tokens, write env files, or open tunnels — provisioning a code integration stays a CLI job.
 
+## MCP is optional — never a setup blocker
+
+Setting up HookMyApp does **not** require MCP. The CLI covers everything MCP does for account operations, plus the things MCP cannot do (env files, tunnels, `hmat_` tokens). Treat MCP as an upgrade for agents that prefer tool calls over shelling out. If MCP is missing, misconfigured, or its tools are dormant, do the work with the CLI and say so plainly — do not tell the user their task is blocked.
+
 ## Authentication
 
-Two options; pick what the MCP client supports.
+Two working options; pick what the MCP client supports.
 
-**Browser sign-in (OAuth).** Configure only the URL. The server publishes standard OAuth protected-resource metadata at `https://api.hookmyapp.com/.well-known/oauth-protected-resource/mcp`, so OAuth-capable clients discover the authorization server on their own — the human signs in to HookMyApp in the browser and picks an organization.
+**1. CLI header injection — Claude Code, zero-touch.** Nothing to sign in to. `hookmyapp login` already configures it: the CLI writes an MCP entry whose `headersHelper` runs `hookmyapp mcp-headers`, and Claude Code calls that helper on every request to get a fresh `Bearer hmok_…` from the CLI's stored credential.
 
-**API key.** An org admin creates an API key in the HookMyApp app (Organization → API). Keys are prefixed `hmok_` and are passed either way:
+```bash
+hookmyapp mcp install --agent claude   # re-run to repair; needs CLI >= 0.14.2
+hookmyapp doctor                       # reports MCP connection status
+```
+
+Requires the `hookmyapp` binary to be resolvable from the PATH that Claude Code hands the helper process. A normal global install (`npm install -g @gethookmyapp/cli`) satisfies this; an unusual npm prefix may not — see [Recovery](#recovery-mcp-isnt-working).
+
+**Newly added MCP servers do not activate mid-session.** Claude Code resolves MCP tools at session start, so a server installed during a session stays dormant until the next one. That is expected, not a failure.
+
+**2. API key — any client.** An org admin creates an API key in the HookMyApp app (Organization → API). Keys are prefixed `hmok_` and are passed either way:
 
 ```http
 Authorization: Bearer hmok_...
@@ -34,30 +47,26 @@ X-API-Key: hmok_...
 
 Send exactly one of the two headers, not both. Use `X-API-Key` only when the client can't set an `Authorization` header.
 
+**Browser sign-in (OAuth) is not currently available.** The server publishes protected-resource metadata at `https://api.hookmyapp.com/.well-known/oauth-protected-resource/mcp`, but token issuance for MCP clients is not operational — clients that attempt it fail with `error=invalid_scope`. Do not send the user to `/mcp` sign-in in Claude Code or `codex mcp login`; use option 1 or 2 instead.
+
 ### Client setup
 
 ```bash
 export HOOKMYAPP_API_KEY="hmok_..."
 ```
 
+Claude Code — let the CLI do it, do not hand-roll `claude mcp add`:
+
+```bash
+hookmyapp mcp install --agent claude
+```
+
+`hookmyapp login` already runs this for you. Adding the server by hand with `claude mcp add` produces an entry with **no** credential helper, which cannot authenticate.
+
 Codex CLI:
 
 ```bash
-# browser sign-in
-codex mcp add hookmyapp --url https://api.hookmyapp.com/mcp
-codex mcp login hookmyapp
-# or API key
 codex mcp add hookmyapp --url https://api.hookmyapp.com/mcp --bearer-token-env-var HOOKMYAPP_API_KEY
-```
-
-Claude Code:
-
-```bash
-# browser sign-in: add, then run /mcp inside Claude Code
-claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp
-# or API key
-claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp \
-  --header "Authorization: Bearer $HOOKMYAPP_API_KEY"
 ```
 
 Cursor (`mcpServers` in settings):
@@ -72,6 +81,22 @@ Cursor (`mcpServers` in settings):
   }
 }
 ```
+
+## Recovery: MCP isn't working
+
+Work top to bottom; each row assumes the ones above it passed.
+
+| Symptom | What it means | Fix |
+|---------|---------------|-----|
+| `mcp__hookmyapp__*` tools absent, but `claude mcp list` says ✔ Connected | The server was installed during this session; tools resolve at session start only | Nothing is broken. Do the task with the CLI now, and tell the user a restart activates the tools. **Never report the task as blocked.** |
+| `claude mcp list` shows `✘ Failed to connect` or `! Needs authentication` | The credential helper produced no token | Run `hookmyapp mcp-headers`. It must print `{"Authorization":"Bearer hmok_…"}`. See the two rows below for the two ways it fails. |
+| `hookmyapp mcp-headers` → `unknown command 'mcp-headers'` | CLI older than 0.14.2 is first on PATH | `npm install -g @gethookmyapp/cli@latest`, confirm with `hookmyapp --version`, then `hookmyapp mcp install --agent claude` |
+| `hookmyapp mcp-headers` → not-logged-in error | No stored credential | `hookmyapp login`, which also reinstalls the MCP entry |
+| Helper works in your shell, client still won't authenticate | `hookmyapp` is not on the PATH the client gives the helper process (unusual npm prefix such as `~/.local/node/bin`) | Re-point the entry at an absolute path: `command -v hookmyapp` to find it, then `claude mcp add-json --scope user hookmyapp '{"type":"http","url":"https://api.hookmyapp.com/mcp","headersHelper":"/absolute/path/to/hookmyapp mcp-headers"}'` |
+| Browser sign-in returns `error=invalid_scope` | The OAuth path is not operational | Use CLI header injection or an API key; do not retry the browser flow |
+| A tool call fails with a scope error | The credential lacks that action | Re-run `status`, report the missing scope to the human, do not retry |
+
+`hookmyapp doctor` summarizes CLI, login, and MCP status in one command — run it first when a user reports "the MCP isn't working".
 
 ## Tools (23)
 
