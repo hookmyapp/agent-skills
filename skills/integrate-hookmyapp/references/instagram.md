@@ -149,7 +149,7 @@ curl -X POST "$INSTAGRAM_GRAPH_API_URL/<ig-media-id>?comment_enabled=false" \
 
 #### Private replies
 
-`comments private-reply` DMs the commenter even though they never DM'd you — it is part of comment moderation (Meta's `manage_comments` permission), not the messaging window:
+`comments private-reply` DMs the commenter even though they never DM'd you — it is part of comment moderation (Meta's `instagram_business_manage_comments` permission), not the messaging window:
 
 - **One DM per comment**, within **7 days** of the comment's creation (post/reel comments), max **750/hour**.
 - **Live comments are the exception:** a private reply to a Live comment is allowed **only while the broadcast is live** — after the Live ends it's rejected regardless of the 7-day window (don't explain an ended-Live rejection as the window).
