@@ -5,11 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-<<<<<<< HEAD
   version: "0.9.0"
-=======
-  version: "0.8.3"
->>>>>>> origin/main
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -79,11 +75,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-<<<<<<< HEAD
 mkdir -p ~/.config/hookmyapp && echo "0.9.0" > ~/.config/hookmyapp/skill-version
-=======
-mkdir -p ~/.config/hookmyapp && echo "0.8.3" > ~/.config/hookmyapp/skill-version
->>>>>>> origin/main
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -129,15 +121,11 @@ Read that file when starting a fresh integration; the sections below are the per
 
 ### MCP server (operate HookMyApp without the CLI)
 
-<<<<<<< HEAD
-HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 28 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files). Auth is browser sign-in (OAuth, auto-discovered via `.well-known/oauth-protected-resource/mcp`) or an org API key (`hmok_...`) as `Authorization: Bearer` / `X-API-Key`. Client setup snippets (Codex, Claude Code, Cursor), the full tool table, working order, and safety rules: [references/mcp.md](references/mcp.md).
-=======
-HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 23 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, and message sending. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
+HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 28 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
 Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. Do **not** add the server by hand with `claude mcp add` — that writes an entry with no credential helper, and it cannot authenticate. For other clients, use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key`. Browser sign-in (OAuth) is not currently operational; do not send users to `/mcp` sign-in or `codex mcp login`.
 
 Client setup snippets, the full tool table, working order, safety rules, and a symptom-by-symptom repair table: [references/mcp.md](references/mcp.md).
->>>>>>> origin/main
 
 ### REST API (runtime automation from the user's backend)
 
