@@ -18,8 +18,8 @@ All hit the same gateway; the path after `/meta` is verbatim Meta Graph API. The
 - **Channel resolution.** `--channel <ref>` accepts an `@handle` or a `ch_xxxxxxxx` id (no `+phone` — IG channels have no phone), falling back to `HOOKMYAPP_CHANNEL_ID`. Wrong type → `CHANNEL_TYPE_MISMATCH`; none → `NO_CHANNEL`.
 - **Body shape is `{recipient,message}`** — not WhatsApp's `messaging_product`/`to` shape. `messages send` accepts builder flags (`--to`, `--text`) or a complete `--body`/`-d` (inline JSON, `@file`, or `-`).
 - **You can only DM someone who messaged you first.** The recipient is an IGSID (Instagram-scoped id) captured from the inbound webhook; Meta's 24-hour window applies. The one exception is a [private reply to a comment](#private-replies) — that DM is allowed because the user commented, under its own 7-day rule.
-- **Instagram Login channels only.** Publish, insights, and comment operations work only on channels connected via **Instagram Login** (direct Instagram OAuth). A channel connected via Facebook Login gets an **unsupported-login-flow** error — reconnecting won't fix that; the account must be connected through Instagram OAuth. DMs are unaffected.
-- **Older Instagram-Login channels may need a reconnect.** Publish, insights, and comment operations need Meta permissions that channels connected before these abilities shipped never consented to. Expect a **reconnect-required** error on such channels — see [Reconnect](#reconnect-channels-connected-before-these-abilities).
+- **Instagram Login channels only.** Publish, insights, and comment operations work only on channels connected via **Instagram Login** (direct Instagram OAuth). A channel connected via Facebook Login gets an **unsupported-login-flow** error; connect the account through Instagram OAuth instead. DMs are unaffected.
+- **Older channels may need a one-time reconnect.** If a publish, insights, or comment operation returns a **reconnect-required** error, see [Reconnect](#reconnect-channels-connected-before-these-abilities).
 
 ## Recipes
 
@@ -149,7 +149,7 @@ curl -X POST "$INSTAGRAM_GRAPH_API_URL/<ig-media-id>?comment_enabled=false" \
 
 #### Private replies
 
-`comments private-reply` DMs the commenter even though they never DM'd you — it is part of comment moderation (Meta's `instagram_business_manage_comments` permission), not the messaging window:
+`comments private-reply` DMs the commenter even though they never DM'd you — it is part of comment moderation, not the messaging window:
 
 - **One DM per comment**, within **7 days** of the comment's creation (post/reel comments), max **750/hour**.
 - **Live comments are the exception:** a private reply to a Live comment is allowed **only while the broadcast is live** — after the Live ends it's rejected regardless of the 7-day window (don't explain an ended-Live rejection as the window).
@@ -217,11 +217,11 @@ Parsing rules:
 
 ## Reconnect: channels connected before these abilities
 
-These abilities are **Instagram-Login-only**. A channel connected via **Facebook Login** fails with an **unsupported-login-flow** error (never reconnect-required — a Facebook-Login reconnect cannot grant these permissions); reconnect the account through Instagram OAuth instead.
+These abilities are **Instagram-Login-only**. A channel connected via **Facebook Login** fails with an **unsupported-login-flow** error (never reconnect-required); connect the account through Instagram OAuth instead.
 
-Instagram-Login channels authorized before publish/insights/comment abilities shipped carry a Meta consent **without** the new permissions (`instagram_business_content_publish`, `instagram_business_manage_insights`, `instagram_business_manage_comments`). On such a channel, publish/insights/comment operations fail with a **reconnect-required** error naming the missing permission. Nothing is forced — DMs keep working without reconnecting.
+An Instagram-Login channel connected before publish/insights/comment abilities were available fails those operations with a **reconnect-required** error. Nothing is forced — DMs keep working without reconnecting.
 
-> **HUMAN ACTION REQUIRED:** re-run `hookmyapp channels connect instagram` and complete the Instagram OAuth flow for the **same** account to grant the new permissions. Then retry the failed command.
+> **HUMAN ACTION REQUIRED:** re-run `hookmyapp channels connect instagram` and complete the Instagram OAuth flow for the **same** account. Then retry the failed command.
 
 ## Scripts
 
