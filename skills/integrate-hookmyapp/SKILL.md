@@ -1,11 +1,11 @@
 ---
 name: integrate-hookmyapp
-description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, manage WhatsApp templates/media or the business profile, moderate Instagram comments, set up a sandbox session, connect WhatsApp via Meta Embedded Signup or Instagram via Instagram OAuth, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram messaging api, meta instagram api, hookmyapp instagram, hookmyapp mcp."
+description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, publish Instagram posts, reels, or stories, read Instagram insights, manage WhatsApp templates/media or the business profile, moderate Instagram comments or receive comment webhooks, set up a sandbox session, connect WhatsApp via Meta Embedded Signup or Instagram via Instagram OAuth, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram publish, instagram insights, instagram messaging api, meta instagram api, hookmyapp instagram, hookmyapp mcp."
 license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.8.3"
+  version: "0.9.0"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -57,15 +57,25 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the user's machine:
 
 ```bash
-command -v hookmyapp >/dev/null 2>&1 || npm install -g @gethookmyapp/cli
+# This skill version needs CLI >= 0.15.0 (instagram publish/insights/comments
+# subcommands). The bounded range keeps the install pinned to a reviewed
+# release line; an older existing install is upgraded in place.
+command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@^0.15.0'
+hookmyapp --version | awk -F. '{ exit ($1 > 0 || $2 >= 15) ? 0 : 1 }' || npm install -g '@gethookmyapp/cli@^0.15.0'
+# Re-check after the upgrade and STOP if the minimum still is not met — do not
+# write the skill marker or continue with a CLI that lacks the new subcommands.
+hookmyapp --version | awk -F. '{ exit ($1 > 0 || $2 >= 15) ? 0 : 1 }' \
+  || { echo "hookmyapp >= 0.15.0 required for this skill; install it manually and re-run." >&2; false; }
 ```
+
+If that final check fails, stop and ask the user to upgrade the CLI themselves — do not continue to the skill-version marker below.
 
 If `npm` is missing, stop and ask the user to install Node.js 20+ (which includes npm). If global installs are blocked, stop and ask the user to install the CLI themselves (`npm install -g @gethookmyapp/cli`) or make `hookmyapp` available on PATH another way — do not retry the blocked command. Do not continue with guessed commands or raw API calls just because the CLI is absent.
 
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.8.3" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.0" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -102,7 +112,7 @@ Read that file when starting a fresh integration; the sections below are the per
 | billing | Show subscription status, open the app Billing page, upgrade plan (billing is pooled across your organization). | [references/billing.md](references/billing.md) |
 | channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `move <channel> <target>` (to another workspace or customer), `env`/`health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
 | whatsapp (`wa`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `templates {list,get,create,delete}`, `media {upload,get,download,delete}`, `profile {get,update}`. | [references/whatsapp.md](references/whatsapp.md) |
-| instagram (`ig`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `comments {list,get,reply,private-reply,hide,delete}`. | [references/instagram.md](references/instagram.md) |
+| instagram (`ig`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `publish` (image/reel/story/carousel), `insights [--media]`, `comments {list,get,reply,private-reply,hide,delete}`. | [references/instagram.md](references/instagram.md) |
 | channel tokens | Read and rotate the channel's gateway access token (`hmat_…`) via `channels token [--rotate]` (one active token per channel). | [references/access-tokens.md](references/access-tokens.md) |
 | config | Set/get/unset persistent CLI config (e.g., `telemetry` crash-reporting on/off). | [references/config.md](references/config.md) |
 | customers | SaaS customer workspaces: `list`, `new`, `use`, `current`, and `onboarding-links {list,create}` — mint connect links your end-customers open to connect their channel (no HookMyApp account needed). | [references/customers.md](references/customers.md) |
@@ -111,7 +121,7 @@ Read that file when starting a fresh integration; the sections below are the per
 
 ### MCP server (operate HookMyApp without the CLI)
 
-HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 23 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, and message sending. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
+HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 28 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
 Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. Do **not** add the server by hand with `claude mcp add` — that writes an entry with no credential helper, and it cannot authenticate. For other clients, use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key`. Browser sign-in (OAuth) is not currently operational; do not send users to `/mcp` sign-in or `codex mcp login`.
 
@@ -156,7 +166,7 @@ hookmyapp whatsapp messages send --channel +15551234567 --to +15557654321 --text
 node scripts/wa-send-message.mjs --to +15557654321 --text "hi"                            # script fallback
 ```
 
-CLI commands resolve the channel from `--channel` (`+phone`, `@handle`, or `ch_id`) or fall back to `HOOKMYAPP_CHANNEL_ID`. Beyond sending, these cover templates, media, the WhatsApp business profile, and Instagram comment moderation. Copy-paste request bodies live in `assets/` (e.g. `--body @assets/wa-template-utility.json`). Full recipes: [references/whatsapp.md](references/whatsapp.md) and [references/instagram.md](references/instagram.md).
+CLI commands resolve the channel from `--channel` (`+phone`, `@handle`, or `ch_id`) or fall back to `HOOKMYAPP_CHANNEL_ID`. Beyond sending, these cover templates, media, the WhatsApp business profile, and Instagram publishing, insights, and comment moderation. Copy-paste request bodies live in `assets/` (e.g. `--body @assets/wa-template-utility.json`). Full recipes: [references/whatsapp.md](references/whatsapp.md) and [references/instagram.md](references/instagram.md).
 
 ## Webhook Payload Format
 

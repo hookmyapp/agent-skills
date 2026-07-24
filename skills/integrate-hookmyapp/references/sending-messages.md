@@ -146,3 +146,5 @@ export async function sendInstagram(recipientIgsid, text) {
 ```
 
 The env-key fallbacks (`INSTAGRAM_API_URL` then `INSTAGRAM_GRAPH_API_URL`; `INSTAGRAM_ACCOUNT_ID` then `INSTAGRAM_USER_ID`) bridge the sandbox vs real-channel base-URL key split documented in [env.md](env.md), plus the legacy `INSTAGRAM_USER_ID` alias from older `.env` files (both contexts now emit `INSTAGRAM_ACCOUNT_ID`).
+
+**Private replies to comments are not a messaging feature** — they live with the comment tooling in [instagram.md](instagram.md#private-replies), not here. A private reply DMs a commenter via `POST /{IG_ACCOUNT_ID}/messages` with `recipient: {"comment_id": "<id>"}` (one DM per comment; within 7 days for post/reel comments, Live comments only while the broadcast is live). The regular DM path above is unchanged: outside a private reply, you can only DM a user within Meta's standard 24-hour window after their last message. Meta's `HUMAN_AGENT` tag (which extends manual replies to 7 days) requires a separate app-level Human Agent permission that HookMyApp's Instagram integration does not currently include, so within HookMyApp treat the 24-hour window as the limit.

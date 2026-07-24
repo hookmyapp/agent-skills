@@ -7,6 +7,8 @@ description: Connect and list WhatsApp or Instagram channels through their provi
 
 A "channel" is a WhatsApp Business Account (WABA) or an Instagram account attached to your workspace. WhatsApp connects through Meta Embedded Signup. Instagram connects through direct Instagram OAuth at `instagram.com`; it does not use Facebook Login or WhatsApp Embedded Signup. The provider token stays inside HookMyApp; your app authenticates to the gateway with a minted `hmat_` access token instead (see [access tokens](access-tokens.md)).
 
+Instagram channels also forward **comment webhook events** (`comments`, `live_comments`) to the channel's webhook destination exactly like messages — same delivery, same `X-HookMyApp-Signature-256` HMAC signature. Comment events are **not billable**; only messages count toward usage. Payload shapes (Meta emits two) and parsing rules: [instagram.md](instagram.md#comment-webhooks-both-payload-shapes).
+
 > **Direct Meta access still works.** Existing integrations that call `https://graph.facebook.com` with their own Meta token are unaffected by the gateway. Routing through `https://gateway.hookmyapp.com/meta/...` with a minted `hmat_` access token is the recommended path for new setups.
 
 > **Note:** This command was previously named `accounts` (in CLI versions before 0.6.1). If you find older docs referencing `accounts connect` / `accounts list`, the current name is `channels`.
