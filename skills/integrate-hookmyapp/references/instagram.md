@@ -11,7 +11,7 @@ Three ways to do everything below, in order of preference:
 2. **Bundled scripts** (no CLI at runtime): `node scripts/ig-*.mjs`. Provision credentials once with `channels env --write .env`; the scripts then auto-load `./.env` (override with `--dotenv <path>` or `HOOKMYAPP_ENV_FILE`) and call the gateway directly. DMs and comments only — publish and insights have no bundled script; use the CLI or raw HTTP.
 3. **Raw HTTP** from your app: see [sending-messages.md](sending-messages.md) for DMs; publish and insights raw calls are inline below.
 
-All hit the same gateway; the path after `/meta` is verbatim Meta Graph API. These act on **your own connected IG channel** — sandbox sends use `hookmyapp sandbox send` ([sandbox.md](sandbox.md)).
+All hit the same gateway; the path after `/meta` is verbatim Meta Graph API. These act on **your own connected IG channel** — sandbox sends use `hookmyapp sandbox send` ([sandbox.md](sandbox.md)). The sandbox covers **DMs only**: publish, insights, and comment operations need a real connected channel and fail against sandbox credentials.
 
 ## Rules that aren't in `--help`
 
@@ -42,13 +42,16 @@ Publishing is Meta's two-step flow, which the CLI wraps: create a media **contai
 hookmyapp instagram publish --image https://example.com/photo.jpg --caption "New drop" --channel @acme
 hookmyapp instagram publish --video https://example.com/clip.mp4 --reel --caption "..." --cover https://example.com/cover.jpg
 hookmyapp instagram publish --image https://example.com/photo.jpg --story
-hookmyapp instagram publish --carousel https://example.com/a.jpg,https://example.com/b.jpg --caption "..."
+hookmyapp instagram publish --carousel https://example.com/a.jpg,video:https://example.com/b.mp4 --caption "..."   # video: prefix = video child; plain URL = image
 ```
 
 Raw HTTP (gateway; the same three Meta calls the CLI makes):
 
 ```bash
 # 1. Create the container. Media is a PUBLIC https URL — Meta fetches it; there is no byte upload here.
+#    Hosts that block Meta's fetcher fail with a MISLEADING "Only photo or video can be
+#    accepted as media type" — move the file, don't debug your request. Videos: H.264+AAC MP4;
+#    other codecs pass this step and then die in the status poll with ERROR.
 curl -X POST "$INSTAGRAM_GRAPH_API_URL/$INSTAGRAM_ACCOUNT_ID/media" \
   -H "Authorization: Bearer $INSTAGRAM_ACCESS_TOKEN" -H "Content-Type: application/json" \
   -d '{"image_url":"https://example.com/photo.jpg","caption":"New drop"}'

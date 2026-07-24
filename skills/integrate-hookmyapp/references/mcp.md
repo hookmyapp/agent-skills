@@ -91,7 +91,7 @@ Read:
 | `get_org_usage` | Check monthly organization usage |
 | `list_onboarding_links` | List customer connect links (SaaS Mode) |
 | `list_instagram_comments` | List comments on an Instagram media (`mediaId`) or the replies of a comment (`commentId`), with explicit `fields` and cursor paging. Instagram channels only |
-| `get_instagram_insights` | Read account or per-media Instagram insights: `target` (`"account"` or a media id), `metrics[]`, optional `period` and `breakdown`. Unavailable metrics come back in an `unavailable[]` list instead of failing the whole call |
+| `get_instagram_insights` | Read account or per-media Instagram insights: `target` (`"account"` or a media id), `metrics[]`, optional `period` and `breakdown`, `timeframe` (required for demographics). Account metrics may include the profile counters `followers_count`/`follows_count`/`media_count`. Unavailable metrics come back in an `unavailable[]` list instead of failing the whole call |
 
 Write:
 
