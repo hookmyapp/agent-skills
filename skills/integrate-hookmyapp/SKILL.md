@@ -57,6 +57,10 @@ Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the use
 
 ```bash
 command -v hookmyapp >/dev/null 2>&1 || npm install -g @gethookmyapp/cli
+# This skill version needs CLI >= 0.15.0 (instagram publish/insights/comments
+# subcommands). An older install would advertise skill 0.9.0 below and then
+# fail locally on the new subcommands — upgrade in place when older.
+hookmyapp --version | awk -F. '{ exit ($1 > 0 || $2 >= 15) ? 0 : 1 }' || npm install -g @gethookmyapp/cli@latest
 ```
 
 If `npm` is missing, stop and ask the user to install Node.js 20+ (which includes npm). If global installs are blocked, stop and ask the user to install the CLI themselves (`npm install -g @gethookmyapp/cli`) or make `hookmyapp` available on PATH another way — do not retry the blocked command. Do not continue with guessed commands or raw API calls just because the CLI is absent.
