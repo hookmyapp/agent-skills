@@ -212,7 +212,7 @@ Parsing rules:
 - Normalize both shapes: an entry's comment values are `entry.changes[].value` when `changes` exists, else the single `entry.value`.
 - Treat `from.id`, `parent_id`, and `media.media_product_type` as **optional**.
 - Comments made *by your own account* also arrive (self-comment echo) — filter on `from.username`/`from.id` against your own account if you don't want to react to yourself.
-- Mentions arrive **inside `comments`** under Instagram Login — there is no separate mentions webhook field.
+- **Comment @mentions** arrive as regular `comments` events under Instagram Login. Meta's separate `mentions` webhook field (with `mentioned_comment`/`mentioned_media` lookups) belongs to the Facebook-Login Instagram Graph API, which these abilities do not use — so **caption mentions are not delivered**; only mentions inside comments reach you.
 - Unknown fields/shapes are forwarded to you anyway (never billed); ignore what you don't handle rather than erroring.
 
 ## Reconnect: channels connected before these abilities
