@@ -57,15 +57,15 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the user's machine:
 
 ```bash
-# This skill version needs CLI >= 0.15.0 (instagram publish/insights/comments
+# This skill version needs CLI >= 0.14.3 (instagram publish/insights/comments
 # subcommands). The bounded range keeps the install pinned to a reviewed
 # release line; an older existing install is upgraded in place.
-command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@^0.15.0'
-hookmyapp --version | awk -F. '{ exit ($1 > 0 || $2 >= 15) ? 0 : 1 }' || npm install -g '@gethookmyapp/cli@^0.15.0'
+command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.3 <1'
+hookmyapp --version | awk -F. '{ exit ($1 > 0 || $2 > 14 || ($2 == 14 && $3 >= 3)) ? 0 : 1 }' || npm install -g '@gethookmyapp/cli@>=0.14.3 <1'
 # Re-check after the upgrade and STOP if the minimum still is not met — do not
 # write the skill marker or continue with a CLI that lacks the new subcommands.
-hookmyapp --version | awk -F. '{ exit ($1 > 0 || $2 >= 15) ? 0 : 1 }' \
-  || { echo "hookmyapp >= 0.15.0 required for this skill; install it manually and re-run." >&2; false; }
+hookmyapp --version | awk -F. '{ exit ($1 > 0 || $2 > 14 || ($2 == 14 && $3 >= 3)) ? 0 : 1 }' \
+  || { echo "hookmyapp >= 0.14.3 required for this skill; install it manually and re-run." >&2; false; }
 ```
 
 If that final check fails, stop and ask the user to upgrade the CLI themselves — do not continue to the skill-version marker below.
