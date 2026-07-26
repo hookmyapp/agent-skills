@@ -5,6 +5,8 @@ description: "Manage SaaS customer workspaces and mint onboarding links (`custom
 
 # Customers & Onboarding Links
 
+**This surface is for END-CUSTOMERS' channels only.** If the channel being connected is the user's own team/product number or account, do NOT use customers or onboarding links — use `hookmyapp channels connect` instead. Onboarding links can only target customer workspaces; the backend rejects one pointed at a team workspace. When in doubt, ask the user: "your own team's channel, or a channel your customers will connect?"
+
 HookMyApp's SaaS-management surface is available to every org, no plan gate. A **customer** is an end-customer of your org, represented as a customer workspace — strictly separate from your team workspaces. `workspace` commands never show customers and `customers` commands never show team workspaces; do not mix the two surfaces.
 
 The customer's channel arrives via an **onboarding link**: you mint a persistent `https://app.hookmyapp.com/connect/<token>` URL with a fixed channel type and send it to the end-customer. They open it and complete the selected provider's flow — Meta Embedded Signup for WhatsApp or direct Instagram OAuth for Instagram. **No HookMyApp account is needed on their side.** The connected channel lands in the target customer workspace (or a new customer is created if the link wasn't pinned to one).
