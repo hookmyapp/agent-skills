@@ -55,6 +55,8 @@ Script fallback: `node scripts/wa-create-template.mjs --file assets/wa-template-
 
 **Template rules:** prefer `parameter_format: "NAMED"` with `{{param_name}}`; use `language` (not `language_code`); include `example` values for any variables; at send time include `parameter_name` on each param for NAMED templates.
 
+**If create fails with `Invalid parameter` / subcode `2494160`:** Meta has restricted that account from creating or editing templates — the body is fine. Don't retry variations or reconnect the channel; see [troubleshooting.md](troubleshooting.md).
+
 ### Upload media and send it
 
 ```bash
