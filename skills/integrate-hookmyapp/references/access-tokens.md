@@ -5,7 +5,7 @@ description: "Read and rotate a channel's gateway access token via `hookmyapp ch
 
 # Channel Tokens
 
-Your app talks to Meta through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`) using a gateway **access token**, not a raw Meta token. The key is HookMyApp's: it is scoped to one connection (channel) — and to that channel's own phone number (a WABA can hold several numbers; each connects as its own channel with its own token) — it is rotatable at any time, and the underlying long-lived Meta token never leaves HookMyApp. Every channel is born with exactly one active access token, minted automatically at `channels connect`. You read it with `hookmyapp channels token <channel>` (or `channels env <channel>`), carry it in your `.env`, and send it as `Authorization: Bearer hmat_...`. The gateway swaps it for the Meta token server-side and forwards your request verbatim.
+Your app talks to Meta through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`) using a gateway **access token**, not a raw Meta token. The key is HookMyApp's: it is scoped to one connection (channel) — and to that channel's own phone number (a WABA can hold several numbers; each connects as its own channel with its own token) — and it is rotatable at any time. Every channel is born with exactly one active access token, minted automatically at `channels connect`. You read it with `hookmyapp channels token <channel>` (or `channels env <channel>`), carry it in your `.env`, and send it as `Authorization: Bearer hmat_...`. The gateway swaps it for the Meta token server-side and forwards your request verbatim.
 
 There is no create/list/revoke surface: one channel, one active token. Rotation replaces it atomically.
 

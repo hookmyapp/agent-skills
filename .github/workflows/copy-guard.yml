@@ -1,0 +1,31 @@
+# Reseller-category ban (MAR-3). These skills install on user machines via
+# `npx skills add hookmyapp/agent-skills` and every agent reading them treats
+# them as ground truth — one "passthrough, not a <reseller acronym>" line here
+# propagated into 13 places across 5 files in a single session. Describe what
+# the user gets, never the plumbing or the category.
+name: Copy guard
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  banned-copy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ban retired copy in skills
+        run: |
+          HITS=$(grep -rn -i -E '\bBSPs?\b|passthrough|activation code' skills/ || true)
+          if [ -n "$HITS" ]; then
+            echo "FAIL: retired copy found in shipped skills:"
+            echo "$HITS"
+            echo ""
+            echo "  Fix: reseller-category framing (say what the reader gets, never"
+            echo "       the category or the plumbing) and \"activation code\" (the"
+            echo "       env value is the sandbox channel token; the code the user"
+            echo "       sends is the BIND code). See MAR-3."
+            exit 1
+          fi
+          echo "PASS: no retired copy in skills"
