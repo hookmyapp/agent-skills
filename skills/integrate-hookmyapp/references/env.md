@@ -5,7 +5,7 @@ description: Print or write the env keys for a connected channel (`channels env`
 
 # Channel Env
 
-`hookmyapp channels env <channel>` prints the env keys your app reads to talk to Meta through the HookMyApp gateway for a real connected channel. This is distinct from `sandbox env`, which writes the sandbox-proxy key set. The key NAMES differ between the two contexts; teach the one matching the channel you are configuring.
+`hookmyapp channels env <channel>` prints the env keys your app reads to talk to Meta through the HookMyApp gateway for a real connected channel. This is distinct from `sandbox env`, which writes the sandbox key set. The key NAMES differ between the two contexts; teach the one matching the channel you are configuring.
 
 | Context | Command | WhatsApp keys | Instagram keys |
 |---|---|---|---|

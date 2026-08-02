@@ -5,7 +5,7 @@ description: Manage a sandbox WhatsApp or Instagram session (dev/testing), pull 
 
 # Sandbox
 
-The sandbox is a test account HookMyApp provisions for dev and testing — no Meta dashboard, no embedded signup, no templates. A WhatsApp session is pinned to a single phone number (yours). Recipients are pinned to that session phone server-side; **`--to` does not exist** on `sandbox send` and any attempt to send to a different number is rejected by sandbox-proxy. `sandbox start instagram` opens an Instagram session reached via an ig.me deep link; IG sandbox replies go to the DM thread rather than a pinned phone.
+The sandbox is a test account HookMyApp provisions for dev and testing — no Meta dashboard, no embedded signup, no templates. A WhatsApp session is pinned to a single phone number (yours). Recipients are pinned to that session phone server-side; **`--to` does not exist** on `sandbox send` and any attempt to send to a different number is rejected. `sandbox start instagram` opens an Instagram session reached via an ig.me deep link; IG sandbox replies go to the DM thread rather than a pinned phone.
 
 ## sandbox start
 
@@ -87,7 +87,7 @@ Global flags: `--json`, `--workspace`.
 | `VERIFY_TOKEN` | Plain-text value your endpoint echoes back on the one-time verify GET — `sandbox webhook set` runs this handshake against your URL before saving it. |
 | `PORT` | Port your local server listens on (default `3000`). |
 | `WHATSAPP_API_URL` | Sandbox proxy base URL. |
-| `WHATSAPP_ACCESS_TOKEN` | Sandbox activation code. |
+| `WHATSAPP_ACCESS_TOKEN` | Sandbox channel token used to send messages. |
 | `WHATSAPP_PHONE_NUMBER_ID` | Sandbox phone number ID. |
 
 **Instagram sandbox keys** (six keys):
@@ -98,7 +98,7 @@ Global flags: `--json`, `--workspace`.
 | `VERIFY_TOKEN` | Plain-text value your endpoint echoes back on the one-time verify GET — `sandbox webhook set` runs this handshake against your URL before saving it. |
 | `PORT` | Port your local server listens on (default `3000`). |
 | `INSTAGRAM_API_URL` | Sandbox proxy base URL for Instagram. |
-| `INSTAGRAM_ACCESS_TOKEN` | Sandbox activation code. |
+| `INSTAGRAM_ACCESS_TOKEN` | Sandbox channel token used to send DMs. |
 | `INSTAGRAM_ACCOUNT_ID` | Sandbox Instagram account ID. |
 
 > **Safety:** The sandbox keys are secrets scoped to your session. Never paste the contents of your `.env` file into a chat, ticket, or log.
@@ -197,7 +197,7 @@ Global flags: `--workspace`.
 
 **Browser step required:** No
 
-> **IMPORTANT:** There is NO `--to` flag. For WhatsApp, the recipient is pinned server-side to the session phone (sandbox-proxy rejects any outbound send whose `to` != session phone; see `proxy.controller.ts:50-64`). For Instagram, sends go to the DM thread of the session; there is no separate recipient argument. Template messages are also blocked on sandbox (`proxy.controller.ts:67-76`) — templates work only on your own channel.
+> **IMPORTANT:** There is NO `--to` flag. For WhatsApp, the recipient is pinned server-side to the session phone (any outbound send whose `to` != session phone is rejected). For Instagram, sends go to the DM thread of the session; there is no separate recipient argument. Template messages are also blocked on sandbox — templates work only on your own channel.
 
 **Examples:**
 
@@ -215,7 +215,7 @@ hookmyapp sandbox send --phone +15551234567 --message "hi"
 hookmyapp sandbox send --username @acmebrand --message "hi"
 ```
 
-**Exit codes:** `0` success · `1` no active session · `2` message blocked by sandbox-proxy (recipient not session phone, or template attempt).
+**Exit codes:** `0` success · `1` no active session · `2` message blocked by the sandbox (recipient not session phone, or template attempt).
 
 ## sandbox webhook
 

@@ -1,0 +1,66 @@
+# Reseller-category ban (MAR-3). These skills install on user machines via
+# `npx skills add hookmyapp/agent-skills` and every agent reading them treats
+# them as ground truth — one "passthrough, not a <reseller acronym>" line here
+# propagated into 13 places across 5 files in a single session. Describe what
+# the user gets, never the plumbing or the category.
+#
+# Also pins the two copies of the skill version together: `metadata.version`
+# and the literal the setup command writes to ~/.config/hookmyapp/skill-version
+# are one fact in two places, and the 0.9.2 bump updated only the first.
+name: Copy guard
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  banned-copy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Ban retired copy in skills
+        run: |
+          set -uo pipefail
+          status=0
+          HITS=$(grep -rn -i -E '\bBSPs?\b|passthrough|activation code' skills/) || status=$?
+          # grep exits 1 for "no match" and >1 for a real error (missing dir,
+          # unreadable file). Without this check the `|| true` idiom fails OPEN
+          # and reports a pass on a scan that never ran.
+          if [ "$status" -gt 1 ]; then
+            echo "FAIL: grep exited $status — the scan did not run, refusing to pass"
+            exit 1
+          fi
+          if [ -n "$HITS" ]; then
+            echo "FAIL: retired copy found in shipped skills:"
+            echo "$HITS"
+            echo ""
+            echo "  Fix: reseller-category framing (say what the reader gets, never"
+            echo "       the category or the plumbing) and \"activation code\" (the"
+            echo "       env value is the sandbox channel token; the code the user"
+            echo "       sends is the BIND code). See MAR-3."
+            exit 1
+          fi
+          echo "PASS: no retired copy in skills"
+      - name: Skill version marker matches metadata.version
+        run: |
+          set -euo pipefail
+          SKILL=skills/integrate-hookmyapp/SKILL.md
+          META=$(sed -n 's/^  version: "\(.*\)"$/\1/p' "$SKILL" | head -1)
+          MARKER=$(sed -n 's|.*echo "\([0-9][^"]*\)" > ~/.config/hookmyapp/skill-version.*|\1|p' "$SKILL" | head -1)
+          if [ -z "$META" ] || [ -z "$MARKER" ]; then
+            echo "FAIL: could not read metadata.version ('$META') or the skill-version marker ('$MARKER')"
+            exit 1
+          fi
+          if [ "$META" != "$MARKER" ]; then
+            echo "FAIL: metadata.version is $META but the setup command writes $MARKER"
+            echo "      to ~/.config/hookmyapp/skill-version. The backend gates compatibility"
+            echo "      on that marker, so every fresh install would report the wrong version."
+            exit 1
+          fi
+          echo "PASS: skill version $META matches the setup marker"
