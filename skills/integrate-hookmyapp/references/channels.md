@@ -123,7 +123,7 @@ hookmyapp channels enable ch_AAAAAAAA
 
 ## channels disable
 
-Disable inbound webhook forwarding for a channel. Outbound sends still work; inbound messages are **silently dropped** by the forwarder until re-enabled.
+Disable inbound webhook forwarding for a channel. Outbound sends still work; inbound messages are **silently dropped** until re-enabled.
 
 **Flags:** only `-h/--help` per `--help`. No `--yes` flag.
 

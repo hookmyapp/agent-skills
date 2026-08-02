@@ -5,15 +5,15 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.1"
+  version: "0.9.2"
   cli-package: "@gethookmyapp/cli"
 ---
 
 # Integrate HookMyApp
 
-HookMyApp is a passthrough for WhatsApp and Instagram: the user keeps their own Meta token inside HookMyApp, HookMyApp forwards inbound messages to their code, and their replies go straight through Meta (it is not a BSP middleman). Outbound sends route through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`): the user's app carries a minted `hmat_` gateway access token, the gateway swaps it for the underlying Meta token server-side, and the path after `/meta` is verbatim Meta Graph API. This skill teaches AI coding agents how to drive the `@gethookmyapp/cli` to integrate a user's app with either a sandbox account (for dev and testing) or their own channel. WhatsApp uses Meta Embedded Signup; Instagram uses direct Instagram OAuth. The CLI owns credential issuance, tunnel lifecycle, and webhook configuration. For a single own-channel integration your code never needs to call the HookMyApp API directly; SaaS builders whose backend must manage customers at runtime use the [REST API](references/api.md).
+HookMyApp connects the user's own WhatsApp number and Instagram account to their code: inbound messages are forwarded to their code, and their replies go out over Meta's official API. Outbound sends route through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`): the user's app carries a minted `hmat_` gateway access token, the gateway swaps it for the underlying Meta token server-side, and the path after `/meta` is verbatim Meta Graph API. This skill teaches AI coding agents how to drive the `@gethookmyapp/cli` to integrate a user's app with either a sandbox account (for dev and testing) or their own channel. WhatsApp uses Meta Embedded Signup; Instagram uses direct Instagram OAuth. The CLI owns credential issuance, tunnel lifecycle, and webhook configuration. For a single own-channel integration your code never needs to call the HookMyApp API directly; SaaS builders whose backend must manage customers at runtime use the [REST API](references/api.md).
 
-> **Direct Meta access still works.** Integrations that already call `https://graph.facebook.com` with their own Meta token are unaffected. The gateway with a minted `hmat_` access token is the recommended path for new setups: the access token is scoped to one channel and revocable, and the Meta token never leaves HookMyApp.
+> **Direct Meta access still works.** Integrations that already call `https://graph.facebook.com` with their own Meta token are unaffected. The gateway with a minted `hmat_` access token is the recommended path for new setups: the access token is scoped to one channel and revocable.
 
 ## Agent Guidance
 
@@ -42,7 +42,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 - **Never paste `channels env <channel>` or `hookmyapp channels token <channel>` output (the `hmat_` access token) into chat, tickets, or logs.** Redirect to a secret manager or `.env` file the user controls.
 - **Never run `workspace use` without confirming the target ID.** Running commands against the wrong workspace can mutate the wrong WABA.
 - **Never run `webhook set` without explicit human confirmation of the URL.** Pointing your channel's webhooks at a dev URL silently drops inbound customer messages.
-- **Never generate sandbox template-message examples.** Templates are rejected by sandbox-proxy; generating such code only wastes the user's time.
+- **Never generate sandbox template-message examples.** Templates are rejected in the sandbox; generating such code only wastes the user's time.
 - **Never run `hookmyapp channels disable <channel>` without explicit human confirmation.** Forwarding off = silent message drop on inbound; no error surfaces to the customer. Use `channels show <channel>` or `channels health <channel>` to verify state before and after.
 - **Never run `hookmyapp channels listen` without explicit human confirmation.** Listening on a real channel routes inbound customer messages to the developer's localhost. That is the intended behavior for local dev and self-hosted agents, but a misclicked channel hijacks live traffic for as long as the CLI is up. Confirm the channel publicId before launching.
 
@@ -78,7 +78,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.1" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.2" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -206,16 +206,16 @@ HookMyApp forwards Meta's webhook body verbatim. The envelope has `entry[].chang
 
 ### Signature verification
 
-HookMyApp's forwarder signs every outbound webhook — **in both sandbox and your own channel** — with an HMAC-SHA256 signature sent as:
+HookMyApp signs every outbound webhook — **in both sandbox and your own channel** — with an HMAC-SHA256 signature sent as:
 
 - Header: `X-HookMyApp-Signature-256`
 - Format: `sha256=<hex>`
 - HMAC key: the channel's **HMAC signing secret** — `WEBHOOK_HMAC_SECRET`, exported by BOTH `hookmyapp channels env <channel>` and `hookmyapp sandbox env`. Same key name in both contexts; never key it on `VERIFY_TOKEN`.
-- Body: `JSON.stringify(parsedBody)` on the forwarder's side (deterministic in V8)
+- Body: `JSON.stringify(parsedBody)` on HookMyApp's side (deterministic in V8)
 
 `VERIFY_TOKEN` is a **separate value with one job**: the plain-text body your endpoint returns on the webhook verify GET. Both surfaces carry it: real channels auto-generate one (override with `hookmyapp channels webhook set <channel> --verify-token <token>`), and `sandbox env` writes the session's `VERIFY_TOKEN` — `sandbox webhook set` runs the verify-GET handshake against it. Never use it as the HMAC key — channels created before the two were split (2026-06-24) happen to carry the same value in both, but new channels get two independent values.
 
-Meta's own `X-Hub-Signature-256` / `APP_SECRET` path is **internal to the forwarder** — the forwarder verifies Meta's signature before re-signing with the customer's `WEBHOOK_HMAC_SECRET`. Customers never see `X-Hub-Signature-256` and do not need `APP_SECRET`. `hookmyapp channels env <channel>` does NOT emit `APP_SECRET`.
+Meta's own `X-Hub-Signature-256` / `APP_SECRET` path is **internal to HookMyApp** — Meta's signature is verified before the payload is re-signed with the customer's `WEBHOOK_HMAC_SECRET`. Customers never see `X-Hub-Signature-256` and do not need `APP_SECRET`. `hookmyapp channels env <channel>` does NOT emit `APP_SECRET`.
 
 Verify it by recomputing the HMAC over the body bytes and comparing to the header:
 

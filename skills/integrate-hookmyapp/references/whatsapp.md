@@ -18,7 +18,7 @@ All three hit the same gateway (`https://gateway.hookmyapp.com/meta/...`); the p
 - **Channel resolution.** Every CLI command takes `--channel <ref>` accepting a `+E164phone`, an `@handle`, or a `ch_xxxxxxxx` id. Omit it and the CLI falls back to the `HOOKMYAPP_CHANNEL_ID` env var that `channels env --write` puts in your `.env` (so a project directory has a default channel). Neither present → `NO_CHANNEL`. The resolved channel must be a WhatsApp channel or you get `CHANNEL_TYPE_MISMATCH`. (The old global `config default-channel` key was removed — `HOOKMYAPP_CHANNEL_ID` replaced it.)
 - **Builder flags XOR `--body`.** Commands that send a body accept either builder flags (`--to`, `--text`, profile fields) **or** a complete Meta body via `--body`/`-d` — never both (`BODY_AND_FLAGS`), never neither (`NO_PAYLOAD`). A `--body` value is inline JSON, `@file`, or `-` (stdin), forwarded verbatim — the escape hatch for any message type the flags don't cover.
 - **Templates are WABA-scoped** — they belong to the whole business account, not one phone number.
-- **Media is passthrough** — HookMyApp stores nothing; media ids and bytes live in Meta.
+- **Media is never stored** — HookMyApp stores nothing; media ids and bytes live in Meta.
 
 ## Recipes
 
