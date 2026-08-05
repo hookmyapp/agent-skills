@@ -75,7 +75,7 @@ curl -X POST "$INSTAGRAM_GRAPH_API_URL/$INSTAGRAM_ACCOUNT_ID/media_publish" \
 | Reel | `media_type=REELS`, `video_url`, optional `cover_url` | ≤15 min, ≤1GB |
 | Story | `media_type=STORIES` + `image_url` or `video_url` | video ≤60s; no stickers/links; **Business accounts only** — Creator accounts get Meta's rejection back as-is |
 | Carousel | `media_type=CAROUSEL` + up to 10 child containers created with `is_carousel_item=true` | no reels as children |
-| Trial reel | `media_type=REELS` + `trial_params: {"graduation_strategy": "MANUAL" \| "SS_PERFORMANCE"}` | reels only; shown to non-followers first. `MANUAL` = graduate by hand in the app, `SS_PERFORMANCE` = Instagram graduates it if it performs. No API field reads back whether a reel is a trial reel |
+| Trial reel | `media_type=REELS` + `trial_params: {"graduation_strategy": "MANUAL"}` | reels only; shown to non-followers first. `MANUAL` = graduate by hand in the app, `SS_PERFORMANCE` = Instagram graduates it if it performs. No API field reads back whether a reel is a trial reel |
 
 **Quota and lifecycle:**
 
