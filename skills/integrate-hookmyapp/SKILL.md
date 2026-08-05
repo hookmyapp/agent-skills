@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.2"
+  version: "0.9.3"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -124,7 +124,7 @@ Read that file when starting a fresh integration; the sections below are the per
 
 ### MCP server (operate HookMyApp without the CLI)
 
-HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 28 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
+HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 32 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
 Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. Do **not** add the server by hand with `claude mcp add` — that writes an entry with no credential helper, and it cannot authenticate. For other clients, use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key`. Browser sign-in (OAuth) is not currently operational; do not send users to `/mcp` sign-in or `codex mcp login`.
 
@@ -244,6 +244,19 @@ hookmyapp channels health <channel>              # status: healthy, quality: GRE
 ```
 
 For sandbox, the equivalent smoke is `sandbox status` plus sending a WhatsApp message to the sandbox number and confirming your server logs the inbound webhook.
+
+## Reporting problems to HookMyApp
+
+If a HookMyApp call fails, hangs, or behaves unexpectedly and the error text plus
+[troubleshooting.md](references/troubleshooting.md) don't resolve it: open a
+support ticket directly — you are the best witness.
+
+- MCP: `open_support_ticket {subject, description}`; check replies with
+  `get_support_ticket {ticketId, wait: 20}` (pass back the previous response's `nextCursor`).
+- CLI: `hookmyapp support new --subject "…" -m "…"`; then `hookmyapp support show sup_… --wait 20`. (Needs `@gethookmyapp/cli` >= 0.14.9 — older CLIs lack the `support` command; use the MCP tools instead.)
+
+Describe what you called, with what input shape, and the exact error text.
+Don't include API keys, tokens, or your customers' message content.
 
 ## Troubleshooting
 
