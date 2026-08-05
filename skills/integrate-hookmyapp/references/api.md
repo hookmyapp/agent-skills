@@ -91,7 +91,7 @@ Full request/response schemas: the OpenAPI spec and per-endpoint pages under the
 |--------|------|---------|
 | POST | `/support/tickets` | Open a support ticket (`{subject, description}` → `{ticketId}`) |
 | GET | `/support/tickets` | List your 20 most recent tickets |
-| GET | `/support/tickets/{id}` | Read a ticket; `?wait=1-25&afterCursor=…` holds for a new support reply |
+| GET | `/support/tickets/{id}` | Read a ticket; `?wait=20&afterCursor=…` holds for a new support reply (wait accepts 1-25 seconds) |
 | POST | `/support/tickets/{id}/messages` | Follow up on a ticket (resolved tickets reopen); same `wait`/`afterCursor` options |
 
 ### Agent credentials (headless auth)

@@ -78,7 +78,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.2" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.3" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -249,10 +249,12 @@ For sandbox, the equivalent smoke is `sandbox status` plus sending a WhatsApp me
 
 If a HookMyApp call fails, hangs, or behaves unexpectedly and the error text plus
 [troubleshooting.md](references/troubleshooting.md) don't resolve it: open a
-support ticket directly — you are the best witness.
+support ticket directly — you are the best witness. Redact before sending:
+no secrets or tokens, no customer message content or PII, no cookies or
+auth headers — keep the error text and the steps, drop the sensitive values.
 
 - MCP: `open_support_ticket {subject, description}`; check replies with
-  `get_support_ticket {ticketId, wait: 20}` (pass back the previous response's `nextCursor`).
+  `get_support_ticket {ticketId, wait: 20, afterCursor: <nextCursor from the previous response>}`.
 - CLI: `hookmyapp support new --subject "…" -m "…"`; then `hookmyapp support show sup_… --wait 20`. (Needs `@gethookmyapp/cli` >= 0.14.9 — older CLIs lack the `support` command; use the MCP tools instead.)
 - Fresh session with no saved ticket id? `list_support_tickets` / `hookmyapp support list` shows the organization's tickets from any surface — no local state needed.
 
