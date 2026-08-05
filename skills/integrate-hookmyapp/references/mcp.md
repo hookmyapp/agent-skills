@@ -115,7 +115,7 @@ Read:
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
 | `get_org_usage` | Check monthly organization usage |
 | `list_onboarding_links` | List customer connect links (SaaS Mode) |
-| `list_support_tickets` | List your 20 most recent HookMyApp support tickets |
+| `list_support_tickets` | List your organization's 20 most recent support tickets (org-wide — whichever credential or surface opened them) |
 | `get_support_ticket` | Read a support-ticket conversation and check for replies; optional `wait` (1-25s) holds for a new reply, `afterCursor` = the previous response's `nextCursor` |
 | `list_instagram_comments` | List comments on an Instagram media (`mediaId`) or the replies of a comment (`commentId`), with explicit `fields` and cursor paging. Instagram channels only |
 | `get_instagram_insights` | Read account or per-media Instagram insights: `target` (`"account"` or a media id), `metrics[]`, optional `period` and `breakdown`, `timeframe` (required for demographics). Account metrics may include the profile counters `followers_count`/`follows_count`/`media_count`. Unavailable metrics come back in an `unavailable[]` list instead of failing the whole call |

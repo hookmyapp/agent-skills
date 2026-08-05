@@ -254,6 +254,7 @@ support ticket directly — you are the best witness.
 - MCP: `open_support_ticket {subject, description}`; check replies with
   `get_support_ticket {ticketId, wait: 20}` (pass back the previous response's `nextCursor`).
 - CLI: `hookmyapp support new --subject "…" -m "…"`; then `hookmyapp support show sup_… --wait 20`. (Needs `@gethookmyapp/cli` >= 0.14.9 — older CLIs lack the `support` command; use the MCP tools instead.)
+- Fresh session with no saved ticket id? `list_support_tickets` / `hookmyapp support list` shows the organization's tickets from any surface — no local state needed.
 
 Describe what you called, with what input shape, and the exact error text.
 Don't include API keys, tokens, or your customers' message content.
