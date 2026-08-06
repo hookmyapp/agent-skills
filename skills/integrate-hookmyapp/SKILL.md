@@ -270,7 +270,8 @@ without pausing to ask the human between turns:
   from the reply response) **as a background task** and keep working — it
   exits the moment support answers. After OPENING a ticket, first run
   `hookmyapp support show <id> --json` once to get the baseline `nextCursor`
-  (the open response has no cursor), then start the watch with it. When a
+  (the open response has no cursor) — and if that snapshot already contains a
+  support reply, answer it first — then start the watch with the cursor. When a
   watch exits with a support message, answer with `hookmyapp support reply`,
   then start ONE new watch with the new cursor — keep this cycle going while
   support stays responsive. One watch per ticket; cancel the old one first.
