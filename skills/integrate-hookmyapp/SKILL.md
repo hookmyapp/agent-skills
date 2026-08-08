@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.5"
+  version: "0.9.6"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -26,7 +26,7 @@ HookMyApp connects the user's own WhatsApp number and Instagram account to their
 - **Sandbox is not your own channel.** Sandbox is a HookMyApp-hosted test account with 5 env keys, no templates, and recipient pinned to the session phone. Your own channel is your WhatsApp number (7 env keys and template support) or Instagram account (6 env keys and no templates). Authorize it with `channels connect`, then export its runtime environment with `channels env`. The two are not interchangeable — pick one based on the user's goal before generating code.
 - **MCP is optional; the CLI is never blocked.** Setup installs the CLI — that is the whole requirement. The MCP server is a convenience for agents that prefer tool calls, and `hookmyapp login` configures it automatically for Claude Code. Because MCP tools resolve at session start, a server installed mid-session stays dormant until the next session: that is expected, not a failure. When `mcp__hookmyapp__*` tools are absent or the connection is unhealthy and a shell is available, do the task with the CLI and mention that a restart activates the tools — **never tell the user the task cannot be done while the CLI can do it.** (Shell-less agents are the one exception: without a working MCP connection they should say exactly which capability is missing.) Repair steps: [references/mcp.md](references/mcp.md#recovery-mcp-isnt-working).
 - **Your own channel has two webhook-delivery flavors: CLI tunnel OR your own URL.** A connected channel can receive inbound webhooks via either (a) `hookmyapp channels listen` (the CLI provisions a per-channel Cloudflare tunnel — no public HTTPS URL required, designed for local dev / self-hosted agents / 24/7 hobby projects) or (b) `hookmyapp channels webhook set <channel> --url https://...` (your own public HTTPS endpoint, the classic deployed pattern). Pick CLI when the user is developing on localhost or running an always-on self-hosted agent (e.g. on a personal server or Raspberry Pi); pick URL when the user has a deployed backend ready to accept inbound webhooks. The two are mutually exclusive per channel — setting a URL while the CLI is listening evicts the CLI (it exits cleanly with a notice).
-- **Check notices every session.** `status` returns `notices[]` — messages from HookMyApp for this account: problems detected (failing webhook delivery, disconnected channels, usage limits), fixes applied, required updates, and product announcements. Relay every open notice to the human in your first reply, then mark it seen with `acknowledge_notice` (CLI: `hookmyapp notifications ack <id>`) so it stops repeating. After any send failure, re-check (`status` or `hookmyapp notifications`) — same sequence: relay any new notice to the human first, then acknowledge it.
+- **Check notices every session.** `status` returns `notices[]` — messages from HookMyApp for this account: problems detected (failing webhook delivery, disconnected channels, usage limits), fixes applied, required updates, and product announcements. Relay every open notice to the human in your first reply, then mark it seen with `acknowledge_notice` (CLI: `hookmyapp notifications ack <id>`) so it stops repeating. After any send failure, re-check (`status` or `hookmyapp notifications`) — same sequence: relay any new notice to the human first, then acknowledge it. Notice fields that shape how you relay: `ackScope: "user"` means your ack clears the notice only for YOUR human — other members of the organization each see and dismiss their own copy, so acking never hides anything from anyone else; `ackScope: "org"` means one ack clears it for the whole organization and records who saw it — `acknowledgedBy` on an org notice is that receipt ("acknowledged for the org by <email>" — it means their agent relayed it, NOT that the underlying problem was fixed); `personal: true` means the notice is addressed to your human specifically (no one else in the organization can see it) — say so when relaying, e.g. "this one is addressed to you directly."
 
 ### When to Prompt the Human
 
@@ -80,7 +80,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.5" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.6" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
