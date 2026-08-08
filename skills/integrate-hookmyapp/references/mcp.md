@@ -130,7 +130,7 @@ Write:
 | `create_onboarding_link` | Mint a connect link a customer opens to connect their channel |
 | `revoke_onboarding_link` | Revoke an onboarding link by its `ol_` ID so its connect URL stops working (org admin only) |
 | `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object) |
-| `acknowledge_notice` | Mark a notice from `status` `notices[]` as seen, after relaying it to the human. Idempotent |
+| `acknowledge_notice` | Mark a notice from `status` `notices[]` as seen, after relaying it to the human. Idempotent. Per-user notices (`ackScope: "user"`) clear only for your user — other members keep their own copy; org notices (`ackScope: "org"`) clear for the whole organization and record who acked (`acknowledgedBy`). `personal: true` notices are addressed to your human alone. |
 | `open_support_ticket` | Something failed or got stuck? Open a support ticket describing what you tried, what happened, and the exact error text — no secrets, no customer message content |
 | `reply_support_ticket` | Follow up on a support ticket (replying to a resolved ticket reopens it); optional `wait` for the answer |
 | `set_webhook_destination` | Set a channel's webhook destination URL (+ optional verify token) |
