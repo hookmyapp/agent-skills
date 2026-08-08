@@ -104,7 +104,7 @@ Read:
 
 | Tool | Use it for |
 | --- | --- |
-| `status` | Check auth, organization, granted scopes, usage, and suggested next steps. **Call this first.** Returns `notices[]` — unacknowledged problem notices; relay them to the human. |
+| `status` | Check auth, organization, granted scopes, usage, and suggested next steps. **Call this first.** Returns `notices[]` — unacknowledged notices; relay them to the human. |
 | `list_workspaces` | List workspaces and customers |
 | `list_customers` | List customers in the organization (SaaS Mode) |
 | `list_channels` | List channels in one workspace — pass the `ws_` ID from `list_workspaces` |
