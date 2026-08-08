@@ -98,13 +98,13 @@ Work top to bottom; each row assumes the ones above it passed.
 
 `hookmyapp doctor` summarizes CLI, login, and MCP status in one command — run it first when a user reports "the MCP isn't working".
 
-## Tools (32)
+## Tools (33)
 
 Read:
 
 | Tool | Use it for |
 | --- | --- |
-| `status` | Check auth, organization, granted scopes, usage, and suggested next steps. **Call this first.** |
+| `status` | Check auth, organization, granted scopes, usage, and suggested next steps. **Call this first.** Returns `notices[]` — unacknowledged notices; relay them to the human. |
 | `list_workspaces` | List workspaces and customers |
 | `list_customers` | List customers in the organization (SaaS Mode) |
 | `list_channels` | List channels in one workspace — pass the `ws_` ID from `list_workspaces` |
@@ -130,6 +130,7 @@ Write:
 | `create_onboarding_link` | Mint a connect link a customer opens to connect their channel |
 | `revoke_onboarding_link` | Revoke an onboarding link by its `ol_` ID so its connect URL stops working (org admin only) |
 | `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object) |
+| `acknowledge_notice` | Mark a notice from `status` `notices[]` as seen, after relaying it to the human. Idempotent |
 | `open_support_ticket` | Something failed or got stuck? Open a support ticket describing what you tried, what happened, and the exact error text — no secrets, no customer message content |
 | `reply_support_ticket` | Follow up on a support ticket (replying to a resolved ticket reopens it); optional `wait` for the answer |
 | `set_webhook_destination` | Set a channel's webhook destination URL (+ optional verify token) |
@@ -146,7 +147,7 @@ The five Instagram tools require an **Instagram Login** channel. A channel conne
 
 ## Working order
 
-1. `status` — confirms identity, organization, and scopes before anything else. If a later call fails with a scope error, re-run `status` and report the missing scope to the human instead of retrying.
+1. `status` — confirms identity, organization, and scopes before anything else, and surface any `notices[]` to the human before proceeding (then `acknowledge_notice` each one). If a later call fails with a scope error, re-run `status` and report the missing scope to the human instead of retrying.
 2. `list_workspaces` before any per-workspace tool — channel tools need a `ws_` ID.
 3. SaaS Mode flow: list customers → create/choose a customer → `create_onboarding_link` for that customer → after the customer connects, `list_channels` with the **customer's** `ws_` ID → send / manage webhooks on the customer channel. Don't list your own workspace channels when you mean a customer's.
 
