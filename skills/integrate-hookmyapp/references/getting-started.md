@@ -40,6 +40,25 @@ hookmyapp login --code <bootstrap>
 
 If the human already minted a bootstrap code from the HookMyApp dashboard (Settings → CLI → "Mint bootstrap code"), they can paste it into this flag and skip the browser tab entirely. The code is single-use and expires quickly — surface a `> **HUMAN ACTION REQUIRED:**` only for the paste. Exits non-zero if the code is expired or consumed. See [auth.md](auth.md) for full flag syntax.
 
+**2b. Company profile + alert phone (right after login, once)**
+
+Two short questions, both optional — a decline never blocks setup:
+
+1. **Company details.** Ask the human for their company website, business category, and what they're building. Set what they give you (org admins only):
+
+```bash
+hookmyapp org profile set --website https://acme.com --business-category "E-commerce" --primary-use-case "Order updates over WhatsApp"
+```
+
+2. **Personal alert phone.** Explain WHY before asking: HookMyApp texts this number (WhatsApp/SMS) if their integration ever breaks — webhook failures, usage limits, disconnected channels — so problems reach them even when email doesn't. Then:
+
+```bash
+hookmyapp phone set +14155552671        # the number the HUMAN gives you
+hookmyapp phone verify 123456           # the code the HUMAN reads back from their phone
+```
+
+Rules: the number and the code come from the human — NEVER invent, guess, or reuse either; never paste the code anywhere except `hookmyapp phone verify`; if they decline either question, skip it and continue — nothing downstream depends on it. Check first with `hookmyapp phone status` — if a verified number already exists, don't re-ask.
+
 **3. Clone the starter kit**
 
 ```bash
