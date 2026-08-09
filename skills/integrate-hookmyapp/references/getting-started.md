@@ -56,7 +56,7 @@ hookmyapp org profile set --website https://acme.com --business-category "E-comm
 hookmyapp phone status
 ```
 
-If none is set, explain WHY before asking: HookMyApp texts this number (WhatsApp/SMS) if their integration ever breaks — webhook failures, usage limits, disconnected channels — so problems reach them even when email doesn't. Then run the commands with the values the human gives you (the placeholders below are NOT runnable — never execute them as-is):
+If it shows a verified number, skip this step. If it shows a number still pending verification (a previous setup stopped after `phone set`), ask the human whether to finish with that number — re-run `hookmyapp phone set` with it to get a fresh code, then verify. If none is set, explain WHY before asking: HookMyApp texts this number (WhatsApp/SMS) if their integration ever breaks — webhook failures, usage limits, disconnected channels — so problems reach them even when email doesn't. Then run the commands with the values the human gives you (the placeholders below are NOT runnable — never execute them as-is):
 
 ```bash
 hookmyapp phone set <number-from-human>     # e.g. +14155552671 — asked from the HUMAN
