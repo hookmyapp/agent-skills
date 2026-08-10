@@ -47,7 +47,7 @@ X-API-Key: hmok_...
 
 Send exactly one of the two headers, not both. Use `X-API-Key` only when the client can't set an `Authorization` header.
 
-**Browser sign-in (OAuth) is not currently available.** The server publishes protected-resource metadata at `https://api.hookmyapp.com/.well-known/oauth-protected-resource/mcp`, but token issuance for MCP clients is not operational — clients that attempt it fail with `error=invalid_scope`. Do not send the user to `/mcp` sign-in in Claude Code or `codex mcp login`; use option 1 or 2 instead.
+**Browser sign-in (OAuth) works.** Add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp`, then run `/mcp`, pick `hookmyapp`, and approve in the browser. Verified in Claude Code on 2026-08-10. Not yet verified for `codex mcp login`.
 
 ### Client setup
 
@@ -133,8 +133,8 @@ Write:
 | `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object) |
 | `update_org_profile` | Update the organization profile (name, support contact) |
 | `acknowledge_notice` | Acknowledge a notice from HookMyApp so it stops being surfaced |
-| `set_alert_phone` | Set the human's own alert phone — HookMyApp sends a 6-digit code to it. User-scoped: never for a teammate. Problem alerts are on once verified; product news and offers only if the human asks for them |
-| `verify_alert_phone` | Confirm the alert phone with the code the human received. The code goes to their phone, not to you — ask them for it |
+| `set_alert_phone` | Set the human's own alert phone. HookMyApp sends a 6-digit code to it. User-scoped: never for a teammate. Problem alerts are on once verified; product news and offers only if the human asks for them |
+| `verify_alert_phone` | Confirm the alert phone with the code the human received. The code goes to their phone, not to you, so ask them for it |
 | `open_support_ticket` | Something failed or got stuck? Open a support ticket describing what you tried, what happened, and the exact error text — no secrets, no customer message content |
 | `reply_support_ticket` | Follow up on a support ticket (replying to a resolved ticket reopens it); optional `wait` for the answer |
 | `set_webhook_destination` | Set a channel's webhook destination URL (+ optional verify token) |
