@@ -112,6 +112,7 @@ Read that file when starting a fresh integration; the sections below are the per
 | Group | Purpose | Full reference |
 |-------|---------|----------------|
 | auth | Log in (browser, bootstrap code, or browser-free email OTP via `login --email`) and log out; `credentials {list,revoke}` manages the agent credentials `login --email` mints. | [references/auth.md](references/auth.md) |
+| alerts | Your own alert phone — `phone status`, `phone set`, `phone verify`. Where HookMyApp texts the human when something breaks. | [references/alerts.md](references/alerts.md) |
 | billing | Show subscription status, open the app Billing page, upgrade plan (billing is pooled across your organization). | [references/billing.md](references/billing.md) |
 | channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `move <channel> <target>` (to another workspace or customer), `env`/`health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
 | whatsapp (`wa`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `templates {list,get,create,delete}`, `media {upload,get,download,delete}`, `profile {get,update}`. | [references/whatsapp.md](references/whatsapp.md) |
@@ -124,7 +125,7 @@ Read that file when starting a fresh integration; the sections below are the per
 
 ### MCP server (operate HookMyApp without the CLI)
 
-HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 32 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
+HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 37 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, alert phone, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
 Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. Do **not** add the server by hand with `claude mcp add` — that writes an entry with no credential helper, and it cannot authenticate. For other clients, use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key`. Browser sign-in (OAuth) is not currently operational; do not send users to `/mcp` sign-in or `codex mcp login`.
 
@@ -320,7 +321,7 @@ Full decision tree and error table: [references/troubleshooting.md](references/t
 [integrate-hookmyapp file map]|root: .
 |.:{package.json,SKILL.md}
 |assets:{ig-send-dm.json,wa-send-image.json,wa-send-interactive-buttons.json,wa-send-template.json,wa-send-text.json,wa-template-utility.json}
-|references:{access-tokens.md,api.md,auth.md,billing.md,channels.md,config.md,customers.md,env.md,getting-started.md,health.md,instagram.md,mcp.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
+|references:{access-tokens.md,alerts.md,api.md,auth.md,billing.md,channels.md,config.md,customers.md,env.md,getting-started.md,health.md,instagram.md,mcp.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
 |scripts:{ig-list-comments.mjs,ig-mark-seen.mjs,ig-reply-comment.mjs,ig-send-dm.mjs,wa-create-template.mjs,wa-list-templates.mjs,wa-mark-read.mjs,wa-send-message.mjs,wa-send-template.mjs,wa-update-profile.mjs,wa-upload-media.mjs}
 |scripts/lib:{args.mjs,env.mjs,gateway.mjs,output.mjs}
 ```

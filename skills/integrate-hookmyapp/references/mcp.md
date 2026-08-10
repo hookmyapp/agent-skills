@@ -98,7 +98,7 @@ Work top to bottom; each row assumes the ones above it passed.
 
 `hookmyapp doctor` summarizes CLI, login, and MCP status in one command — run it first when a user reports "the MCP isn't working".
 
-## Tools (32)
+## Tools (37)
 
 Read:
 
@@ -114,6 +114,7 @@ Read:
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
 | `get_org_usage` | Check monthly organization usage |
+| `get_alert_phone_status` | Check the human's own alert phone (masked) and what it is signed up to receive |
 | `list_onboarding_links` | List customer connect links (SaaS Mode) |
 | `list_support_tickets` | List your organization's 20 most recent support tickets (org-wide — whichever credential or surface opened them) |
 | `get_support_ticket` | Read a support-ticket conversation and check for replies; optional `wait` (1-25s) holds for a new reply, `afterCursor` = the previous response's `nextCursor` |
@@ -130,6 +131,10 @@ Write:
 | `create_onboarding_link` | Mint a connect link a customer opens to connect their channel |
 | `revoke_onboarding_link` | Revoke an onboarding link by its `ol_` ID so its connect URL stops working (org admin only) |
 | `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object) |
+| `update_org_profile` | Update the organization profile (name, support contact) |
+| `acknowledge_notice` | Acknowledge a notice from HookMyApp so it stops being surfaced |
+| `set_alert_phone` | Set the human's own alert phone — HookMyApp sends a 6-digit code to it. User-scoped: never for a teammate. Problem alerts are on once verified; product news and offers only if the human asks for them |
+| `verify_alert_phone` | Confirm the alert phone with the code the human received. The code goes to their phone, not to you — ask them for it |
 | `open_support_ticket` | Something failed or got stuck? Open a support ticket describing what you tried, what happened, and the exact error text — no secrets, no customer message content |
 | `reply_support_ticket` | Follow up on a support ticket (replying to a resolved ticket reopens it); optional `wait` for the answer |
 | `set_webhook_destination` | Set a channel's webhook destination URL (+ optional verify token) |
