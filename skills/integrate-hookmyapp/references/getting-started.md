@@ -111,7 +111,9 @@ Now send a WhatsApp message from your personal account to the sandbox number —
 
 Seven steps to connect your own WhatsApp number or Instagram account:
 
-**1. Log in**
+**1. Make sure the CLI is installed — at the version this skill needs, then log in**
+
+If you came straight to this section, first run the full **Skill Setup** block from [SKILL.md](../SKILL.md#skill-setup-run-before-any-cli-command) (install + version gate + skill-version marker) — an already-installed older CLI lacks the subcommands the steps below use. Then:
 
 ```bash
 hookmyapp login
