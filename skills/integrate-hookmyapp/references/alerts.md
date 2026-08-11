@@ -70,6 +70,31 @@ If HookMyApp could not deliver the code, the command says so and stops rather th
 
 **Exit codes:** `0` success · `1` not authenticated, bad number format, no terminal for the prompt, or too many codes requested for that number.
 
+## alerts phone remove
+
+Remove the alert phone. HookMyApp stops texting the human entirely; verifying a new number with `alerts phone set` turns alerts back on.
+
+**Flags:**
+
+| Flag | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `-y, --yes` | boolean | no | `false` | Skip the confirmation prompt |
+
+**Arguments:** none
+
+**Browser step required:** No
+
+**Examples:**
+
+```bash
+hookmyapp alerts phone remove
+hookmyapp alerts phone remove --yes
+```
+
+Without `--yes` the command asks for confirmation (declining prints `Aborted.` and changes nothing); `--json` skips the prompt and removes immediately. Removing is destructive for the human's safety net: confirm with them first and relay that without a number HookMyApp cannot text them when something breaks.
+
+**Exit codes:** `0` success or declined confirmation · `1` not authenticated.
+
 ## alerts phone verify
 
 Finish verification with the code that arrived.

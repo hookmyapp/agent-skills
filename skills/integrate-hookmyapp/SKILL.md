@@ -114,7 +114,7 @@ Read that file when starting a fresh integration; the sections below are the per
 | Group | Purpose | Full reference |
 |-------|---------|----------------|
 | auth | Log in (browser, bootstrap code, or browser-free email OTP via `login --email`) and log out; `credentials {list,revoke}` manages the agent credentials `login --email` mints. | [references/auth.md](references/auth.md) |
-| alerts | Your own alert phone: `phone status`, `phone set`, `phone verify`. Where HookMyApp texts the human when something breaks. | [references/alerts.md](references/alerts.md) |
+| alerts | Your own alert phone: `phone status`, `phone set`, `phone verify`, `phone remove`. Where HookMyApp texts the human when something breaks. | [references/alerts.md](references/alerts.md) |
 | billing | Show subscription status, open the app Billing page, upgrade plan (billing is pooled across your organization). | [references/billing.md](references/billing.md) |
 | channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `move <channel> <target>` (to another workspace or customer), `env`/`health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
 | whatsapp (`wa`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `templates {list,get,create,delete}`, `media {upload,get,download,delete}`, `profile {get,update}`. | [references/whatsapp.md](references/whatsapp.md) |
