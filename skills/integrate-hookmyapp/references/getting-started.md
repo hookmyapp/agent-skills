@@ -44,10 +44,10 @@ If the human already minted a bootstrap code from the HookMyApp dashboard (Setti
 
 Two short questions, both optional — a decline never blocks setup:
 
-1. **Company details.** Ask the human for their company website, business category, and what they're building. Set what they give you (org admins only):
+1. **Company details.** Ask the human for their company website, business category, and what they're building. Pass ONLY the values the human actually gave you — never invent or guess one, and drop any flag they left unanswered:
 
 ```bash
-hookmyapp org profile set --website https://acme.com --business-category "E-commerce" --primary-use-case "Order updates over WhatsApp"
+hookmyapp org profile set --website <their-website> --business-category "<their-category>" --primary-use-case "<what-they-are-building>"
 ```
 
 2. **Personal alert phone.** Check first — if a verified number already exists, don't re-ask:
