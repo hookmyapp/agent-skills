@@ -41,8 +41,6 @@ Start verification for a phone number. HookMyApp sends a 6-digit code to it; the
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--sms` | boolean | no | `false` | Deliver the code and future alerts by SMS instead of WhatsApp |
-| `--product` | boolean | no | `false` | Also receive product news |
-| `--marketing` | boolean | no | `false` | Also receive offers |
 | `--code <code>` | string | no | none | Skip the prompt and verify with a code already in hand |
 
 **Arguments:** `<phone>`, in international format, e.g. `+14155552671`. A national number (`0545434384`) is rejected before anything is sent.
@@ -54,11 +52,10 @@ Start verification for a phone number. HookMyApp sends a 6-digit code to it; the
 ```bash
 hookmyapp alerts phone set +14155552671
 hookmyapp alerts phone set +14155552671 --sms
-hookmyapp alerts phone set +14155552671 --product --marketing
 hookmyapp alerts phone set +14155552671 --json    # sends the code, no prompt
 ```
 
-Alerts about problems are on as soon as the number is verified. Product news and offers stay off unless `--product` / `--marketing` are passed. Never assume them on the human's behalf.
+Alerts are on as soon as the number is verified.
 
 **No prompt without a terminal.** Under `--json`, or in CI / with redirected stdin, the command cannot ask for the code. Use one of:
 
