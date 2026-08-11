@@ -93,7 +93,7 @@ Work top to bottom; each row assumes the ones above it passed.
 | The helper check errors with `unknown command 'mcp-headers'` | CLI older than 0.14.2 is first on PATH | `npm install -g @gethookmyapp/cli@latest`, confirm with `hookmyapp --version`, then `hookmyapp mcp install --agent claude` |
 | The helper check errors with a not-logged-in message | No stored credential | `hookmyapp login`, which also reinstalls the MCP entry |
 | Helper works in your shell, client still won't authenticate | `hookmyapp` is not on the PATH the client gives the helper process (unusual npm prefix such as `~/.local/node/bin`) | Re-point the entry at an absolute path: `command -v hookmyapp` to find it, then `claude mcp add-json --scope user hookmyapp '{"type":"http","url":"https://api.hookmyapp.com/mcp","headersHelper":"/absolute/path/to/hookmyapp mcp-headers"}'` |
-| Browser sign-in returns `error=invalid_scope` | The OAuth path is not operational | Use CLI header injection or an API key; do not retry the browser flow |
+| Browser sign-in returns `error=invalid_scope` | The browser flow normally works, so this is a client-side scope mismatch (often a stale server entry from an older setup) | Remove and re-add the entry (`claude mcp remove hookmyapp`, then the `claude mcp add` line above) and sign in again via `/mcp`. If it recurs, fall back to CLI header injection or an API key and report it to HookMyApp support |
 | A tool call fails with a scope error | The credential lacks that action | Re-run `status`, report the missing scope to the human, do not retry |
 
 `hookmyapp doctor` summarizes CLI, login, and MCP status in one command — run it first when a user reports "the MCP isn't working".
