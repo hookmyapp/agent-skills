@@ -133,7 +133,7 @@ Write:
 | `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object) |
 | `update_org_profile` | Update the organization profile (name, support contact) |
 | `acknowledge_notification` | Acknowledge a notification from HookMyApp so it stops being surfaced |
-| `set_alert_phone` | Set the human's own alert phone. HookMyApp sends a 6-digit code to it. User-scoped: never for a teammate. Problem alerts are on once verified; product news and offers only if the human asks for them |
+| `set_alert_phone` | Set the human's own alert phone. HookMyApp sends a 6-digit code to it. User-scoped: never for a teammate |
 | `verify_alert_phone` | Confirm the alert phone with the code the human received. The code goes to their phone, not to you, so ask them for it |
 | `open_support_ticket` | Something failed or got stuck? Open a support ticket describing what you tried, what happened, and the exact error text — no secrets, no customer message content |
 | `reply_support_ticket` | Follow up on a support ticket (replying to a resolved ticket reopens it); optional `wait` for the answer |
