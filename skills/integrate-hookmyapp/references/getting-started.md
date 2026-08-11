@@ -16,11 +16,9 @@ See [env.md](env.md) for the exact env-key shapes each path produces, and the "T
 
 Seven steps from zero to a running webhook receiver that echoes inbound WhatsApp messages:
 
-**1. Make sure the CLI is installed**
+**1. Make sure the CLI is installed — at the version this skill needs**
 
-```bash
-command -v hookmyapp >/dev/null 2>&1 || npm install -g @gethookmyapp/cli
-```
+Run the full **Skill Setup** block from [SKILL.md](../SKILL.md#skill-setup-run-before-any-cli-command) (install + version gate + skill-version marker). A `command -v` check alone is not enough: an already-installed older CLI passes it but lacks the subcommands the steps below use. The setup block upgrades an in-range-miss install in place and stops if the version still falls short.
 
 If the install fails because `npm` is missing, ask the human to install Node.js 20+ (which includes npm). If global installs are blocked, ask the human to install the CLI themselves or make `hookmyapp` available on PATH another way — do not retry the blocked command.
 
