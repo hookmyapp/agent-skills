@@ -61,7 +61,7 @@ Claude Code — let the CLI do it, do not hand-roll `claude mcp add`:
 hookmyapp mcp install --agent claude
 ```
 
-`hookmyapp login` already runs this for you. Adding the server by hand with `claude mcp add` produces an entry with **no** credential helper, which cannot authenticate.
+`hookmyapp login` already runs this for you, wiring a credential helper that injects a fresh token on every request. Adding the server by hand with `claude mcp add` produces an entry with **no** credential helper — it authenticates only through the browser sign-in above (`/mcp`, pick `hookmyapp`, approve), never automatically.
 
 Codex CLI:
 
