@@ -55,13 +55,13 @@ Send exactly one of the two headers, not both. Use `X-API-Key` only when the cli
 export HOOKMYAPP_API_KEY="hmok_..."
 ```
 
-Claude Code — let the CLI do it, do not hand-roll `claude mcp add`:
+Claude Code — when the CLI is installed, let it do the wiring instead of hand-rolling `claude mcp add`:
 
 ```bash
 hookmyapp mcp install --agent claude
 ```
 
-`hookmyapp login` already runs this for you, wiring a credential helper that injects a fresh token on every request. Adding the server by hand with `claude mcp add` produces an entry with **no** credential helper — it authenticates only through the browser sign-in above (`/mcp`, pick `hookmyapp`, approve), never automatically.
+`hookmyapp login` already runs this for you, wiring a credential helper that injects a fresh token on every request. Hand-rolling `claude mcp add` is right only for the browser sign-in path above (no CLI on the machine): an entry added by hand has **no** credential helper, so it authenticates only through `/mcp` → pick `hookmyapp` → approve in the browser, never automatically.
 
 Codex CLI:
 
