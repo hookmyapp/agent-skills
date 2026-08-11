@@ -98,13 +98,13 @@ Work top to bottom; each row assumes the ones above it passed.
 
 `hookmyapp doctor` summarizes CLI, login, and MCP status in one command — run it first when a user reports "the MCP isn't working".
 
-## Tools (37)
+## Tools (38)
 
 Read:
 
 | Tool | Use it for |
 | --- | --- |
-| `status` | Check auth, organization, granted scopes, usage, and suggested next steps. **Call this first.** |
+| `status` | Check auth, organization, granted scopes, usage, and suggested next steps. **Call this first.** Returns `notifications[]` — unacknowledged notifications; relay them to the human. |
 | `list_workspaces` | List workspaces and customers |
 | `list_customers` | List customers in the organization (SaaS Mode) |
 | `list_channels` | List channels in one workspace — pass the `ws_` ID from `list_workspaces` |
@@ -132,7 +132,7 @@ Write:
 | `revoke_onboarding_link` | Revoke an onboarding link by its `ol_` ID so its connect URL stops working (org admin only) |
 | `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object) |
 | `update_org_profile` | Update the organization profile (name, support contact) |
-| `acknowledge_notification` | Acknowledge a notification from HookMyApp so it stops being surfaced |
+| `acknowledge_notification` | Mark a notification from `status` `notifications[]` as seen, after relaying it to the human. Idempotent. Per-user notifications (`ackScope: "user"`) clear only for your user — other members keep their own copy; org notifications (`ackScope: "org"`) clear for the whole organization and record who acked (`acknowledgedBy`). `personal: true` notifications are addressed to your human alone. |
 | `set_alert_phone` | Set the human's own alert phone. HookMyApp sends a 6-digit code to it. User-scoped: never for a teammate |
 | `verify_alert_phone` | Confirm the alert phone with the code the human received. The code goes to their phone, not to you, so ask them for it |
 | `remove_alert_phone` | Remove the human's alert phone. Confirm first and relay: without a number we cannot text them when something breaks |
@@ -152,7 +152,7 @@ The five Instagram tools require an **Instagram Login** channel. A channel conne
 
 ## Working order
 
-1. `status` — confirms identity, organization, and scopes before anything else. If a later call fails with a scope error, re-run `status` and report the missing scope to the human instead of retrying.
+1. `status` — confirms identity, organization, and scopes before anything else, and surface any `notifications[]` to the human before proceeding (then `acknowledge_notification` each one). If a later call fails with a scope error, re-run `status` and report the missing scope to the human instead of retrying.
 2. `list_workspaces` before any per-workspace tool — channel tools need a `ws_` ID.
 3. SaaS Mode flow: list customers → create/choose a customer → `create_onboarding_link` for that customer → after the customer connects, `list_channels` with the **customer's** `ws_` ID → send / manage webhooks on the customer channel. Don't list your own workspace channels when you mean a customer's.
 
