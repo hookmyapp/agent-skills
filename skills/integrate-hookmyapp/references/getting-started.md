@@ -44,10 +44,10 @@ If the human already minted a bootstrap code from the HookMyApp dashboard (Setti
 
 Two short questions, both optional — a decline never blocks setup:
 
-1. **Company details** (org admins only). Ask the human for their company website, business category, and what they're building. Pass ONLY the values the human actually gave you — never invent or guess one, drop any flag they left unanswered, and always double-quote each value (a `&` or `?` in a URL breaks an unquoted shell argument). If the human is not the organization admin, or the command fails with a permission error, that is a normal outcome — skip and continue, don't retry:
+1. **Company details** (org admins only). Ask the human for their company website, business category, and what they're building. Pass ONLY the values the human actually gave you — never invent or guess one, and drop any flag they left unanswered. Wrap each value in SINGLE quotes so the shell passes it literally (`&`, `?`, `$`, backticks, and `$(...)` inside double quotes would break the command or expand); if a value itself contains a single quote, replace each `'` with `'\''` inside the quotes. If the human is not the organization admin, or the command fails with a permission error, that is a normal outcome — skip and continue, don't retry:
 
 ```bash
-hookmyapp org profile set --website "<their-website>" --business-category "<their-category>" --primary-use-case "<what-they-are-building>"
+hookmyapp org profile set --website '<their-website>' --business-category '<their-category>' --primary-use-case '<what-they-are-building>'
 ```
 
 2. **Personal alert phone.** Check first — if a verified number already exists, don't re-ask:
