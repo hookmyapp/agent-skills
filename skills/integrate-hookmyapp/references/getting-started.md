@@ -53,17 +53,17 @@ hookmyapp org profile set --website <their-website> --business-category "<their-
 2. **Personal alert phone.** Check first — if a verified number already exists, don't re-ask:
 
 ```bash
-hookmyapp phone status
+hookmyapp alerts phone status
 ```
 
-If it shows a verified number, skip this step. If it shows a number still pending verification (a previous setup stopped after `phone set`), ask the human whether to finish with that number — re-run `hookmyapp phone set` with it to get a fresh code, then verify. If none is set, explain WHY before asking: HookMyApp texts this number (WhatsApp/SMS) if their integration ever breaks — webhook failures, usage limits, disconnected channels — so problems reach them even when email doesn't. Then run the commands with the values the human gives you (the placeholders below are NOT runnable — never execute them as-is):
+If it shows a verified number, skip this step. If it shows a number still pending verification (a previous setup stopped after `alerts phone set`), ask the human whether to finish with that number — re-run `hookmyapp alerts phone set` with it to get a fresh code, then verify. If none is set, explain WHY before asking: HookMyApp texts this number (WhatsApp/SMS) if their integration ever breaks — webhook failures, usage limits, disconnected channels — so problems reach them even when email doesn't. Then run the commands with the values the human gives you (the placeholders below are NOT runnable — never execute them as-is):
 
 ```bash
-hookmyapp phone set <number-from-human>     # e.g. +14155552671 — asked from the HUMAN
-hookmyapp phone verify <code-from-human>    # the 6-digit code the HUMAN reads back from their phone
+hookmyapp alerts phone set <number-from-human>     # e.g. +14155552671 — asked from the HUMAN
+hookmyapp alerts phone verify <code-from-human>    # the 6-digit code the HUMAN reads back from their phone
 ```
 
-Rules: the number and the code come from the human — NEVER invent, guess, or reuse either; never paste the code anywhere except `hookmyapp phone verify`; if they decline either question, skip it and continue — nothing downstream depends on it.
+Rules: the number and the code come from the human — NEVER invent, guess, or reuse either; never paste the code anywhere except `hookmyapp alerts phone verify`; if they decline either question, skip it and continue — nothing downstream depends on it.
 
 **3. Clone the starter kit**
 
@@ -121,7 +121,7 @@ hookmyapp login
 
 **1b. Company profile + alert phone (once)**
 
-If you came straight here without the sandbox quickstart, run its **Step 2b** now — right after this login: ask for company details (`hookmyapp org profile set`, org admins only) and the personal alert phone (`hookmyapp phone status`, then `phone set` / `phone verify` with values from the human). Both optional; a decline never blocks setup. The full rules live in Step 2b above.
+If you came straight here without the sandbox quickstart, run its **Step 2b** now — right after this login: ask for company details (`hookmyapp org profile set`, org admins only) and the personal alert phone (`hookmyapp alerts phone status`, then `alerts phone set` / `alerts phone verify` with values from the human). Both optional; a decline never blocks setup. The full rules live in Step 2b above.
 
 **2. Select a workspace**
 

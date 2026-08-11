@@ -45,7 +45,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 - **Never run `webhook set` without explicit human confirmation of the URL.** Pointing your channel's webhooks at a dev URL silently drops inbound customer messages.
 - **Never generate sandbox template-message examples.** Templates are rejected in the sandbox; generating such code only wastes the user's time.
 - **Never run `hookmyapp channels disable <channel>` without explicit human confirmation.** Forwarding off = silent message drop on inbound; no error surfaces to the customer. Use `channels show <channel>` or `channels health <channel>` to verify state before and after.
-- **Never invent a phone number or verification code.** `hookmyapp phone set` takes the number the HUMAN gives you; `hookmyapp phone verify` takes the code the HUMAN reads back. Never paste the code anywhere else; a decline is a normal outcome — skip and continue.
+- **Never invent a phone number or verification code.** `hookmyapp alerts phone set` takes the number the HUMAN gives you; `hookmyapp alerts phone verify` takes the code the HUMAN reads back. Never paste the code anywhere else; a decline is a normal outcome — skip and continue.
 - **Never run `hookmyapp channels listen` without explicit human confirmation.** Listening on a real channel routes inbound customer messages to the developer's localhost. That is the intended behavior for local dev and self-hosted agents, but a misclicked channel hijacks live traffic for as long as the CLI is up. Confirm the channel publicId before launching.
 
 ## Prerequisites
