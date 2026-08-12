@@ -40,7 +40,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 
 ### Safety Rules
 
-- **Never paste `channels env <channel>` or `hookmyapp channels token <channel>` output (the `hmat_` access token) into chat, tickets, or logs.** Redirect to a secret manager or `.env` file the user controls.
+- **Never paste `channels env <channel>`, `hookmyapp channels token <channel>`, or `channels webhook hmac show <channel>` output (the `hmat_` access token / the webhook signing secret) into chat, tickets, or logs.** Redirect to a secret manager or `.env` file the user controls.
 - **Never run `workspace use` without confirming the target ID.** Running commands against the wrong workspace can mutate the wrong WABA.
 - **Never run `webhook set` without explicit human confirmation of the URL.** Pointing your channel's webhooks at a dev URL silently drops inbound customer messages.
 - **Never generate sandbox template-message examples.** Templates are rejected in the sandbox; generating such code only wastes the user's time.
