@@ -10,8 +10,8 @@ description: Decision tree and error→fix table for diagnosing HookMyApp CLI an
 ```
 Step 0: A send or webhook stopped working?
   → Run `hookmyapp notifications` (or `status` via MCP) FIRST — HookMyApp may
-    have already diagnosed it and posted a notice saying what to do.
-    Relay any notice to the human first, then acknowledge it.
+    have already diagnosed it and posted a notification saying what to do.
+    Relay any notification to the human first, then acknowledge it.
 
 Start:  Can you run `hookmyapp channels list` and see at least one WABA?
   ├─ No  → Auth problem → run `hookmyapp login`, then `hookmyapp workspace use <id>`
