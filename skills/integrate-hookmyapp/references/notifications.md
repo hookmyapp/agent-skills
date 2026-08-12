@@ -5,7 +5,7 @@ description: List and acknowledge notifications from HookMyApp about integration
 
 # Notifications
 
-Messages from HookMyApp for this account: problems detected (failing webhook delivery, disconnected channels, usage limits), fixes applied, required updates, and product announcements. The workflow — relay every open notification to the human first, then acknowledge — is in SKILL.md "Check notifications every session". MCP equivalents: `status` returns `notifications[]`; `acknowledge_notification` marks one seen ([mcp.md](mcp.md)).
+Messages from HookMyApp for this account: problems detected (failing webhook delivery, disconnected channels, usage limits), fixes applied, required updates, and product announcements. The workflow — relay every open notification to the human first, then acknowledge — is in SKILL.md's session-checklist bullet. The MCP path is equivalent: `status` returns the same feed, and the acknowledge tool marks one seen — names and semantics are in [mcp.md](mcp.md).
 
 ## notifications list
 
