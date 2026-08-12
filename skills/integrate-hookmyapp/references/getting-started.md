@@ -36,7 +36,7 @@ hookmyapp login
 hookmyapp login --code <bootstrap>
 ```
 
-If the human already minted a bootstrap code from the HookMyApp dashboard (Settings → CLI → "Mint bootstrap code"), they can paste it into this flag and skip the browser tab entirely. The code is single-use and expires quickly — surface a `> **HUMAN ACTION REQUIRED:**` only for the paste. Exits non-zero if the code is expired or consumed. See [auth.md](auth.md) for full flag syntax.
+If the human already minted a bootstrap code from the HookMyApp dashboard (bell menu → "Set up with your AI agent" → Install, or the "Set up your AI agent" card), they can paste it into this flag and skip the browser tab entirely. The code is single-use and expires quickly — surface a `> **HUMAN ACTION REQUIRED:**` only for the paste. Exits non-zero if the code is expired or consumed. See [auth.md](auth.md) for full flag syntax.
 
 **2b. Company profile + alert phone (right after login, once)**
 
@@ -185,7 +185,7 @@ hookmyapp channels webhook set ch_AAAAAAAA \
 
 The URL must respond `200 OK` with the channel's current verify token as the plain-text body on the verify GET — the value step 5 wrote to `.env`, or the new value if you passed `--verify-token` (HookMyApp performs this check on your behalf when you run `channels webhook set`).
 
-- `hookmyapp channels webhook clear <channel>` clears the configured override URL and reverts the channel to the HookMyApp CLI tunnel destination (HookMyAppCLI). It is idempotent. This is the command-line equivalent of clicking "Go back to HookMyAppCLI" in the dashboard before re-running `hookmyapp channels listen`.
+- `hookmyapp channels webhook clear <channel>` clears the configured override URL and reverts the channel to the HookMyApp CLI tunnel destination (HookMyAppCLI). It is idempotent. This is the command-line equivalent of clicking "Switch back to HookMyApp CLI" in the dashboard before re-running `hookmyapp channels listen`.
 
 **7. Verify health**
 
