@@ -38,7 +38,7 @@ hookmyapp login
 
 ### Zero-browser flow (AI-paste / CI)
 
-For AI coding agents or headless CI where a browser tab is unwelcome, a human can mint a bootstrap code from the HookMyApp dashboard (Settings → CLI → "Mint bootstrap code") and paste it into `--code`:
+For AI coding agents or headless CI where a browser tab is unwelcome, a human can mint a bootstrap code from the HookMyApp dashboard (bell menu → "Set up with your AI agent" → Install, or the "Set up your AI agent" card) and paste it into `--code`:
 
 ```bash
 hookmyapp login --code hma_boot_xxx

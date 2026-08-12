@@ -13,7 +13,7 @@ A number only starts receiving alerts after it is verified with a 6-digit code H
 
 ## alerts phone status
 
-Show the verified alert phone (masked) and what it is signed up to receive.
+Show the verified alert phone (masked).
 
 **Flags:** none per-command. Global `--json` is accepted.
 
@@ -28,7 +28,7 @@ hookmyapp alerts phone status
 hookmyapp alerts phone status --json
 ```
 
-With no verified number, the human form points at `alerts phone set`. `--json` returns `phone` (masked, `null` when unset), `verified`, `consents` (`operational`, `product`, `marketing`), and `channelPreference`.
+With no verified number, the human form points at `alerts phone set`. `--json` returns the status object: `phone` (masked, `null` when unset), `verified`, and the delivery preference.
 
 **Exit codes:** `0` success · `1` not authenticated (run `hookmyapp login`).
 
