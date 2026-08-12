@@ -13,7 +13,7 @@ A number only starts receiving alerts after it is verified with a 6-digit code H
 
 ## alerts phone status
 
-Show the verified alert phone (masked) and what it is signed up to receive.
+Show the verified alert phone (masked).
 
 **Flags:** none per-command. Global `--json` is accepted.
 
@@ -28,7 +28,7 @@ hookmyapp alerts phone status
 hookmyapp alerts phone status --json
 ```
 
-With no verified number, the human form points at `alerts phone set`. `--json` returns `phone` (masked, `null` when unset), `verified`, `consents` (`operational`, `product`, `marketing`), and `channelPreference`.
+With no verified number, the human form points at `alerts phone set`. `--json` returns the status object: `phone` (masked, `null` when unset), `verified`, and the delivery preference.
 
 **Exit codes:** `0` success · `1` not authenticated (run `hookmyapp login`).
 
@@ -41,8 +41,6 @@ Start verification for a phone number. HookMyApp sends a 6-digit code to it; the
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--sms` | boolean | no | `false` | Deliver the code and future alerts by SMS instead of WhatsApp |
-| `--product` | boolean | no | `false` | Also receive product news |
-| `--marketing` | boolean | no | `false` | Also receive offers |
 | `--code <code>` | string | no | none | Skip the prompt and verify with a code already in hand |
 
 **Arguments:** `<phone>`, in international format, e.g. `+14155552671`. A national number (`0545434384`) is rejected before anything is sent.
@@ -54,11 +52,10 @@ Start verification for a phone number. HookMyApp sends a 6-digit code to it; the
 ```bash
 hookmyapp alerts phone set +14155552671
 hookmyapp alerts phone set +14155552671 --sms
-hookmyapp alerts phone set +14155552671 --product --marketing
 hookmyapp alerts phone set +14155552671 --json    # sends the code, no prompt
 ```
 
-Alerts about problems are on as soon as the number is verified. Product news and offers stay off unless `--product` / `--marketing` are passed. Never assume them on the human's behalf.
+Alerts are on as soon as the number is verified.
 
 **No prompt without a terminal.** Under `--json`, or in CI / with redirected stdin, the command cannot ask for the code. Use one of:
 
@@ -72,6 +69,31 @@ or pass it in one go with `--code 123456`. Running `set` with no terminal and ne
 If HookMyApp could not deliver the code, the command says so and stops rather than asking for a code that never arrived. Try again in a moment.
 
 **Exit codes:** `0` success · `1` not authenticated, bad number format, no terminal for the prompt, or too many codes requested for that number.
+
+## alerts phone remove
+
+Remove the alert phone. HookMyApp stops texting the human entirely; verifying a new number with `alerts phone set` turns alerts back on.
+
+**Flags:**
+
+| Flag | Type | Required | Default | Description |
+|------|------|----------|---------|-------------|
+| `-y, --yes` | boolean | no | `false` | Skip the confirmation prompt |
+
+**Arguments:** none
+
+**Browser step required:** No
+
+**Examples:**
+
+```bash
+hookmyapp alerts phone remove
+hookmyapp alerts phone remove --yes
+```
+
+Without `--yes` the command asks for confirmation (declining prints `Aborted.` and changes nothing); `--json` skips the prompt and removes immediately. Removing is destructive for the human's safety net: confirm with them first and relay that without a number HookMyApp cannot text them when something breaks.
+
+**Exit codes:** `0` success or declined confirmation · `1` not authenticated.
 
 ## alerts phone verify
 
