@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.7"
+  version: "0.9.8"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -23,7 +23,7 @@ HookMyApp connects the user's own WhatsApp number and Instagram account to their
 - **There is no environment to select.** Every command runs against the live HookMyApp service. Pass `--workspace <id>` only when the user has multiple workspaces and a command must hit one other than the active default.
 - **Browser steps cannot be automated.** `login` and `channels connect` both open browser tabs the human must complete. Do not pretend to automate them — hand the terminal back with a clear instruction. Exception: `hookmyapp login --email <addr>` is a browser-free login (an OTP code arrives at the human's email; they paste it back) — prefer it in agent/CI contexts. See [references/auth.md](references/auth.md).
 - **Connecting a real channel? First ask WHOSE channel it is.** Two distinct connect flows exist and they are not interchangeable. (a) **The user's own team/product channel** — their company's WhatsApp number or Instagram account — connects via `hookmyapp channels connect` (browser Embedded Signup / OAuth) into a team workspace. (b) **An end-customer's channel** — the user runs a SaaS and their customers bring their own numbers/accounts — connects via a customer workspace plus an onboarding link (`customers onboarding-links create`) that the end-customer opens; onboarding links can ONLY target customer workspaces, and the backend rejects a link pointed at a team workspace. When the user says "connect WhatsApp/Instagram" and the intent is not already obvious from context, ask one question before acting: "Is this your own team's channel, or a channel your customers will connect?" — then route to (a) or (b). Never mint an onboarding link for the user's own channel.
-- **Sandbox is not your own channel.** Sandbox is a HookMyApp-hosted test account with 5 env keys, no templates, and recipient pinned to the session phone. Your own channel is your WhatsApp number (7 env keys and template support) or Instagram account (6 env keys and no templates). Authorize it with `channels connect`, then export its runtime environment with `channels env`. The two are not interchangeable — pick one based on the user's goal before generating code.
+- **Sandbox is not your own channel.** Sandbox is a HookMyApp-hosted test account with 6 env keys, no templates, and recipient pinned to the session phone. Your own channel is your WhatsApp number (7 env keys and template support) or Instagram account (6 env keys and no templates). Authorize it with `channels connect`, then export its runtime environment with `channels env`. The two are not interchangeable — pick one based on the user's goal before generating code.
 - **MCP is optional; the CLI is never blocked.** Setup installs the CLI — that is the whole requirement. The MCP server is a convenience for agents that prefer tool calls, and `hookmyapp login` configures it automatically for Claude Code. Because MCP tools resolve at session start, a server installed mid-session stays dormant until the next session: that is expected, not a failure. When `mcp__hookmyapp__*` tools are absent or the connection is unhealthy and a shell is available, do the task with the CLI and mention that a restart activates the tools — **never tell the user the task cannot be done while the CLI can do it.** (Shell-less agents are the one exception: without a working MCP connection they should say exactly which capability is missing.) Repair steps: [references/mcp.md](references/mcp.md#recovery-mcp-isnt-working).
 - **Your own channel has two webhook-delivery flavors: CLI tunnel OR your own URL.** A connected channel can receive inbound webhooks via either (a) `hookmyapp channels listen` (the CLI provisions a per-channel Cloudflare tunnel — no public HTTPS URL required, designed for local dev / self-hosted agents / 24/7 hobby projects) or (b) `hookmyapp channels webhook set <channel> --url https://...` (your own public HTTPS endpoint, the classic deployed pattern). Pick CLI when the user is developing on localhost or running an always-on self-hosted agent (e.g. on a personal server or Raspberry Pi); pick URL when the user has a deployed backend ready to accept inbound webhooks. The two are mutually exclusive per channel — setting a URL while the CLI is listening evicts the CLI (it exits cleanly with a notice).
 - **Check notices every session.** `status` returns `notices[]` — messages from HookMyApp for this account: problems detected (failing webhook delivery, disconnected channels, usage limits), fixes applied, required updates, and product announcements. Relay every open notice to the human in your first reply, then mark it seen with `acknowledge_notice` (CLI: `hookmyapp notifications ack <id>`) so it stops repeating. After any send failure, re-check (`status` or `hookmyapp notifications`) — same sequence: relay any new notice to the human first, then acknowledge it. Notice fields that shape how you relay: `ackScope: "user"` means your ack clears the notice only for YOUR human — other members of the organization each see and dismiss their own copy, so acking never hides anything from anyone else; `ackScope: "org"` means one ack clears it for the whole organization and records who saw it — `acknowledgedBy` on an org notice is that receipt ("acknowledged for the org by <email>" — it means their agent relayed it, NOT that the underlying problem was fixed); `personal: true` means the notice is addressed to your human specifically (no one else in the organization can see it) — say so when relaying, e.g. "this one is addressed to you directly."
@@ -40,7 +40,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 
 ### Safety Rules
 
-- **Never paste `channels env <channel>` or `hookmyapp channels token <channel>` output (the `hmat_` access token) into chat, tickets, or logs.** Redirect to a secret manager or `.env` file the user controls.
+- **Never paste `channels env <channel>`, `hookmyapp channels token <channel>`, or `channels webhook hmac show <channel>` output (the `hmat_` access token / the webhook signing secret) into chat, tickets, or logs.** Redirect to a secret manager or `.env` file the user controls.
 - **Never run `workspace use` without confirming the target ID.** Running commands against the wrong workspace can mutate the wrong WABA.
 - **Never run `webhook set` without explicit human confirmation of the URL.** Pointing your channel's webhooks at a dev URL silently drops inbound customer messages.
 - **Never generate sandbox template-message examples.** Templates are rejected in the sandbox; generating such code only wastes the user's time.
@@ -60,7 +60,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the user's machine:
 
 ```bash
-# This skill version needs CLI >=0.14.12 <1 (org profile + phone alert
+# This skill version needs CLI >=0.14.12 <1 (alerts phone + org profile
 # subcommands, on top of notifications list/ack + support watch + instagram
 # publish/insights/comments). The bounded range keeps installs on the
 # reviewed 0.x line; an older existing install is upgraded in place.
@@ -81,7 +81,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.7" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.8" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -115,22 +115,25 @@ Read that file when starting a fresh integration; the sections below are the per
 | Group | Purpose | Full reference |
 |-------|---------|----------------|
 | auth | Log in (browser, bootstrap code, or browser-free email OTP via `login --email`) and log out; `credentials {list,revoke}` manages the agent credentials `login --email` mints. | [references/auth.md](references/auth.md) |
+| alerts | Your own alert phone: `phone status`, `phone set`, `phone verify`, `phone remove`. Where HookMyApp texts the human when something breaks. | [references/alerts.md](references/alerts.md) |
 | billing | Show subscription status, open the app Billing page, upgrade plan (billing is pooled across your organization). | [references/billing.md](references/billing.md) |
-| channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `move <channel> <target>` (to another workspace or customer), `env`/`health`, `webhook {show,set,clear}`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
+| channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `move <channel> <target>` (to another workspace or customer), `env`/`health`, `webhook {show,set,clear}`, `webhook hmac show`, `meta-retry <on|off>`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
 | whatsapp (`wa`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `templates {list,get,create,delete}`, `media {upload,get,download,delete}`, `profile {get,update}`. | [references/whatsapp.md](references/whatsapp.md) |
 | instagram (`ig`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `publish` (image/reel/story/carousel), `insights [--media]`, `comments {list,get,reply,private-reply,hide,delete}`. | [references/instagram.md](references/instagram.md) |
 | channel tokens | Read and rotate the channel's gateway access token (`hmat_…`) via `channels token [--rotate]` (one active token per channel). | [references/access-tokens.md](references/access-tokens.md) |
 | config | Set/get/unset persistent CLI config (e.g., `telemetry` crash-reporting on/off). | [references/config.md](references/config.md) |
 | customers | SaaS customer workspaces: `list`, `new`, `use`, `current`, and `onboarding-links {list,create}` — mint connect links your end-customers open to connect their channel (no HookMyApp account needed). | [references/customers.md](references/customers.md) |
-| notifications | List and acknowledge notices from HookMyApp about integration problems (`notifications list [--all]`, `notifications ack <id>`). | [references/mcp.md](references/mcp.md) |
+| notifications | List and acknowledge notifications from HookMyApp about integration problems (`notifications list [--all]`, `notifications ack <id>`). | [references/notifications.md](references/notifications.md) |
+| org profile | Read/update the organization's company profile (`org profile [show]`, `org profile set --website/--business-category/--business-niche/--primary-use-case/--email/--phone`). Org admins only; values come from the human. | [references/getting-started.md](references/getting-started.md) |
+| support | Open and converse on support tickets: `support {new,list,show,watch,reply}`. See "Reporting problems to HookMyApp" below for the conversation workflow. | [references/troubleshooting.md](references/troubleshooting.md) |
 | sandbox | Start a session `[whatsapp|instagram]`, write the env file, open a tunnel, send test messages, `webhook {show,set,clear}`, `logs`. | [references/sandbox.md](references/sandbox.md) |
 | workspace | List, select, rename, and manage workspace members (tenancy scope). | [references/workspace.md](references/workspace.md) |
 
 ### MCP server (operate HookMyApp without the CLI)
 
-HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` — 33 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
+HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 37 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, alert phone, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
-Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. Do **not** add the server by hand with `claude mcp add` — that writes an entry with no credential helper, and it cannot authenticate. For other clients, use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key`. Browser sign-in (OAuth) is not currently operational; do not send users to `/mcp` sign-in or `codex mcp login`.
+Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. You can also add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp` and sign in with `/mcp`. For other clients, use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key`.
 
 Client setup snippets, the full tool table, working order, safety rules, and a symptom-by-symptom repair table: [references/mcp.md](references/mcp.md).
 
@@ -321,7 +324,7 @@ without pausing to ask the human between turns:
 | `403 forbidden_waba` | WABA was disconnected in Meta dashboard — reconnect via `channels connect`. |
 | Webhook verify GET returns `404` | Ensure your server serves `GET /webhook` (default) with `VERIFY_TOKEN` body. |
 | `sandbox listen: tunnel closed` / cloudflared errors | Re-run with `hookmyapp sandbox listen --reinstall-tunnel-binary` to force re-download cloudflared. Then check outbound 443 to `*.trycloudflare.com` is not firewalled. |
-| `channels listen` exits with "destination was changed" notice | Expected — the dashboard webhook URL was set while the CLI was listening, so the URL wins (spec D3). Either re-run after clicking "Go back to HookMyAppCLI" in the dashboard, or run `hookmyapp channels webhook clear <channel>`, or accept the URL handoff and stop. |
+| `channels listen` exits with "destination was changed" notice | Expected — the dashboard webhook URL was set while the CLI was listening, so the URL wins. Either re-run after clicking "Switch back to HookMyApp CLI" in the dashboard, or run `hookmyapp channels webhook clear <channel>`, or accept the URL handoff and stop. |
 | `channels listen: NO_FORWARDING_CHANNELS` | The channel exists but forwarding is disabled. Run `hookmyapp channels enable <channel>` first, then re-run `channels listen`. |
 | `channels listen: CHANNEL_MISMATCH` | The positional channel doesn't match any channel in the active workspace. Run `hookmyapp channels list` to get the right publicId, OR omit the positional channel to use the picker. |
 | Webhook arrives at HookMyApp but nothing in server logs | Re-run `hookmyapp sandbox listen --verbose` or `hookmyapp channels listen --verbose` to stream full request/response bodies in the CLI terminal. |
@@ -335,7 +338,7 @@ Full decision tree and error table: [references/troubleshooting.md](references/t
 [integrate-hookmyapp file map]|root: .
 |.:{package.json,SKILL.md}
 |assets:{ig-send-dm.json,wa-send-image.json,wa-send-interactive-buttons.json,wa-send-template.json,wa-send-text.json,wa-template-utility.json}
-|references:{access-tokens.md,api.md,auth.md,billing.md,channels.md,config.md,customers.md,env.md,getting-started.md,health.md,instagram.md,mcp.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
+|references:{access-tokens.md,alerts.md,api.md,auth.md,billing.md,channels.md,config.md,customers.md,env.md,getting-started.md,health.md,instagram.md,mcp.md,notifications.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
 |scripts:{ig-list-comments.mjs,ig-mark-seen.mjs,ig-reply-comment.mjs,ig-send-dm.mjs,wa-create-template.mjs,wa-list-templates.mjs,wa-mark-read.mjs,wa-send-message.mjs,wa-send-template.mjs,wa-update-profile.mjs,wa-upload-media.mjs}
 |scripts/lib:{args.mjs,env.mjs,gateway.mjs,output.mjs}
 ```
