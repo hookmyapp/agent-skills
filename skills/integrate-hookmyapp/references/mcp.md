@@ -47,7 +47,7 @@ X-API-Key: hmok_...
 
 Send exactly one of the two headers, not both. Use `X-API-Key` only when the client can't set an `Authorization` header.
 
-**Browser sign-in (OAuth) works.** Add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp`, then run `/mcp`, pick `hookmyapp`, and approve in the browser. Verified in Claude Code on 2026-08-10. Not yet verified for `codex mcp login`.
+**Browser sign-in (OAuth) works.** Add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp`, then run `/mcp`, pick `hookmyapp`, and approve in the browser. For Codex CLI, use the API-key path below instead.
 
 ### Client setup
 
@@ -114,7 +114,7 @@ Read:
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
 | `get_org_usage` | Check monthly organization usage |
-| `get_alert_phone_status` | Check the human's own alert phone (masked) and what it is signed up to receive |
+| `get_alert_phone_status` | Check the human's own alert phone (masked) |
 | `list_onboarding_links` | List customer connect links (SaaS Mode) |
 | `list_support_tickets` | List your organization's 20 most recent support tickets (org-wide — whichever credential or surface opened them) |
 | `get_support_ticket` | Read a support-ticket conversation and check for replies; optional `wait` (1-25s) holds for a new reply, `afterCursor` = the previous response's `nextCursor` |

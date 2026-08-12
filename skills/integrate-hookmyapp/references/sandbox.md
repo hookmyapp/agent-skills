@@ -16,24 +16,23 @@ Start a new sandbox session. Pass the channel type as a positional argument or u
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--type` | `whatsapp\|instagram` | no | (interactive prompt) | Channel type for this session. |
-| `--phone` | E.164 string | no | — | Your phone number, e.g. `+15551234567`. WhatsApp sessions only; omit for interactive prompt. |
-| `--username` | string | no | — | Instagram handle, e.g. `@acmebrand`. Instagram sessions only; omit for interactive prompt. |
+| `--listen` | boolean | no | `false` | After binding, immediately open the tunnel (same as running `sandbox listen` next). |
 
 Global flags that apply: `--json`, `--workspace`.
 
 **Arguments:** `[whatsapp|instagram]` — optional positional alias for `--type`.
 
-**Browser step required:** No (CLI provisions via API).
+**Browser step required:** No — but a phone step is: there is no flag for the phone or handle. The CLI mints a **bind code** and prints it with a deep link; the human sends that code to the sandbox WhatsApp number (or DMs it to the sandbox Instagram account) from the phone/account they want to bind, and the session activates when the code arrives. Under `--json` the CLI emits `{code, type, deepLink}` and exits immediately — deliver the code out-of-band and poll `sandbox status`.
 
 **Examples:**
 
 ```bash
-hookmyapp sandbox start whatsapp --phone +15551234567
+hookmyapp sandbox start whatsapp
 hookmyapp sandbox start instagram
-hookmyapp sandbox start                      # no flag — CLI prompts for type and identifier
+hookmyapp sandbox start                      # no flag — CLI prompts for the type
 ```
 
-**Exit codes:** `0` success · `1` phone is invalid E.164 · `2` session already active for this phone.
+**Exit codes:** `0` success · `1` not authenticated, or `--type` missing in non-interactive/`--json` mode.
 
 ## sandbox status
 

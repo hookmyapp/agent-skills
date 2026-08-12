@@ -11,7 +11,7 @@ HookMyApp's SaaS-management surface is available to every org, no plan gate. A *
 
 The customer's channel arrives via an **onboarding link**: you mint a persistent `https://app.hookmyapp.com/connect/<token>` URL with a fixed channel type and send it to the end-customer. They open it and complete the selected provider's flow — Meta Embedded Signup for WhatsApp or direct Instagram OAuth for Instagram. **No HookMyApp account is needed on their side.** The connected channel lands in the target customer workspace (or a new customer is created if the link wasn't pinned to one).
 
-Related org-level concepts (dashboard surfaces, no CLI verbs): the **org default destination** (a webhook URL that newly connected customer channels inherit automatically), **admin bulk-apply** (apply that destination to existing channels in one action), and **channel move** (move a channel between workspaces/customers).
+Related org-level concepts: the **org default destination** (a webhook URL that newly connected customer channels inherit automatically) and **bulk-apply** (apply that destination to existing channels in one action) are dashboard/MCP surfaces with no CLI verbs; **channel move** (move a channel between workspaces/customers) is `hookmyapp channels move <channel> <target>` — see [channels.md](channels.md).
 
 ## customers list
 
