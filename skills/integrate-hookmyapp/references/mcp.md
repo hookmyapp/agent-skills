@@ -47,7 +47,7 @@ X-API-Key: hmok_...
 
 Send exactly one of the two headers, not both. Use `X-API-Key` only when the client can't set an `Authorization` header.
 
-**Browser sign-in (OAuth) is not currently available.** The server publishes protected-resource metadata at `https://api.hookmyapp.com/.well-known/oauth-protected-resource/mcp`, but token issuance for MCP clients is not operational — clients that attempt it fail with `error=invalid_scope`. Do not send the user to `/mcp` sign-in in Claude Code or `codex mcp login`; use option 1 or 2 instead.
+**Browser sign-in (OAuth) works.** Add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp`, then run `/mcp`, pick `hookmyapp`, and approve in the browser. For Codex CLI, use the API-key path below instead.
 
 ### Client setup
 
@@ -55,13 +55,13 @@ Send exactly one of the two headers, not both. Use `X-API-Key` only when the cli
 export HOOKMYAPP_API_KEY="hmok_..."
 ```
 
-Claude Code — let the CLI do it, do not hand-roll `claude mcp add`:
+Claude Code — when the CLI is installed, let it do the wiring instead of hand-rolling `claude mcp add`:
 
 ```bash
 hookmyapp mcp install --agent claude
 ```
 
-`hookmyapp login` already runs this for you. Adding the server by hand with `claude mcp add` produces an entry with **no** credential helper, which cannot authenticate.
+`hookmyapp login` already runs this for you, wiring a credential helper that injects a fresh token on every request. Hand-rolling `claude mcp add` is right only for the browser sign-in path above (no CLI on the machine): an entry added by hand has **no** credential helper, so it authenticates only through `/mcp` → pick `hookmyapp` → approve in the browser, never automatically.
 
 Codex CLI:
 
@@ -93,12 +93,12 @@ Work top to bottom; each row assumes the ones above it passed.
 | The helper check errors with `unknown command 'mcp-headers'` | CLI older than 0.14.2 is first on PATH | `npm install -g @gethookmyapp/cli@latest`, confirm with `hookmyapp --version`, then `hookmyapp mcp install --agent claude` |
 | The helper check errors with a not-logged-in message | No stored credential | `hookmyapp login`, which also reinstalls the MCP entry |
 | Helper works in your shell, client still won't authenticate | `hookmyapp` is not on the PATH the client gives the helper process (unusual npm prefix such as `~/.local/node/bin`) | Re-point the entry at an absolute path: `command -v hookmyapp` to find it, then `claude mcp add-json --scope user hookmyapp '{"type":"http","url":"https://api.hookmyapp.com/mcp","headersHelper":"/absolute/path/to/hookmyapp mcp-headers"}'` |
-| Browser sign-in returns `error=invalid_scope` | The OAuth path is not operational | Use CLI header injection or an API key; do not retry the browser flow |
+| Browser sign-in returns `error=invalid_scope` | The browser flow normally works, so this is a client-side scope mismatch (often a stale server entry from an older setup) | Remove and re-add the entry (`claude mcp remove hookmyapp`, then the `claude mcp add` line above) and sign in again via `/mcp`. If it recurs, fall back to CLI header injection or an API key and report it to HookMyApp support |
 | A tool call fails with a scope error | The credential lacks that action | Re-run `status`, report the missing scope to the human, do not retry |
 
 `hookmyapp doctor` summarizes CLI, login, and MCP status in one command — run it first when a user reports "the MCP isn't working".
 
-## Tools (33)
+## Tools (37)
 
 Read:
 
@@ -114,6 +114,7 @@ Read:
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
 | `get_org_usage` | Check monthly organization usage |
+| `get_alert_phone_status` | Check the human's own alert phone (masked) |
 | `list_onboarding_links` | List customer connect links (SaaS Mode) |
 | `list_support_tickets` | List your organization's 20 most recent support tickets (org-wide — whichever credential or surface opened them) |
 | `get_support_ticket` | Read a support-ticket conversation and check for replies; optional `wait` (1-25s) holds for a new reply, `afterCursor` = the previous response's `nextCursor` |
@@ -130,7 +131,10 @@ Write:
 | `create_onboarding_link` | Mint a connect link a customer opens to connect their channel |
 | `revoke_onboarding_link` | Revoke an onboarding link by its `ol_` ID so its connect URL stops working (org admin only) |
 | `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object) |
+| `update_org_profile` | Update the organization profile (name, support contact) |
 | `acknowledge_notice` | Mark a notice from `status` `notices[]` as seen, after relaying it to the human. Idempotent. Per-user notices (`ackScope: "user"`) clear only for your user — other members keep their own copy; org notices (`ackScope: "org"`) clear for the whole organization and record who acked (`acknowledgedBy`). `personal: true` notices are addressed to your human alone. |
+| `set_alert_phone` | Set the human's own alert phone. HookMyApp sends a 6-digit code to it. User-scoped: never for a teammate |
+| `verify_alert_phone` | Confirm the alert phone with the code the human received. The code goes to their phone, not to you, so ask them for it |
 | `open_support_ticket` | Something failed or got stuck? Open a support ticket describing what you tried, what happened, and the exact error text — no secrets, no customer message content |
 | `reply_support_ticket` | Follow up on a support ticket (replying to a resolved ticket reopens it); optional `wait` for the answer |
 | `set_webhook_destination` | Set a channel's webhook destination URL (+ optional verify token) |
