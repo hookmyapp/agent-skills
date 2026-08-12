@@ -113,7 +113,7 @@ Read:
 | `get_hmac_secret` | Read a channel's current webhook signing secret without rotating it. The value signs every delivered webhook — treat it like a password: never echo it into chat, logs, or client-visible output; if it leaks, `rotate_hmac` |
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
-| `get_org_usage` | Check monthly organization usage |
+| `get_org_usage` | Check organization usage for the current quota period (each org has its own monthly reset date; `resetsAt` in the response says when) |
 | `get_alert_phone_status` | Check the human's own alert phone (masked) |
 | `list_onboarding_links` | List customer connect links (SaaS Mode) |
 | `list_support_tickets` | List your organization's 20 most recent support tickets (org-wide — whichever credential or surface opened them) |
