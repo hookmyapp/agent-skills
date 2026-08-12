@@ -1,17 +1,15 @@
 ---
 name: config
-description: Manage persistent CLI configuration (telemetry crash-reporting; advanced env default). Distinct from per-invocation flag overrides.
+description: Manage persistent CLI configuration (telemetry crash-reporting). Distinct from per-invocation flag overrides.
 ---
 
 # Config
 
 Manage **persistent** CLI configuration. Values written by `config set` live in the CLI's config file (implementation detail — don't script against the path) and affect every subsequent `hookmyapp` invocation in every shell until `config unset`. This is distinct from the per-invocation `--workspace` override.
 
-> **Note:** The `env` key below is **advanced/internal**: it selects which HookMyApp backend the CLI targets (`staging` and `local` are internal-only), and customers never change it (it always defaults to `production`). The customer-relevant key is `telemetry` (crash-reporting on/off).
-
 ## config show
 
-Print the active environment profile and resolved URLs.
+Print the active configuration and resolved URLs.
 
 **Flags:** none per-command. Global `--json` is accepted.
 
@@ -30,13 +28,15 @@ Observed output (human form):
 
 ```
 env:               production
-source:            default          # or "config" if set via `config set env`
+  source:          default
 apiUrl:            https://api.hookmyapp.com
 appUrl:            https://app.hookmyapp.com
 workosClientId:    client_01KM5S4D10TKG4VJEXSCRVAMG7
+telemetry:         on
+  source:          default
 ```
 
-`source: default` means no persistent override is set; the CLI uses its built-in default (`production`). `source: config` means `config set env` has been run.
+`workosClientId` is the CLI's public sign-in client identifier — it is not a secret and is the same for every install. Treat the output as diagnostics to read, not values to copy into code.
 
 ## config set
 
@@ -61,7 +61,7 @@ hookmyapp config set telemetry on
 
 | Key | Allowed values | Effect |
 |---|---|---|
-| `env` | `local`, `staging`, `production` | **Advanced/internal; customers never set this.** Default backend profile for all future invocations (until `config unset env`). Always defaults to `production`. |
+| `telemetry` | `on`, `off` | Crash-reporting on/off. Defaults to `on`; `config set telemetry off` opts out persistently. |
 
 > **Safety:** `config set` writes a **persistent** default that affects every shell the user has open, and every future shell they open, until explicitly unset. It is not session-scoped. Surface this explicitly before running `config set`.
 
