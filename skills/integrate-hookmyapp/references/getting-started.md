@@ -16,11 +16,9 @@ See [env.md](env.md) for the exact env-key shapes each path produces, and the "T
 
 Seven steps from zero to a running webhook receiver that echoes inbound WhatsApp messages:
 
-**1. Make sure the CLI is installed**
+**1. Make sure the CLI is installed — at the version this skill needs**
 
-```bash
-command -v hookmyapp >/dev/null 2>&1 || npm install -g @gethookmyapp/cli
-```
+Run the full **Skill Setup** block from [SKILL.md](../SKILL.md#skill-setup-run-before-any-cli-command) (install + version gate + skill-version marker). A `command -v` check alone is not enough: an already-installed older CLI passes it but lacks the subcommands the steps below use. The setup block upgrades an in-range-miss install in place and stops if the version still falls short.
 
 If the install fails because `npm` is missing, ask the human to install Node.js 20+ (which includes npm). If global installs are blocked, ask the human to install the CLI themselves or make `hookmyapp` available on PATH another way — do not retry the blocked command.
 
@@ -38,7 +36,32 @@ hookmyapp login
 hookmyapp login --code <bootstrap>
 ```
 
-If the human already minted a bootstrap code from the HookMyApp dashboard (Settings → CLI → "Mint bootstrap code"), they can paste it into this flag and skip the browser tab entirely. The code is single-use and expires quickly — surface a `> **HUMAN ACTION REQUIRED:**` only for the paste. Exits non-zero if the code is expired or consumed. See [auth.md](auth.md) for full flag syntax.
+If the human already minted a bootstrap code from the HookMyApp dashboard (bell menu → "Set up with your AI agent" → Install, or the "Set up your AI agent" card), they can paste it into this flag and skip the browser tab entirely. The code is single-use and expires quickly — surface a `> **HUMAN ACTION REQUIRED:**` only for the paste. Exits non-zero if the code is expired or consumed. See [auth.md](auth.md) for full flag syntax.
+
+**2b. Company profile + alert phone (right after login, once)**
+
+Two short questions, both optional — a decline never blocks setup:
+
+1. **Company details** (org admins only). Ask the human for their company website, business category, and what they're building. Pass ONLY the values the human actually gave you — never invent or guess one, and drop any flag they left unanswered. Wrap each value in SINGLE quotes so the shell passes it literally (`&`, `?`, `$`, backticks, and `$(...)` inside double quotes would break the command or expand); if a value itself contains a single quote, replace each `'` with `'\''` inside the quotes. If the human is not the organization admin, or the command fails with a permission error, that is a normal outcome — skip and continue, don't retry:
+
+```bash
+hookmyapp org profile set --website '<their-website>' --business-category '<their-category>' --primary-use-case '<what-they-are-building>'
+```
+
+2. **Personal alert phone.** Check first — if a verified number already exists, don't re-ask:
+
+```bash
+hookmyapp alerts phone status
+```
+
+If it shows a verified number, skip this step. If it shows a number still pending verification (a previous setup stopped after `alerts phone set`), ask the human whether to finish with that number — re-run `hookmyapp alerts phone set` with it to get a fresh code, then verify. If none is set, explain WHY before asking: HookMyApp texts this number (WhatsApp/SMS) if their integration ever breaks — webhook failures, usage limits, disconnected channels — so problems reach them even when email doesn't. Then run the commands with the values the human gives you (the placeholders below are NOT runnable — never execute them as-is):
+
+```bash
+hookmyapp alerts phone set <number-from-human>     # e.g. +14155552671 — asked from the HUMAN
+hookmyapp alerts phone verify <code-from-human>    # the 6-digit code the HUMAN reads back from their phone
+```
+
+Rules: the number and the code come from the human — NEVER invent, guess, or reuse either; never paste the code anywhere except `hookmyapp alerts phone verify`; if they decline either question, skip it and continue — nothing downstream depends on it.
 
 **3. Clone the starter kit**
 
@@ -88,11 +111,17 @@ Now send a WhatsApp message from your personal account to the sandbox number —
 
 Seven steps to connect your own WhatsApp number or Instagram account:
 
-**1. Log in**
+**1. Make sure the CLI is installed — at the version this skill needs, then log in**
+
+If you came straight to this section, first run the full **Skill Setup** block from [SKILL.md](../SKILL.md#skill-setup-run-before-any-cli-command) (install + version gate + skill-version marker) — an already-installed older CLI lacks the subcommands the steps below use. Then:
 
 ```bash
 hookmyapp login
 ```
+
+**1b. Company profile + alert phone (once)**
+
+If you came straight here without the sandbox quickstart, run its **Step 2b** now — right after this login: ask for company details (`hookmyapp org profile set`, org admins only) and the personal alert phone (`hookmyapp alerts phone status`, then `alerts phone set` / `alerts phone verify` with values from the human). Both optional; a decline never blocks setup. The full rules live in Step 2b above.
 
 **2. Select a workspace**
 
@@ -156,7 +185,7 @@ hookmyapp channels webhook set ch_AAAAAAAA \
 
 The URL must respond `200 OK` with the channel's current verify token as the plain-text body on the verify GET — the value step 5 wrote to `.env`, or the new value if you passed `--verify-token` (HookMyApp performs this check on your behalf when you run `channels webhook set`).
 
-- `hookmyapp channels webhook clear <channel>` clears the configured override URL and reverts the channel to the HookMyApp CLI tunnel destination (HookMyAppCLI). It is idempotent. This is the command-line equivalent of clicking "Go back to HookMyAppCLI" in the dashboard before re-running `hookmyapp channels listen`.
+- `hookmyapp channels webhook clear <channel>` clears the configured override URL and reverts the channel to the HookMyApp CLI tunnel destination (HookMyAppCLI). It is idempotent. This is the command-line equivalent of clicking "Switch back to HookMyApp CLI" in the dashboard before re-running `hookmyapp channels listen`.
 
 **7. Verify health**
 

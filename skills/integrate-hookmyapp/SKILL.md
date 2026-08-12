@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.6"
+  version: "0.9.7"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -45,6 +45,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 - **Never run `webhook set` without explicit human confirmation of the URL.** Pointing your channel's webhooks at a dev URL silently drops inbound customer messages.
 - **Never generate sandbox template-message examples.** Templates are rejected in the sandbox; generating such code only wastes the user's time.
 - **Never run `hookmyapp channels disable <channel>` without explicit human confirmation.** Forwarding off = silent message drop on inbound; no error surfaces to the customer. Use `channels show <channel>` or `channels health <channel>` to verify state before and after.
+- **Never invent a phone number or verification code.** `hookmyapp alerts phone set` takes the number the HUMAN gives you; `hookmyapp alerts phone verify` takes the code the HUMAN reads back. Never paste the code anywhere else; a decline is a normal outcome — skip and continue.
 - **Never run `hookmyapp channels listen` without explicit human confirmation.** Listening on a real channel routes inbound customer messages to the developer's localhost. That is the intended behavior for local dev and self-hosted agents, but a misclicked channel hijacks live traffic for as long as the CLI is up. Confirm the channel publicId before launching.
 
 ## Prerequisites
@@ -59,18 +60,18 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the user's machine:
 
 ```bash
-# This skill version needs CLI >=0.14.11 <1 (notifications list/ack + support
-# watch + instagram publish/insights/comments subcommands). The bounded range
-# keeps installs on the reviewed 0.x line; an older existing install is
-# upgraded in place.
-command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.11 <1'
-# cli_ok: version is non-empty AND within >=0.14.11 <1 (a failed/missing
+# This skill version needs CLI >=0.14.12 <1 (org profile + phone alert
+# subcommands, on top of notifications list/ack + support watch + instagram
+# publish/insights/comments). The bounded range keeps installs on the
+# reviewed 0.x line; an older existing install is upgraded in place.
+command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.12 <1'
+# cli_ok: version is non-empty AND within >=0.14.12 <1 (a failed/missing
 # `hookmyapp --version` yields an empty string and fails the check).
-cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; [ -n "$v" ] && printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 11))) ? 0 : 1 }'; }
-cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.11 <1'
+cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 12))) ? 0 : 1 }'; }
+cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.12 <1'
 # Re-check after the upgrade and STOP if the range still is not met — do not
 # write the skill marker or continue with a CLI that lacks the new subcommands.
-cli_ok || { echo "hookmyapp >=0.14.11 <1 required for this skill; install it manually and re-run." >&2; false; }
+cli_ok || { echo "hookmyapp >=0.14.12 <1 required for this skill; install it manually and re-run." >&2; false; }
 ```
 
 If that final check fails, stop and ask the user to upgrade the CLI themselves — do not continue to the skill-version marker below.
@@ -80,7 +81,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.6" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.7" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
