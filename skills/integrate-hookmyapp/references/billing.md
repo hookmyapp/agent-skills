@@ -53,13 +53,13 @@ hookmyapp billing manage
 
 ## billing upgrade
 
-Upgrade the organization's plan. Free organizations get a terminal-interactive plan picker that ends in a Stripe Checkout browser tab; organizations with an active subscription are sent to the app Billing page to change plan.
+Change the organization's plan. Free organizations get a terminal-interactive plan picker that ends in a Stripe Checkout browser tab. Organizations that already pay change plan entirely in the terminal: the CLI states what is charged today and when the next bill lands, then asks for confirmation (CLI 0.14.15+). A Custom plan, a pending cancellation, or an already-scheduled plan change still opens the app Billing page.
 
 **Flags:** none per-command. `--json` is rejected — the command is interactive end-to-end.
 
 **Arguments:** none
 
-**Browser step required:** Yes
+**Browser step required:** Only for free organizations (Stripe Checkout), and for the three Billing-page cases above.
 
 **Examples:**
 
@@ -67,11 +67,12 @@ Upgrade the organization's plan. Free organizations get a terminal-interactive p
 hookmyapp billing upgrade
 ```
 
-> **HUMAN ACTION REQUIRED:** Requires an interactive terminal (the CLI refuses to run without a TTY). The free-org path prompts for a plan (`starter`/`growth`/`pro`) and billing interval (annual/monthly), then opens Stripe Checkout in the browser; existing subscribers get the app Billing page instead. Hand the terminal back; do not attempt to drive the browser flow programmatically.
+> **HUMAN ACTION REQUIRED:** Requires an interactive terminal (the CLI refuses to run without a TTY). The free-org path prompts for a plan (`starter`/`growth`/`pro`) and billing interval (annual/monthly), then opens Stripe Checkout in the browser. A paying organization is prompted to pick a plan and confirm the charge in the terminal. Either way, hand the terminal back; do not answer a billing confirmation on the human's behalf, and do not attempt to drive the browser flow programmatically.
 
 ## Safety notes
 
-- `billing upgrade` ends in a Stripe-hosted Checkout page. Do not share Checkout URLs in chat or logs.
+- `billing upgrade` on a free organization ends in a Stripe-hosted Checkout page. Do not share Checkout URLs in chat or logs.
+- `billing upgrade` on a paying organization asks the human to confirm a charge in the terminal. That confirmation is the human's to give.
 - `billing status --json` is the safe form to pipe into CI/monitoring. Do NOT parse the human form.
 - If the user hits a plan-limit error on `channels connect`, the fix path is `billing upgrade` — surface that connection.
 
