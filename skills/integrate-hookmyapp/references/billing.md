@@ -53,7 +53,7 @@ hookmyapp billing manage
 
 ## billing upgrade
 
-Change the organization's plan. Free organizations get a terminal-interactive plan picker that ends in a Stripe Checkout browser tab. Organizations that already pay change plan entirely in the terminal: the CLI states what is charged today and when the next bill lands, then asks for confirmation (CLI 0.14.15+). A Custom plan, a pending cancellation, or an already-scheduled plan change still opens the app Billing page.
+Change the organization's plan. Free organizations get a terminal-interactive plan picker that ends in a Stripe Checkout browser tab. Organizations that already pay change plan entirely in the terminal: the CLI states what is charged today and when the next bill lands, then asks for confirmation. A Custom plan, a pending cancellation, or an already-scheduled plan change still opens the app Billing page.
 
 **Flags:** none per-command. `--json` is rejected — the command is interactive end-to-end.
 
