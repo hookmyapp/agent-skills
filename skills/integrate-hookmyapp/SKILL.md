@@ -60,19 +60,20 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the user's machine:
 
 ```bash
-# This skill version needs CLI >=0.14.15 <1 (in-terminal plan changes, on top
-# of alerts phone + org profile subcommands, notifications list/ack, support
-# watch, and instagram publish/insights/comments). The bounded range keeps
-# installs on the reviewed 0.x line; an older existing install is upgraded in
-# place.
-command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.15 <1'
-# cli_ok: version is non-empty AND within >=0.14.15 <1 (a failed/missing
+# This skill version needs CLI >=0.14.17 <1 (instagram publish optional
+# fields: --alt-text/--tag/--location/--thumb-offset/--audio-name, on top of
+# in-terminal plan changes, alerts phone + org profile subcommands,
+# notifications list/ack, support watch, and instagram
+# publish/insights/comments). The bounded range keeps installs on the
+# reviewed 0.x line; an older existing install is upgraded in place.
+command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
+# cli_ok: version is non-empty AND within >=0.14.17 <1 (a failed/missing
 # `hookmyapp --version` yields an empty string and fails the check).
-cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 15))) ? 0 : 1 }'; }
-cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.15 <1'
+cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 17))) ? 0 : 1 }'; }
+cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
 # Re-check after the upgrade and STOP if the range still is not met — do not
 # write the skill marker or continue with a CLI that lacks the new subcommands.
-cli_ok || { echo "hookmyapp >=0.14.15 <1 required for this skill; install it manually and re-run." >&2; false; }
+cli_ok || { echo "hookmyapp >=0.14.17 <1 required for this skill; install it manually and re-run." >&2; false; }
 ```
 
 If that final check fails, stop and ask the user to upgrade the CLI themselves — do not continue to the skill-version marker below.

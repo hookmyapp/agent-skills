@@ -121,7 +121,7 @@ curl "$INSTAGRAM_GRAPH_API_URL/<ig-media-id>/insights?metric=views,reach,saved,s
 
 ### List your posts, stories, and profile
 
-Media ids for insights/comments/shares come from the account's media list (raw HTTP through the gateway; no CLI command):
+Media ids for insights/comments/shares come from the account's media list (raw HTTP; no CLI command). Real channels use `INSTAGRAM_GRAPH_API_URL`; sandbox sessions use `INSTAGRAM_API_URL` instead:
 
 ```bash
 curl "$INSTAGRAM_GRAPH_API_URL/$INSTAGRAM_ACCOUNT_ID/media?fields=id,caption,media_type,permalink,timestamp,like_count,comments_count" \
@@ -137,7 +137,7 @@ curl "$INSTAGRAM_GRAPH_API_URL/$INSTAGRAM_ACCOUNT_ID/media?fields=id,caption,med
 - **Heart sticker**: attachment `type: "like_heart"`.
 - **Share your own post**: attachment `type: "MEDIA_SHARE"`, `payload.id` = media id.
 - **React / unreact**: `sender_action: "react"` + `payload: { message_id, reaction: "<emoji>" }`; `"unreact"` with message_id only removes it.
-- **Sender profile**: `GET /<IGSID>?fields=name,username,profile_pic,follower_count,is_user_follow_business` (consent: only after the person messaged you).
+- **Sender profile**: `GET /<IGSID>?fields=name,username,profile_pic,follower_count,is_user_follow_business` (consent: after the person messages you or taps an ice breaker or menu item).
 - **Thread history**: `GET /me/conversations?platform=instagram&fields=participants,messages{id,created_time,from,message}`.
 - **Ice breakers / persistent menu**: `POST /$INSTAGRAM_ACCOUNT_ID/messenger_profile` with `platform: "instagram"` and `ice_breakers` or `persistent_menu`; taps arrive as `messaging_postbacks` webhooks.
 
