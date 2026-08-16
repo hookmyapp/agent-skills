@@ -121,7 +121,7 @@ curl "$INSTAGRAM_GRAPH_API_URL/<ig-media-id>/insights?metric=views,reach,saved,s
 
 ### List your posts, stories, and profile
 
-Media ids for insights/comments/shares come from the account's media list (raw HTTP; no CLI command). Real channels use `INSTAGRAM_GRAPH_API_URL`; sandbox sessions use `INSTAGRAM_API_URL` instead:
+Media ids for insights/comments/shares come from the account's media list (raw HTTP; no CLI command). Real connected channels only — the sandbox covers DMs, not media:
 
 ```bash
 curl "$INSTAGRAM_GRAPH_API_URL/$INSTAGRAM_ACCOUNT_ID/media?fields=id,caption,media_type,permalink,timestamp,like_count,comments_count" \
