@@ -45,7 +45,7 @@ hookmyapp instagram publish --image https://example.com/photo.jpg --story
 hookmyapp instagram publish --carousel https://example.com/a.jpg,video:https://example.com/b.mp4 --caption "..."   # video: prefix = video child; plain URL = image
 ```
 
-Optional flags (CLI >= 0.14.12): `--alt-text <text>` (image posts), `--tag <username[:x,y]>` (repeatable; x,y position the tag on images), `--location <page-id>` (place tagging), `--thumb-offset <ms>` and `--audio-name <name>` (video/reel). The MCP `publish_instagram_media` tool takes the same as `altText`, `userTags`, `locationId`, `thumbOffset`, `audioName`.
+Optional flags (CLI >= 0.14.17): `--alt-text <text>` (image posts), `--tag <username[:x,y]>` (repeatable; x,y position the tag on images), `--location <page-id>` (place tagging), `--thumb-offset <ms>` and `--audio-name <name>` (video/reel). The MCP `publish_instagram_media` tool takes the same as `altText`, `userTags`, `locationId`, `thumbOffset`, `audioName`.
 
 Raw HTTP (gateway; the same three Meta calls the CLI makes):
 
