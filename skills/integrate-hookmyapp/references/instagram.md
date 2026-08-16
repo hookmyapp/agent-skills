@@ -45,6 +45,8 @@ hookmyapp instagram publish --image https://example.com/photo.jpg --story
 hookmyapp instagram publish --carousel https://example.com/a.jpg,video:https://example.com/b.mp4 --caption "..."   # video: prefix = video child; plain URL = image
 ```
 
+Optional flags (CLI >= 0.14.12): `--alt-text <text>` (image posts), `--tag <username[:x,y]>` (repeatable; x,y position the tag on images), `--location <page-id>` (place tagging), `--thumb-offset <ms>` and `--audio-name <name>` (video/reel). The MCP `publish_instagram_media` tool takes the same as `altText`, `userTags`, `locationId`, `thumbOffset`, `audioName`.
+
 Raw HTTP (gateway; the same three Meta calls the CLI makes):
 
 ```bash
@@ -107,7 +109,7 @@ curl "$INSTAGRAM_GRAPH_API_URL/<ig-media-id>/insights?metric=views,reach,saved,s
 
 **Account metrics:** `reach`, `views` (replaces the deprecated `impressions`), `likes`, `comments`, `shares`, `saves`, `total_interactions`, `accounts_engaged`, `profile_links_taps`, `follows_and_unfollows`. Breakdowns: `follow_type`, `media_product_type`, `contact_button_type`.
 
-**Media metrics:** `views`, `reach`, `saved`, `shares`, `total_interactions`, `ig_reels_avg_watch_time`, `reels_skip_rate`, plus story-only `navigation` and `replies`.
+**Media metrics:** `views`, `reach`, `saved`, `shares`, `total_interactions`, `ig_reels_avg_watch_time`, `reels_skip_rate`, `reposts`, `facebook_views`, `crossposted_views`, aggregated `total_likes` / `total_comments` / `total_views` (match the in-app numbers), plus story-only `navigation` and `replies`. Account metrics also include `reposts`.
 
 **Gotchas (all Meta-side, all normal — don't debug your integration for these):**
 
@@ -116,6 +118,28 @@ curl "$INSTAGRAM_GRAPH_API_URL/<ig-media-id>/insights?metric=views,reach,saved,s
 - "Nothing recorded" comes back as an **empty data array**, not a zero.
 - Demographics (`follower_demographics`, `engaged_audience_demographics`) need **≥100 followers** and a `timeframe` param.
 - Insights are read-only. Fetch metrics individually (or tolerate partial results) so one unavailable metric doesn't abort the rest.
+
+### List your posts, stories, and profile
+
+Media ids for insights/comments/shares come from the account's media list (raw HTTP through the gateway; no CLI command):
+
+```bash
+curl "$INSTAGRAM_GRAPH_API_URL/$INSTAGRAM_ACCOUNT_ID/media?fields=id,caption,media_type,permalink,timestamp,like_count,comments_count" \
+  -H "Authorization: Bearer $INSTAGRAM_ACCESS_TOKEN"
+# Also: /stories (live 24h), /tags (posts tagging the account),
+# and profile fields: ?fields=username,biography,website,profile_picture_url,followers_count,media_count
+```
+
+### Messaging extras (raw HTTP, same /messages endpoint)
+
+- **Multiple images**: `message.attachments` array, up to 10 (error subcode 2534068 = account not rolled out yet; send one per message).
+- **PDF**: attachment `type: "file"`, `payload.url`, 25 MB max.
+- **Heart sticker**: attachment `type: "like_heart"`.
+- **Share your own post**: attachment `type: "MEDIA_SHARE"`, `payload.id` = media id.
+- **React / unreact**: `sender_action: "react"` + `payload: { message_id, reaction: "<emoji>" }`; `"unreact"` with message_id only removes it.
+- **Sender profile**: `GET /<IGSID>?fields=name,username,profile_pic,follower_count,is_user_follow_business` (consent: only after the person messaged you).
+- **Thread history**: `GET /me/conversations?platform=instagram&fields=participants,messages{id,created_time,from,message}`.
+- **Ice breakers / persistent menu**: `POST /$INSTAGRAM_ACCOUNT_ID/messenger_profile` with `platform: "instagram"` and `ice_breakers` or `persistent_menu`; taps arrive as `messaging_postbacks` webhooks.
 
 ### Moderate comments
 
