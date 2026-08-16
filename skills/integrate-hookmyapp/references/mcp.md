@@ -144,7 +144,7 @@ Write:
 | `set_forwarding` | Enable or disable webhook forwarding for a channel |
 | `set_org_destination` | Set the organization default destination seeded onto new customer channels (org admin + SaaS Mode) |
 | `apply_org_destination_to_channels` | Bulk-apply (or clear) the organization destination across customer channels |
-| `publish_instagram_media` | Publish an image, reel, story, or carousel on an Instagram channel: `mediaType`, `imageUrl`/`videoUrl`, `caption`, `children[]` (carousel), `coverUrl`, `shareToFeed`, `trialParams` with `graduationStrategy` set to `"manual"` or `"automatic"` (reels only — trial reel; rejected on any other `mediaType`). Runs Meta's container → status poll → publish flow and returns `{mediaId, permalink}` |
+| `publish_instagram_media` | Publish an image, reel, story, or carousel on an Instagram channel: `mediaType`, `imageUrl`/`videoUrl`, `caption`, `children[]` (carousel), `coverUrl`, `shareToFeed`, `trialParams` with `graduationStrategy` set to `"manual"` or `"automatic"` (reels only — trial reel; rejected on any other `mediaType`), plus optional `altText` (image posts), `userTags[]` (`{username, x?, y?}`), `locationId`, `thumbOffset` (ms), `audioName` (reels). Runs Meta's container → status poll → publish flow and returns `{mediaId, permalink}` |
 | `reply_instagram_comment` | Public threaded reply to a comment (`commentId`, `text`), or `private: true` to DM the commenter instead (one DM per comment; within 7 days for post/reel comments, Live comments only while the broadcast is live) |
 | `moderate_instagram_comment` | `action`: `hide` \| `unhide` \| `delete` \| `disable_media_comments` \| `enable_media_comments`, with `commentId` (comment actions) or `mediaId` (media-level enable/disable) |
 
