@@ -19,7 +19,7 @@ Billing is **organization-scoped**: one subscription and one pooled action allow
 | Business | $97/mo ($970/yr) | 100,000 | Unlimited | Included |
 | Above Business | Talk to us | Custom | n/a | n/a |
 
-The trial starts at signup, needs no card, and runs 7 days on Business with a 100,000-action cap. At day 7: under 200 actions in the trial window rolls the organization into Build, 200 or more rolls it into Scale, and 15,000 or more rolls it into Business. Add a card before day 7 and the organization rolls into its plan automatically with no pause. No card by day 7 pauses every channel until a plan is chosen.
+The trial starts at signup, needs no card, and runs 7 days on Business with a 100,000-action cap. At day 7: under 200 actions in the trial window rolls the organization into Build, 200 or more rolls it into Scale, and 15,000 or more rolls it into Business. Add a credit card before day 7 and the organization rolls into its plan automatically with no pause. No card by day 7 pauses every channel until a plan is chosen.
 
 **What counts as an action:** sending a message, replying to a comment, hiding or unhiding a comment, publishing a post, reel, or story. Free: everything you receive, reads and insights, deleting a comment, a failed send, and uploads or drafts before publishing.
 
