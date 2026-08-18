@@ -13,13 +13,13 @@ Billing is **organization-scoped**: one subscription and one pooled action allow
 
 | Plan | Price | Actions/mo | Channels | Team |
 |---|---|---|---|---|
-| Trial | Free, 7 days | Unlimited | Unlimited | 1 user |
+| Trial | Free, 7 days | 100,000 | Unlimited | 1 user |
 | Build | $1/mo ($10/yr) | 200 | Unlimited | Included |
 | Scale | $24/mo ($240/yr) | 15,000 | Unlimited | Included |
 | Business | $97/mo ($970/yr) | 100,000 | Unlimited | Included |
 | Above Business | Talk to us | Custom | n/a | n/a |
 
-The trial starts at the first channel connect, needs no card, and runs 7 days with unlimited actions. At day 7: under 200 actions in the trial window rolls the organization into Build, 200 or more rolls it into Scale, and 15,000 or more rolls it into Business. Add a card before day 7 and the organization rolls into its plan automatically with no pause. No card by day 7 pauses every channel until a plan is chosen.
+The trial starts at signup, needs no card, and runs 7 days on Business with a 100,000-action cap. At day 7: under 200 actions in the trial window rolls the organization into Build, 200 or more rolls it into Scale, and 15,000 or more rolls it into Business. Add a card before day 7 and the organization rolls into its plan automatically with no pause. No card by day 7 pauses every channel until a plan is chosen.
 
 **What counts as an action:** sending a message, replying to a comment, hiding or unhiding a comment, publishing a post, reel, or story. Free: everything you receive, reads and insights, deleting a comment, a failed send, and uploads or drafts before publishing.
 
@@ -41,9 +41,9 @@ hookmyapp billing status --json           # machine-readable
 hookmyapp billing status --workspace acme-corp
 ```
 
-Output shape (human form): plan name, subscription status, billing interval, renewal date, and actions used vs limit with a percentage. A trialing organization reports unlimited usage instead of a limit. The CLI warns at 80% usage and errors at 100% with a pointer to `billing upgrade`.
+Output shape (human form): plan name, subscription status, billing interval, renewal date, and actions used vs limit with a percentage. A trialing organization reports its actions used against the 100,000-action trial cap. The CLI warns at 80% usage and errors at 100% with a pointer to `billing upgrade`.
 
-Plans: `trial` (free, 7 days, unlimited actions), `build` (200 actions/mo), `scale` (15,000 actions/mo), `business` (100,000 actions/mo). See Plans above for what counts as an action.
+Plans: `trial` (free, 7 days on Business, 100,000 actions), `build` (200 actions/mo), `scale` (15,000 actions/mo), `business` (100,000 actions/mo). See Plans above for what counts as an action.
 
 Use `--json` for CI/monitoring (e.g., "alert when usage > 80%"). Do NOT parse the human form, it is not a stable contract.
 
