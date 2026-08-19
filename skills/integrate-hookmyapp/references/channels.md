@@ -7,7 +7,7 @@ description: Connect and list WhatsApp or Instagram channels through their provi
 
 A "channel" is a WhatsApp Business Account (WABA) or an Instagram account attached to your workspace. WhatsApp connects through Meta Embedded Signup. Instagram connects through direct Instagram OAuth at `instagram.com`; it does not use Facebook Login or WhatsApp Embedded Signup. The provider token stays inside HookMyApp; your app authenticates to the gateway with a minted `hmat_` access token instead (see [access tokens](access-tokens.md)).
 
-Instagram channels also forward **comment webhook events** (`comments`, `live_comments`) to the channel's webhook destination exactly like messages — same delivery, same `X-HookMyApp-Signature-256` HMAC signature. Comment events are **not billable**; only messages count toward usage. Payload shapes (Meta emits two) and parsing rules: [instagram.md](instagram.md#comment-webhooks-both-payload-shapes).
+Instagram channels also forward **comment webhook events** (`comments`, `live_comments`) to the channel's webhook destination exactly like messages — same delivery, same `X-HookMyApp-Signature-256` HMAC signature. Receiving a comment event is **not billable**. Acting on one is: replying to a comment, and hiding or unhiding a comment, each count as an action, the same as sending a message or publishing a post, reel, or story. Deleting a comment is free. See [billing.md](billing.md) for the full list. Payload shapes (Meta emits two) and parsing rules: [instagram.md](instagram.md#comment-webhooks-both-payload-shapes).
 
 > **Direct Meta access still works.** Existing integrations that call `https://graph.facebook.com` with their own Meta token are unaffected by the gateway. Routing through `https://gateway.hookmyapp.com/meta/...` with a minted `hmat_` access token is the recommended path for new setups.
 
@@ -39,7 +39,7 @@ hookmyapp channels connect instagram
 hookmyapp channels connect --workspace acme-corp
 ```
 
-**Exit codes:** `0` success · `1` popup blocked / closed before completion · `2` Meta returned an error (see CLI output) · `3` workspace has reached plan channel limit *(observed behavior; not enumerated in `--help`)*.
+**Exit codes:** `0` success · `1` popup blocked / closed before completion · `2` Meta returned an error (see CLI output).
 
 ## channels list
 

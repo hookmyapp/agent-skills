@@ -5,7 +5,7 @@ description: Set and verify the phone number HookMyApp texts when something stop
 
 # Alerts
 
-The alert phone is where HookMyApp reaches the human when their integration breaks: a channel disconnecting, webhooks failing, an organization running out of its message allowance.
+The alert phone is where HookMyApp reaches the human when their integration breaks: a channel disconnecting, webhooks failing, an organization running out of its allowance.
 
 It is **user-scoped, not workspace-scoped**: the number belongs to the authenticated person, every teammate sets their own, and no command can set it on someone else's behalf. The global `--workspace` flag has no effect here.
 
