@@ -41,7 +41,7 @@ hookmyapp billing status --json           # machine-readable
 hookmyapp billing status --workspace acme-corp
 ```
 
-Output shape (human form): plan name, subscription status, billing interval, renewal date, and actions used vs limit with a percentage. A trialing organization reports its actions used against the 100,000-action trial cap. The CLI warns at 80% usage and errors at 100% with a pointer to `billing upgrade`.
+Output shape (human form): plan name, subscription status, billing interval, renewal date, and usage against the limit with a percentage. Usage reads in actions on a Build, Scale, or Business plan, and in messages on an older message-metered plan. A trialing organization reports its actions used against the 100,000-action trial cap. The CLI warns at 80% usage and errors at 100% with a pointer to `billing upgrade`.
 
 Plans: `trial` (free, 7 days on Business, 100,000 actions), `build` (200 actions/mo), `scale` (15,000 actions/mo), `business` (100,000 actions/mo). See Plans above for what counts as an action.
 
