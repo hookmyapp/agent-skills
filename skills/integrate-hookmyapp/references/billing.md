@@ -25,7 +25,7 @@ The trial starts at signup, needs no card, and runs 7 days on Business with a 10
 
 ## billing status
 
-Show the organization's subscription (plan, status, billing interval, renewal date) plus the active workspace's message usage.
+Show the organization's subscription (plan, status, billing interval, renewal date) plus the active workspace's usage. Usage reads in actions on a Build, Scale, or Business plan, and in messages on an older message-metered plan.
 
 **Flags:** none per-command. Global `--json` and `--workspace` are accepted.
 
