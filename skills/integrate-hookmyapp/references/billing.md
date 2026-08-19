@@ -11,15 +11,15 @@ Billing is **organization-scoped**: one subscription and one pooled action allow
 
 ## Plans
 
-| Plan | Price | Actions/mo | Channels | Team |
+| Plan | Price | Actions | Channels | Team |
 |---|---|---|---|---|
-| Trial | Free, 7 days | 100,000 | Unlimited | 1 user |
-| Build | $1/mo ($10/yr) | 200 | Unlimited | Included |
-| Scale | $24/mo ($240/yr) | 15,000 | Unlimited | Included |
-| Business | $97/mo ($970/yr) | 100,000 | Unlimited | Included |
+| Trial | Free, 7 days | 100,000 for the 7-day trial | Unlimited | 1 user |
+| Build | $1/mo ($10/yr) | 200/mo | Unlimited | Included |
+| Scale | $24/mo ($240/yr) | 15,000/mo | Unlimited | Included |
+| Business | $97/mo ($970/yr) | 100,000/mo | Unlimited | Included |
 | Above Business | Talk to us | Custom | n/a | n/a |
 
-The trial starts at signup, needs no card, and runs 7 days on Business with a 100,000-action cap. At day 7: under 200 actions in the trial window rolls the organization into Build, 200 or more rolls it into Scale, and 15,000 or more rolls it into Business. Add a credit card before day 7 and the organization rolls into its plan automatically with no pause. No card by day 7 pauses every channel until a plan is chosen.
+The trial starts at signup, needs no card, and runs 7 days on Business with a 100,000-action cap. At day 7 the trial-window action count picks the plan, in disjoint bands: under 200 rolls the organization into Build, 200 to 14,999 into Scale, and 15,000 or more into Business. Add a credit card before day 7 and the organization rolls into its plan automatically with no pause. No card by day 7 pauses every channel until a plan is chosen.
 
 **What counts as an action:** sending a message, replying to a comment, hiding or unhiding a comment, publishing a post, reel, or story. Free: everything you receive, reads and insights, deleting a comment, a failed send, and uploads or drafts before publishing.
 
@@ -101,7 +101,6 @@ Both mean every channel in the organization is paused; nothing sends until a pla
 - `billing upgrade` on a free organization ends in a Stripe-hosted Checkout page. Do not share Checkout URLs in chat or logs.
 - `billing upgrade` on a paying organization asks the human to confirm a charge in the terminal. That confirmation is the human's to give.
 - `billing status --json` is the safe form to pipe into CI/monitoring. Do NOT parse the human form.
-- If the user hits a plan-limit error on `channels connect`, the fix path is `billing upgrade`: surface that connection.
 - `TRIAL_ENDED` / `PLAN_ENDED` mean the organization is paused, not a transient error. Surface the billing URL and stop; do not retry through it.
 
 ## See also

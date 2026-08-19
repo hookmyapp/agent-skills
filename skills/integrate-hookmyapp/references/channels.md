@@ -39,7 +39,7 @@ hookmyapp channels connect instagram
 hookmyapp channels connect --workspace acme-corp
 ```
 
-**Exit codes:** `0` success · `1` popup blocked / closed before completion · `2` Meta returned an error (see CLI output) · `3` workspace has reached plan channel limit *(observed behavior; not enumerated in `--help`)*.
+**Exit codes:** `0` success · `1` popup blocked / closed before completion · `2` Meta returned an error (see CLI output).
 
 ## channels list
 
