@@ -128,7 +128,7 @@ Read that file when starting a fresh integration; the sections below are the per
 | notifications | List and acknowledge notifications from HookMyApp about integration problems (`notifications list [--all]`, `notifications ack <id>`). | [references/notifications.md](references/notifications.md) |
 | org profile | Read/update the organization's company profile (`org profile [show]`, `org profile set --website/--business-category/--business-niche/--primary-use-case/--email/--phone`). Org admins only; values come from the human. | [references/getting-started.md](references/getting-started.md) |
 | support | Open and converse on support tickets: `support {new,list,show,watch,reply}`. See "Reporting problems to HookMyApp" below for the conversation workflow. | [references/troubleshooting.md](references/troubleshooting.md) |
-| sandbox | Start a session `[whatsapp|instagram]`, write the env file, open a tunnel, send test messages, `webhook {show,set,clear}`, `logs`. | [references/sandbox.md](references/sandbox.md) |
+| sandbox | Start a session `[whatsapp|instagram]`, write the env file, open a tunnel, send test messages, `webhook {show,set,clear}`, `logs`. Without shell access, the same loop runs over MCP (`start_sandbox_session`, `list_sandbox_sessions`, `set_sandbox_destination`, `get_sandbox_logs`, `send_sandbox_message`). | [references/sandbox.md](references/sandbox.md) |
 | workspace | List, select, rename, and manage workspace members (tenancy scope). | [references/workspace.md](references/workspace.md) |
 
 ### MCP server (operate HookMyApp without the CLI)

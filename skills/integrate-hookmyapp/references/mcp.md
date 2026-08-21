@@ -98,7 +98,7 @@ Work top to bottom; each row assumes the ones above it passed.
 
 `hookmyapp doctor` summarizes CLI, login, and MCP status in one command — run it first when a user reports "the MCP isn't working".
 
-## Tools (38)
+## Tools (43)
 
 Read:
 
@@ -115,6 +115,8 @@ Read:
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
 | `get_org_usage` | Check organization usage for the current quota period (each org has its own monthly reset date; `resetsAt` in the response says when) |
 | `get_alert_phone_status` | Check the human's own alert phone (masked) |
+| `list_sandbox_sessions` | List sandbox testing sessions in a workspace (`workspaceId`, optional `includeInactive`). A sandbox session is a phone or Instagram account bound to the SHARED HookMyApp sandbox number — **not a channel**: it has an `ssn_` ID, no `ch_` ID, and never appears in `list_channels` or `status.channelCount` |
+| `get_sandbox_logs` | Delivery log for a sandbox session (`sessionId`, optional `since`/`until` ISO bounds, `limit`, `cursor`) — the sandbox counterpart of `list_deliveries`, which only covers channels. An inbound message with no destination set is recorded as `not_delivered` / "No sandbox destination" |
 | `list_onboarding_links` | List customer connect links (SaaS Mode) |
 | `list_support_tickets` | List your organization's 20 most recent support tickets (org-wide — whichever credential or surface opened them) |
 | `get_support_ticket` | Read a support-ticket conversation and check for replies; optional `wait` (1-25s) holds for a new reply, `afterCursor` = the previous response's `nextCursor` |
@@ -130,6 +132,9 @@ Write:
 | `create_customer` | Create a customer (SaaS Mode) |
 | `create_onboarding_link` | Mint a connect link a customer opens to connect their channel |
 | `revoke_onboarding_link` | Revoke an onboarding link by its `ol_` ID so its connect URL stops working (org admin only) |
+| `start_sandbox_session` | Get the caller's sandbox bind code plus a `wa.me` deep link (optional `workspaceId`; required when the org has several team workspaces). The human sends that code to the sandbox number **from the phone they want to bind** — you cannot do this step for them. Returns the same code until it is consumed. This is the no-Meta-app, no-WABA path: use it instead of `create_onboarding_link` whenever someone wants to test |
+| `set_sandbox_destination` | Point a sandbox session at a destination webhook URL (`sessionId`, `url`). Verified with a live handshake before it is stored. Without a destination, inbound sandbox messages go nowhere |
+| `send_sandbox_message` | Reply to the phone bound to a WhatsApp sandbox session (`sessionId`, `message`). WhatsApp only — Instagram sandbox replies are CLI-only. Subject to WhatsApp's 24h window (`SESSION_WINDOW_CLOSED`) and to the shared-number caps (10/min per session, `RATE_LIMIT_SESSION`) |
 | `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object) |
 | `update_org_profile` | Update the organization profile (name, support contact) |
 | `acknowledge_notification` | Mark a notification from `status` `notifications[]` as seen, after relaying it to the human. Idempotent. Per-user notifications (`ackScope: "user"`) clear only for your user — other members keep their own copy; org notifications (`ackScope: "org"`) clear for the whole organization and record who acked (`acknowledgedBy`). `personal: true` notifications are addressed to your human alone. |
@@ -150,11 +155,14 @@ Write:
 
 The five Instagram tools require an **Instagram Login** channel. A channel connected via Facebook Login returns an **unsupported-login-flow** error; the account must be connected through Instagram OAuth. Reads (`list_instagram_comments`, `get_instagram_insights`) run under the `channel.read` action; mutations (`publish_instagram_media`, `reply_instagram_comment`, `moderate_instagram_comment`) run under `channel.manage`. An Instagram-Login channel connected before these abilities were available returns a **reconnect-required** error — the human re-runs `hookmyapp channels connect instagram` for that account, then the tool works. Media constraints, publish quota, insight metric names, and the comment-webhook payload shapes are in [instagram.md](instagram.md).
 
+**Sandbox sessions are not channels.** Every channel-scoped tool (`list_channels`, `get_channel`, `list_deliveries`, `send_message`, `get_webhook_config`, `set_webhook_destination`) is keyed to a `ch_` ID and is blind to sandbox traffic. Before telling a human that nothing is connected, check **both**: `status` reports `sandboxSessionCount` alongside `channelCount`, and `list_channels` returns `sandboxSessionCount` next to its `channels[]`. An org can have zero channels and a live sandbox session — answering "no number connected" there is wrong. Full CLI equivalents in [sandbox.md](sandbox.md).
+
 ## Working order
 
 1. `status` — confirms identity, organization, and scopes before anything else, and surface any `notifications[]` to the human before proceeding (then `acknowledge_notification` each one). If a later call fails with a scope error, re-run `status` and report the missing scope to the human instead of retrying.
 2. `list_workspaces` before any per-workspace tool — channel tools need a `ws_` ID.
-3. SaaS Mode flow: list customers → create/choose a customer → `create_onboarding_link` for that customer → after the customer connects, `list_channels` with the **customer's** `ws_` ID → send / manage webhooks on the customer channel. Don't list your own workspace channels when you mean a customer's.
+3. Testing without a Meta app: `start_sandbox_session` → relay the code and link to the human → poll `list_sandbox_sessions` until the session is active → `set_sandbox_destination` → `get_sandbox_logs` / `send_sandbox_message`. Never route a "let me test WhatsApp" request to `create_onboarding_link`; that is the production Embedded Signup path and needs a number the human owns.
+4. SaaS Mode flow: list customers → create/choose a customer → `create_onboarding_link` for that customer → after the customer connects, `list_channels` with the **customer's** `ws_` ID → send / manage webhooks on the customer channel. Don't list your own workspace channels when you mean a customer's.
 
 ## Safety rules
 
@@ -162,6 +170,7 @@ The skill-wide safety rules apply unchanged over MCP:
 
 - **Confirm before mutating.** `set_webhook_destination`, `clear_webhook_destination`, `set_forwarding` (disabling = silent inbound message drop), `rotate_hmac` (old signatures stop verifying immediately), `set_org_destination`, `apply_org_destination_to_channels`, `delete_workspace` (disconnects every channel in the workspace — inbound traffic stops), and `revoke_onboarding_link` (the connect URL stops working immediately) all change live message routing or connectivity — get explicit human confirmation, including the exact channel, customer, workspace, organization, or `ol_` onboarding-link ID, before calling.
 - **`send_message` sends a real message** to a real person. Confirm recipient channel and content.
+- **`send_sandbox_message` also sends a real WhatsApp message** — to the human's own bound phone. Confirm content. `set_sandbox_destination` re-points live sandbox traffic, so confirm the URL.
 - **`publish_instagram_media` posts real, public content** to the account's feed, reels, or story. `reply_instagram_comment` posts a public reply (or DMs a real user); `moderate_instagram_comment` hides or deletes real comments, and `delete` is irreversible. Confirm channel, target ids, and content with the human before calling any of them.
 - **Never paste `hmok_` API keys** into chat, tickets, or logs. They are org-scoped credentials; the human creates and stores them.
 - **Verify token ≠ HMAC secret.** The verify token answers the webhook subscription handshake; the HMAC secret (rotated by `rotate_hmac`) signs delivered payloads (`X-HookMyApp-Signature-256`). Don't conflate them when reading `get_webhook_config` output back to the human.

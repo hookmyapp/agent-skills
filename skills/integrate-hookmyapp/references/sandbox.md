@@ -7,6 +7,24 @@ description: Manage a sandbox WhatsApp or Instagram session (dev/testing), pull 
 
 The sandbox is a test account HookMyApp provisions for dev and testing — no Meta dashboard, no embedded signup, no templates. A WhatsApp session is pinned to a single phone number (yours). Recipients are pinned to that session phone server-side; **`--to` does not exist** on `sandbox send` and any attempt to send to a different number is rejected. `sandbox start instagram` opens an Instagram session reached via an ig.me deep link; IG sandbox replies go to the DM thread rather than a pinned phone.
 
+## No terminal? Use MCP
+
+The whole loop exists on the MCP server, so an agent without shell access is not
+blocked. Same session, same shared number — only the surface differs:
+
+| CLI | MCP tool |
+| --- | --- |
+| `sandbox start` | `start_sandbox_session` (returns the bind code + `wa.me` deep link) |
+| `sandbox status` | `list_sandbox_sessions` |
+| `sandbox webhook set` | `set_sandbox_destination` |
+| `sandbox logs` | `get_sandbox_logs` |
+| `sandbox send` | `send_sandbox_message` (WhatsApp only) |
+| `sandbox env`, `sandbox listen`, `sandbox stop` | CLI only |
+
+The phone step is identical either way: the human sends the code from the device
+they want to bind. Tool details and the not-a-channel caveat are in
+[mcp.md](mcp.md).
+
 ## sandbox start
 
 Start a new sandbox session. Pass the channel type as a positional argument or use `--type`. When omitted the CLI prompts interactively (required in `--json` mode); there is no default type.
