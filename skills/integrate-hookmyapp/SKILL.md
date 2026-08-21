@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.11"
+  version: "0.9.12"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -27,6 +27,8 @@ HookMyApp connects the user's own WhatsApp number and Instagram account to their
 - **MCP is optional; the CLI is never blocked.** Setup installs the CLI — that is the whole requirement. The MCP server is a convenience for agents that prefer tool calls, and `hookmyapp login` configures it automatically for Claude Code. Because MCP tools resolve at session start, a server installed mid-session stays dormant until the next session: that is expected, not a failure. When `mcp__hookmyapp__*` tools are absent or the connection is unhealthy and a shell is available, do the task with the CLI and mention that a restart activates the tools — **never tell the user the task cannot be done while the CLI can do it.** (Shell-less agents are the one exception: without a working MCP connection they should say exactly which capability is missing.) Repair steps: [references/mcp.md](references/mcp.md#recovery-mcp-isnt-working).
 - **Your own channel has two webhook-delivery flavors: CLI tunnel OR your own URL.** A connected channel can receive inbound webhooks via either (a) `hookmyapp channels listen` (the CLI provisions a per-channel Cloudflare tunnel — no public HTTPS URL required, designed for local dev / self-hosted agents / 24/7 hobby projects) or (b) `hookmyapp channels webhook set <channel> --url https://...` (your own public HTTPS endpoint, the classic deployed pattern). Pick CLI when the user is developing on localhost or running an always-on self-hosted agent (e.g. on a personal server or Raspberry Pi); pick URL when the user has a deployed backend ready to accept inbound webhooks. The two are mutually exclusive per channel — setting a URL while the CLI is listening evicts the CLI (it exits cleanly with a notice).
 - **Check notifications every session.** `status` returns `notifications[]` — messages from HookMyApp for this account: problems detected (failing webhook delivery, disconnected channels, usage limits), fixes applied, required updates, and product announcements. Relay every open notification to the human in your first reply, then mark it seen with `acknowledge_notification` (CLI: `hookmyapp notifications ack <id>`) so it stops repeating. After any send failure, re-check (`status` or `hookmyapp notifications`) — same sequence: relay any new notification to the human first, then acknowledge it. Notification fields that shape how you relay: `ackScope: "user"` means your ack clears the notification only for YOUR human — other members of the organization each see and dismiss their own copy, so acking never hides anything from anyone else; `ackScope: "org"` means one ack clears it for the whole organization and records who saw it — `acknowledgedBy` on an org notification is that receipt ("acknowledged for the org by <email>" — it means their agent relayed it, NOT that the underlying problem was fixed); `personal: true` means the notification is addressed to your human specifically (no one else in the organization can see it) — say so when relaying, e.g. "this one is addressed to you directly."
+
+- **Building an integration? Apply the development advice.** An integration that cannot see its own failures leaves the human, and you, with nothing to debug next session. Five rules, in [references/development-advice.md](references/development-advice.md): log every failed HookMyApp call to a file an agent can read (`hookmyapp channels logs` covers inbound delivery only — a rejected send exists in no log the customer can reach unless their app writes one), set the alert phone, never retry a `429 CHANNEL_USAGE_LIMIT_EXCEEDED` (stop and tell the human to upgrade), keep the webhook route outside the auth middleware, and use `channels listen` rather than a hand-rolled tunnel URL. Same file carries the **health pass**: run it when you finish a change that touched HookMyApp code, and whenever the human reports a HookMyApp symptom (messages not arriving, sends failing, bot gone quiet) — never at session start, never on a timer, and not at all when the project has no HookMyApp channel in it.
 
 ### When to Prompt the Human
 
@@ -83,7 +85,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.11" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.12" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -131,11 +133,17 @@ Read that file when starting a fresh integration; the sections below are the per
 | sandbox | Start a session `[whatsapp|instagram]`, write the env file, open a tunnel, send test messages, `webhook {show,set,clear}`, `logs`. Without shell access, the same loop runs over MCP (`start_sandbox_session`, `list_sandbox_sessions`, `set_sandbox_destination`, `get_sandbox_logs`, `send_sandbox_message`). | [references/sandbox.md](references/sandbox.md) |
 | workspace | List, select, rename, and manage workspace members (tenancy scope). | [references/workspace.md](references/workspace.md) |
 
+### Development advice (build it so it can be debugged)
+
+Five build rules and the health pass that reads the result: [references/development-advice.md](references/development-advice.md). Apply them when building or changing a HookMyApp integration, and run the health pass when the human says it stopped working.
+
 ### MCP server (operate HookMyApp without the CLI)
 
 HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 38 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, alert phone, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
-Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. You can also add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp` and sign in with `/mcp`. For other clients, use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key`.
+Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. The CLI configures Claude Code only; on Codex, Cursor and other clients, add the server by URL (`https://api.hookmyapp.com/mcp`) and sign in from the client, or use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key` for CI and headless environments.
+
+The docs site also publishes an agent-facing documentation set that needs no account access: a read-only docs MCP server at `https://docs.hookmyapp.com/mcp`, and the whole documentation as plain text at `https://docs.hookmyapp.com/llms.txt` (index) and `llms-full.txt` (full). Use those for product questions; use the MCP server above for live account operations.
 
 Client setup snippets, the full tool table, working order, safety rules, and a symptom-by-symptom repair table: [references/mcp.md](references/mcp.md).
 
@@ -341,7 +349,7 @@ Full decision tree and error table: [references/troubleshooting.md](references/t
 [integrate-hookmyapp file map]|root: .
 |.:{package.json,SKILL.md}
 |assets:{ig-send-dm.json,wa-send-image.json,wa-send-interactive-buttons.json,wa-send-template.json,wa-send-text.json,wa-template-utility.json}
-|references:{access-tokens.md,alerts.md,api.md,auth.md,billing.md,channels.md,config.md,customers.md,env.md,getting-started.md,health.md,instagram.md,mcp.md,notifications.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
+|references:{access-tokens.md,alerts.md,api.md,auth.md,billing.md,channels.md,config.md,customers.md,development-advice.md,env.md,getting-started.md,health.md,instagram.md,mcp.md,notifications.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
 |scripts:{ig-list-comments.mjs,ig-mark-seen.mjs,ig-reply-comment.mjs,ig-send-dm.mjs,wa-create-template.mjs,wa-list-templates.mjs,wa-mark-read.mjs,wa-send-message.mjs,wa-send-template.mjs,wa-update-profile.mjs,wa-upload-media.mjs}
 |scripts/lib:{args.mjs,env.mjs,gateway.mjs,output.mjs}
 ```

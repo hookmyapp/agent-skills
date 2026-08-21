@@ -12,6 +12,9 @@ Step 0: A send or webhook stopped working?
   → Run `hookmyapp notifications` (or `status` via MCP) FIRST — HookMyApp may
     have already diagnosed it and posted a notification saying what to do.
     Relay any notification to the human first, then acknowledge it.
+  → Then run the health pass in references/development-advice.md: it maps each
+    delivery-log status (502/504, 401/403, 404, none at all) to its cause, and
+    covers the outbound side that delivery logs do not record.
 
 Start:  Can you run `hookmyapp channels list` and see at least one WABA?
   ├─ No  → Auth problem → run `hookmyapp login`, then `hookmyapp workspace use <id>`
