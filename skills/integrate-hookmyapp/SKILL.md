@@ -141,7 +141,9 @@ Five build rules and the health pass that reads the result: [references/developm
 
 HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 38 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, alert phone, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
-Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. You can also add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp` and sign in with `/mcp`. For other clients, use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key`.
+Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. The CLI configures Claude Code only; on Codex, Cursor and other clients, add the server by URL (`https://api.hookmyapp.com/mcp`) and sign in from the client, or use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key` for CI and headless environments.
+
+The docs site also publishes an agent-facing documentation set that needs no account access: a read-only docs MCP server at `https://docs.hookmyapp.com/mcp`, and the whole documentation as plain text at `https://docs.hookmyapp.com/llms.txt` (index) and `llms-full.txt` (full). Use those for product questions; use the MCP server above for live account operations.
 
 Client setup snippets, the full tool table, working order, safety rules, and a symptom-by-symptom repair table: [references/mcp.md](references/mcp.md).
 

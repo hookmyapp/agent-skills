@@ -8,17 +8,11 @@ description: How to build a HookMyApp integration that can see its own failures,
 Apply this when you are building or changing a HookMyApp integration. It is not general
 advice: skip it entirely when the project has no HookMyApp channel in it.
 
-## Why this exists
-
-`hookmyapp channels logs` records webhook **delivery** history: what HookMyApp forwarded
-to the customer's webhook URL, and what their endpoint answered. It does not record their
-**outbound** calls. A rejected send, a rate limit, a Meta rejection: those live in gateway
-logs the customer cannot read.
-
-So if the app does not record a failed send, no record of it exists anywhere the customer
-or their agent can reach. That is the gap this page closes.
-
 ## 1. Log every failed HookMyApp call, to a file the agent can read
+
+`hookmyapp channels logs` records what HookMyApp forwarded to the app's webhook URL and
+what the endpoint answered. It does not record the calls the app makes to HookMyApp, so
+the app has to record those itself, or a failed send leaves no trace to debug from.
 
 **Already using pino, winston, or Sentry?** Use it. Make sure four fields land in the
 record: HTTP `status`, the HookMyApp error `code`, the `x-request-id` response header, and
@@ -60,16 +54,15 @@ if (!res.ok) {
 }
 ```
 
-The file is the point. `console.log` alone is not wrong, and hosts like Railway and Render
-capture stdout fine, but an agent working in the project's terminal tomorrow cannot read a
-hosting provider's log stream. It can read `logs/hookmyapp.jsonl`.
+Write to a file, not only to stdout. An agent working in the project can read a file in the
+repo; it cannot read the hosting provider's log stream.
 
 Two notes worth passing to the human:
 
 - The gateway sets `x-request-id` on every response and honors one the caller sends. A
   support ticket that names a request id gets answered in one hop instead of five.
-- The file grows without bound. That is fine for a small app. Rotate it or cap it when the
-  volume stops being small.
+- The file keeps growing. Nothing depends on old entries, so it can be deleted whenever it
+  gets large. Add it to `.gitignore`.
 
 ## 2. Set the alert phone
 
@@ -84,23 +77,24 @@ A `429` with code `CHANNEL_USAGE_LIMIT_EXCEEDED` means the organization is over 
 allowance. Retrying cannot fix it. Waiting cannot fix it inside the current period. Only an
 upgrade or a top-up lifts the pause.
 
-The correct handling: log it, stop that work, and tell the human to upgrade.
+Every rejected call already says so. The gateway envelope is
+`{ statusCode, code, error, message, requestId }`, and on this rejection `message` reads
+"This channel is over its usage limit. Upgrade your plan or add a top-up to resume." Note the shape: `code` is the uppercase machine code at the TOP level, and `error`
+is its lowercase string twin, NOT an object. Branch on `code`.
+
+The correct handling: log it, stop that work, and pass `message` through to the human.
 
 ```js
 if (res.status === 429) {
-  const { error } = JSON.parse(body);
-  if (error?.code === 'CHANNEL_USAGE_LIMIT_EXCEEDED') {
+  const err = JSON.parse(body);
+  if (err.code === 'CHANNEL_USAGE_LIMIT_EXCEEDED') {
     // Do not retry. Do not schedule a retry. Surface it.
-    logHookMyApp({ dir: 'out', status: 429, code: error.code, path });
-    await notifyOwner('WhatsApp sending is paused: the HookMyApp plan limit was reached.');
+    logHookMyApp({ dir: 'out', status: 429, code: err.code, requestId: err.requestId, path });
+    await notifyOwner(err.message);
     return;
   }
 }
 ```
-
-An unbounded retry loop against a limit rejection is the single most common failure shape
-seen in production, running to thousands of blocked calls a day while the owner has no idea
-anything is wrong.
 
 Note what else breaks: once the channel is over its limit the access token is refused for
 **every** call, including read-only GETs. The app looks entirely dead rather than "sending
@@ -131,10 +125,9 @@ An always-on self-hosted deployment is a legitimate production pattern: a person
 Raspberry Pi, a long-running agent. `hookmyapp channels listen` is built for it. The tunnel
 is per-channel, access-controlled, and keeps a stable hostname.
 
-What fails is a hand-rolled tunnel saved as the permanent webhook destination. A
-`trycloudflare` quick tunnel or a free ngrok URL gets a **new random hostname on every
-restart**, so the URL stored by `webhook set` is dead the moment the tunnel restarts, and
-nothing announces it. Integrations have sat broken for weeks this way.
+A hand-rolled tunnel is not. Free tunnel services hand out a new random hostname on every
+restart, so the URL stored by `webhook set` stops working the moment the tunnel restarts,
+with nothing to announce it.
 
 So: `channels listen` for a self-hosted or local destination, a real HTTPS URL for a deployed
 backend, and never a hand-rolled tunnel URL in `webhook set`.
