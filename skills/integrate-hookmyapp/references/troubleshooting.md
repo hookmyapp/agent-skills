@@ -35,7 +35,7 @@ Start:  Can you run `hookmyapp channels list` and see at least one WABA?
   ├─ Run `hookmyapp sandbox listen --verbose` to stream full request/response bodies in the CLI terminal — this is the first-line diagnostic before touching server logs.
   ├─ Check your server logs for inbound POST /webhook requests — if the CLI terminal shows bodies but your server shows nothing, the issue is your server/DNS/TLS, not HookMyApp.
   ├─ Check Meta App Dashboard → Webhooks → "Recent Deliveries" for 4xx/5xx responses.
-  ├─ Check that `hookmyapp channels show <channel>` reports `forwarding: enabled` — `channels disable` would silently drop all inbound messages.
+  ├─ Check that `hookmyapp channels show <channel>` reports `forwarding: enabled` — `channels disable` would silently drop all inbound events.
   └─ Verify your `X-HookMyApp-Signature-256` HMAC check is keyed on `WEBHOOK_HMAC_SECRET` (same key name in both `channels env` and `sandbox env`) — a wrong key or mismatched bytes silently drops messages on the receiver side. Hash exactly the bytes you received (`JSON.stringify(req.body)` with `express.json()`, or the raw string with `express.raw()`). See SKILL.md "Signature verification".
 ```
 
