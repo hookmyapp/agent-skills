@@ -5,7 +5,7 @@ description: "Zero-to-first-message walkthroughs — the sandbox quickstart and 
 
 # Getting Started
 
-HookMyApp connects the user's own WhatsApp number and Instagram account to their code: inbound messages are forwarded to their code, and replies go out over Meta's official API. Pick one of two paths before generating code:
+HookMyApp connects the user's own WhatsApp number and Instagram account to their code: inbound events are forwarded to their code, and replies go out over Meta's official API. Pick one of two paths before generating code:
 
 - **Sandbox** — a HookMyApp-hosted test account. Zero Meta paperwork; build and debug on localhost. Recipient is pinned to the session phone; no templates.
 - **Your own channel** — your real WhatsApp number or Instagram account. WhatsApp uses Meta Embedded Signup; Instagram uses direct Instagram OAuth. Authorize once per channel.
