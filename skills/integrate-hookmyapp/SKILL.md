@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.12"
+  version: "0.9.13"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -85,7 +85,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.12" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.13" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -141,7 +141,7 @@ Five build rules and the health pass that reads the result: [references/developm
 
 HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 38 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, alert phone, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
-Setup, for Claude Code, is already done: `hookmyapp login` runs `hookmyapp mcp install --agent claude`, which wires a credential helper that injects a fresh token on every request. The CLI configures Claude Code only; on Codex, Cursor and other clients, add the server by URL (`https://api.hookmyapp.com/mcp`) and sign in from the client, or use an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key` for CI and headless environments.
+Set it up with `hookmyapp agent setup`, which configures every coding agent installed on the machine: Claude Code, Codex and Cursor. `hookmyapp login` does the same for whatever it finds. Claude Code needs nothing further; Codex signs in with `codex mcp login hookmyapp` and Cursor from its MCP settings. Any other client takes the server URL (`https://api.hookmyapp.com/mcp`) and its own sign-in, or an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key` for CI and headless environments. Every client resolves MCP tools at session start, so a server configured mid-session stays dormant until the next one.
 
 The docs site also publishes an agent-facing documentation set that needs no account access: a read-only docs MCP server at `https://docs.hookmyapp.com/mcp`, and the whole documentation as plain text at `https://docs.hookmyapp.com/llms.txt` (index) and `llms-full.txt` (full). Use those for product questions; use the MCP server above for live account operations.
 

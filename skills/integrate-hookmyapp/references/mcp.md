@@ -24,16 +24,22 @@ Setting up HookMyApp does **not** require MCP. The CLI covers everything MCP doe
 
 Two working options; pick what the MCP client supports.
 
-**1. CLI header injection — Claude Code, zero-touch.** Nothing to sign in to. `hookmyapp login` already configures it: the CLI writes an MCP entry whose `headersHelper` runs `hookmyapp mcp-headers`, and Claude Code calls that helper on every request to get a fresh `Bearer hmok_…` from the CLI's stored credential.
+**1. CLI setup — every agent on the machine.** `hookmyapp agent setup` configures Claude Code, Codex and Cursor in one go, and `hookmyapp login` does the same for whatever it finds.
 
 ```bash
-hookmyapp mcp install --agent claude   # re-run to repair; needs CLI >= 0.14.2
-hookmyapp doctor                       # reports MCP connection status
+hookmyapp agent setup   # re-run to repair; needs CLI >= 0.14.19
+hookmyapp doctor        # reports MCP connection status
+```
+
+Claude Code needs no sign-in: the entry carries a `headersHelper` that runs `hookmyapp mcp-headers`, and Claude Code calls it on every request for a fresh token from the CLI's stored credential. Codex and Cursor sign in once through the browser instead:
+
+```bash
+codex mcp login hookmyapp   # Cursor signs in from its MCP settings
 ```
 
 Requires the `hookmyapp` binary to be resolvable from the PATH that Claude Code hands the helper process. A normal global install (`npm install -g @gethookmyapp/cli`) satisfies this; an unusual npm prefix may not — see [Recovery](#recovery-mcp-isnt-working).
 
-**Newly added MCP servers do not activate mid-session.** Claude Code resolves MCP tools at session start, so a server installed during a session stays dormant until the next one. That is expected, not a failure.
+**Newly added MCP servers do not activate mid-session.** Every client resolves MCP tools at session start, so a server configured during a session stays dormant until the next one. That is expected, not a failure. It also means a tool call cannot verify a setup you just ran: the tools you can see still point at the previous configuration, so the call answers from the old server and proves nothing. Check `codex mcp get hookmyapp` or `claude mcp get hookmyapp` instead, and tell the user to restart.
 
 **2. API key — any client.** An org admin creates an API key in the HookMyApp app (Organization → API). Keys are prefixed `hmok_` and are passed either way:
 
@@ -47,7 +53,7 @@ X-API-Key: hmok_...
 
 Send exactly one of the two headers, not both. Use `X-API-Key` only when the client can't set an `Authorization` header.
 
-**Browser sign-in (OAuth) works.** Add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp`, then run `/mcp`, pick `hookmyapp`, and approve in the browser. For Codex CLI, use the API-key path below instead.
+**Browser sign-in (OAuth) works.** Add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp`, then run `/mcp`, pick `hookmyapp`, and approve in the browser. Codex does the same with `codex mcp login hookmyapp`.
 
 ### Client setup
 
@@ -55,13 +61,15 @@ Send exactly one of the two headers, not both. Use `X-API-Key` only when the cli
 export HOOKMYAPP_API_KEY="hmok_..."
 ```
 
-Claude Code — when the CLI is installed, let it do the wiring instead of hand-rolling `claude mcp add`:
+When the CLI is installed, let it do the wiring for all three instead of hand-rolling per-client config:
 
 ```bash
-hookmyapp mcp install --agent claude
+hookmyapp agent setup
 ```
 
-`hookmyapp login` already runs this for you, wiring a credential helper that injects a fresh token on every request. Hand-rolling `claude mcp add` is right only for the browser sign-in path above (no CLI on the machine): an entry added by hand has **no** credential helper, so it authenticates only through `/mcp` → pick `hookmyapp` → approve in the browser, never automatically.
+Hand-rolling is right only when there is no CLI on the machine. An entry added by hand has **no** credential helper, so Claude Code authenticates only through `/mcp` → pick `hookmyapp` → approve in the browser, never automatically.
+
+The blocks below are the API-key path, for CI and headless environments where no browser sign-in is possible.
 
 Codex CLI:
 
@@ -90,7 +98,8 @@ Work top to bottom; each row assumes the ones above it passed.
 |---------|---------------|-----|
 | `mcp__hookmyapp__*` tools absent, but `claude mcp list` says ✔ Connected | The server was installed during this session; tools resolve at session start only | Nothing is broken. If you have shell access, do the task with the CLI now and tell the user a restart activates the tools — **never report the task as blocked when the CLI is available.** |
 | `claude mcp list` shows `✘ Failed to connect` or `! Needs authentication` | The credential helper produced no token | Run `hookmyapp mcp-headers >/dev/null && echo helper-ok` — **never print its output; it contains a live org credential** that would land in transcripts and logs. If it errors instead of `helper-ok`, see the two rows below. |
-| The helper check errors with `unknown command 'mcp-headers'` | CLI older than 0.14.2 is first on PATH | `npm install -g @gethookmyapp/cli@latest`, confirm with `hookmyapp --version`, then `hookmyapp mcp install --agent claude` |
+| `hookmyapp agent setup` errors with `unknown command 'agent'` | CLI older than 0.14.19 is first on PATH | `npm install -g @gethookmyapp/cli@latest`, confirm with `hookmyapp --version`, then re-run |
+| The helper check errors with `unknown command 'mcp-headers'` | CLI older than 0.14.2 is first on PATH | `npm install -g @gethookmyapp/cli@latest`, confirm with `hookmyapp --version`, then `hookmyapp agent setup` |
 | The helper check errors with a not-logged-in message | No stored credential | `hookmyapp login`, which also reinstalls the MCP entry |
 | Helper works in your shell, client still won't authenticate | `hookmyapp` is not on the PATH the client gives the helper process (unusual npm prefix such as `~/.local/node/bin`) | Re-point the entry at an absolute path: `command -v hookmyapp` to find it, then `claude mcp add-json --scope user hookmyapp '{"type":"http","url":"https://api.hookmyapp.com/mcp","headersHelper":"/absolute/path/to/hookmyapp mcp-headers"}'` |
 | Browser sign-in returns `error=invalid_scope` | The browser flow normally works, so this is a client-side scope mismatch (often a stale server entry from an older setup) | Remove and re-add the entry (`claude mcp remove hookmyapp`, then the `claude mcp add` line above) and sign in again via `/mcp`. If it recurs, fall back to CLI header injection or an API key and report it to HookMyApp support |
