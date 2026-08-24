@@ -14,7 +14,7 @@ advice: skip it entirely when the project has no HookMyApp channel in it.
 what the endpoint answered. It does not record the calls the app makes to HookMyApp, so
 the app has to record those itself, or a failed send leaves no trace to debug from.
 
-**Already using pino, winston, or Sentry?** Use it. Make sure four fields land in the
+**Already logging somewhere?** Use what is there. Make sure four fields land in the
 record: HTTP `status`, the HookMyApp error `code`, the `x-request-id` response header, and
 which direction the call went.
 
