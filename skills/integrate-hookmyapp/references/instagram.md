@@ -124,11 +124,11 @@ curl "$INSTAGRAM_GRAPH_API_URL/<ig-media-id>/insights?metric=views,reach,saved,s
 Media ids for insights/comments/shares come from the account's media list. Real connected channels only — the sandbox covers DMs, not media:
 
 ```bash
-hookmyapp instagram media --channel @acme                      # posts, newest first
-hookmyapp instagram media --channel @acme --source stories     # live 24h only
-hookmyapp instagram media --channel @acme --source tagged      # posts tagging the account
+hookmyapp instagram media --channel @acme                        # posts, newest first
 hookmyapp instagram media --channel @acme --media <ig-media-id>  # one post + carousel children
-hookmyapp instagram profile --channel @acme --quota            # profile + publishing quota used
+hookmyapp instagram profile --channel @acme --quota              # profile + publishing quota used
+# /stories and /tags are NOT reachable on Instagram Login — they need a Facebook
+# User token + pages_read_engagement. Meta: this setup "cannot access ads or tagging".
 ```
 
 ### Mentions
