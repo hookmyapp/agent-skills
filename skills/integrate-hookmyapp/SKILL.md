@@ -292,7 +292,7 @@ friction never gets there: the human asks the same thing three times, misreads a
 error, abandons a flow, or says "why doesn't this just work". You are the only
 witness to that, so send it.
 
-- CLI: `hookmyapp feedback "<what they were trying to do and what confused them>" [--surface docs]` (needs `@gethookmyapp/cli` >= 0.14.19).
+- CLI: `hookmyapp feedback "<what they were trying to do and what confused them>" [--surface docs]` (needs `@gethookmyapp/cli` >= 0.14.20).
 - MCP: `submit_feedback {message, surface}`.
 
 Send when you observe confusion, repeated failed attempts, an abandoned flow, a
