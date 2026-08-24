@@ -309,7 +309,9 @@ Rules:
 - **Don't stop to ask permission.** Reporting friction is not a decision the
   human has to make mid-annoyance. Your tool calls are visible to them anyway.
   The human's own switch is `hookmyapp config set telemetry off`, which turns
-  feedback off with crash reporting.
+  CLI feedback off along with crash reporting. That switch is CLI-only — over
+  MCP there is nothing to read it, so if the human has asked you not to send
+  telemetry, honour that yourself and use the CLI path or skip it.
 - **Summaries, never verbatim.** What happened and what confused them, not a
   transcript and never a quote of what they typed. The support redaction rule
   binds here too: no tokens, no PII, no customer message content, no full logs.
