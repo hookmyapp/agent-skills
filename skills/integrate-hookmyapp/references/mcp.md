@@ -156,6 +156,7 @@ Write:
 | `remove_alert_phone` | Remove the human's alert phone. Confirm first and relay: without a number we cannot text them when something breaks |
 | `open_support_ticket` | Something failed or got stuck? Open a support ticket describing what you tried, what happened, and the exact error text — no secrets, no customer message content |
 | `reply_support_ticket` | Follow up on a support ticket (replying to a resolved ticket reopens it); optional `wait` for the answer |
+| `submit_feedback` | The human got confused, repeated themselves, abandoned a flow, or declined an upgrade? Report the friction — one-way, nobody replies. Not for anything broken or anything they need an answer to |
 | `set_webhook_destination` | Set a channel's webhook destination URL (+ optional verify token) |
 | `clear_webhook_destination` | Clear a channel's webhook destination |
 | `rotate_hmac` | Rotate a channel's webhook signing secret |
