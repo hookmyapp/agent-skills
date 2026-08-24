@@ -128,8 +128,9 @@ hookmyapp instagram media --channel @acme                        # posts, newest
 hookmyapp instagram media --channel @acme --source tagged        # posts that tagged/@mentioned you
 hookmyapp instagram media --channel @acme --media <ig-media-id>  # one post + carousel children
 hookmyapp instagram profile --channel @acme --quota              # profile + publishing quota used
-# /stories is NOT reachable on Instagram Login (needs a Facebook User token +
-# pages_read_engagement). /tags IS — the IG-Login Mentions guide documents it.
+# A story's media id comes from its publish response (media_publish returns it);
+# there is no listing call for stories. /tags IS listable — the IG-Login
+# Mentions guide documents it.
 ```
 
 ### Mentions
