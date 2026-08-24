@@ -28,7 +28,7 @@ Global flags: `--workspace`, `--json`.
 
 **Browser step required:** No
 
-> **Safety:** Before `channels webhook set`, confirm the URL and channel ref with the human. Pointing your channel's webhooks at a dev URL silently drops inbound messages.
+> **Safety:** Before `channels webhook set`, confirm the URL and channel ref with the human. Pointing your channel's webhooks at a dev URL silently drops inbound events.
 
 **Examples:**
 

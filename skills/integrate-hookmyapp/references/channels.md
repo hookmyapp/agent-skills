@@ -123,13 +123,13 @@ hookmyapp channels enable ch_AAAAAAAA
 
 ## channels disable
 
-Disable inbound webhook forwarding for a channel. Outbound sends still work; inbound messages are **silently dropped** until re-enabled.
+Disable inbound webhook forwarding for a channel. Outbound sends still work; inbound events are **silently dropped** until re-enabled.
 
 **Flags:** only `-h/--help` per `--help`. No `--yes` flag.
 
 **Arguments:** `<channel>`
 
-> **Safety:** `channels disable` produces no customer-facing error on inbound messages — they are silently dropped. See SKILL.md "Safety Rules" for why this needs explicit human confirmation before running, and use `channels show <channel>` (or `hookmyapp channels health <channel>`) to verify state before and after.
+> **Safety:** `channels disable` produces no customer-facing error on inbound events — they are silently dropped. See SKILL.md "Safety Rules" for why this needs explicit human confirmation before running, and use `channels show <channel>` (or `hookmyapp channels health <channel>`) to verify state before and after.
 
 **Examples:**
 
