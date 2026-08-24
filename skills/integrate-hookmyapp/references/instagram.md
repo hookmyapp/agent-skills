@@ -125,23 +125,24 @@ Media ids for insights/comments/shares come from the account's media list. Real 
 
 ```bash
 hookmyapp instagram media --channel @acme                        # posts, newest first
+hookmyapp instagram media --channel @acme --source tagged        # posts that tagged/@mentioned you
 hookmyapp instagram media --channel @acme --media <ig-media-id>  # one post + carousel children
 hookmyapp instagram profile --channel @acme --quota              # profile + publishing quota used
-# /stories and /tags are NOT reachable on Instagram Login — they need a Facebook
-# User token + pages_read_engagement. Meta: this setup "cannot access ads or tagging".
+# /stories is NOT reachable on Instagram Login (needs a Facebook User token +
+# pages_read_engagement). /tags IS — the IG-Login Mentions guide documents it.
 ```
 
 ### Mentions
 
-**There is no endpoint that lists past mentions.** `/{ig}/mentions` is POST-only (it creates the reply).
-A mention arrives on the `mentions` webhook carrying the comment id or media id; that id is read back as a
-field expansion on the IG-User node. Subscribe to the field before you need it.
+**There is no mention-listing endpoint.** Meta's IG-Login Mentions guide documents exactly two calls on
+graph.instagram.com: `GET /<IG_ID>/tags` for what you were tagged/@mentioned in, and
+`POST /<IG_ID>/mentions` to reply. `mentioned_comment` / `mentioned_media` are Facebook-Login only.
 
 ```bash
-hookmyapp instagram mentions --channel @acme --media <ig-media-id>      # caption mention
-hookmyapp instagram mentions --channel @acme --comment <ig-comment-id>  # comment mention
-hookmyapp instagram mentions --channel @acme --media <id> --reply "thanks!"
-# Replying always needs --media, even for a comment mention. Story mentions cannot be replied to.
+hookmyapp instagram media --channel @acme --source tagged                     # what tagged you
+hookmyapp instagram mentions --channel @acme --media <id> --reply "thanks!"   # reply
+hookmyapp instagram mentions --channel @acme --media <id> --comment <cid> --reply "thanks!"
+# --media is always required. Story mentions cannot be replied to.
 ```
 
 ### Read the inbox
