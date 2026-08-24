@@ -121,13 +121,30 @@ curl "$INSTAGRAM_GRAPH_API_URL/<ig-media-id>/insights?metric=views,reach,saved,s
 
 ### List your posts, stories, and profile
 
-Media ids for insights/comments/shares come from the account's media list (raw HTTP; no CLI command). Real connected channels only — the sandbox covers DMs, not media:
+Media ids for insights/comments/shares come from the account's media list. Real connected channels only — the sandbox covers DMs, not media:
 
 ```bash
-curl "$INSTAGRAM_GRAPH_API_URL/$INSTAGRAM_ACCOUNT_ID/media?fields=id,caption,media_type,permalink,timestamp,like_count,comments_count" \
-  -H "Authorization: Bearer $INSTAGRAM_ACCESS_TOKEN"
-# Also: /stories (live 24h), /tags (posts tagging the account),
-# and profile fields: ?fields=username,biography,website,profile_picture_url,followers_count,media_count
+hookmyapp instagram media --channel @acme                      # posts, newest first
+hookmyapp instagram media --channel @acme --source stories     # live 24h only
+hookmyapp instagram media --channel @acme --source tagged      # posts tagging the account
+hookmyapp instagram media --channel @acme --media <ig-media-id>  # one post + carousel children
+hookmyapp instagram profile --channel @acme --quota            # profile + publishing quota used
+```
+
+### Mentions
+
+```bash
+hookmyapp instagram mentions --channel @acme                   # who @mentioned the account
+hookmyapp instagram mentions --channel @acme --media <ig-media-id>
+# A mention id behaves like a comment id — reply with `comments reply` / `comments private-reply`.
+```
+
+### Read the inbox
+
+```bash
+hookmyapp instagram threads --channel @acme                        # threads, newest activity first
+hookmyapp instagram threads --channel @acme --thread <thread-id>   # messages in one thread
+hookmyapp instagram threads --channel @acme --participant <igsid>  # who you're talking to
 ```
 
 ### Messaging extras (raw HTTP, same /messages endpoint)
@@ -137,9 +154,9 @@ curl "$INSTAGRAM_GRAPH_API_URL/$INSTAGRAM_ACCOUNT_ID/media?fields=id,caption,med
 - **Heart sticker**: attachment `type: "like_heart"`.
 - **Share your own post**: attachment `type: "MEDIA_SHARE"`, `payload.id` = media id.
 - **React / unreact**: `sender_action: "react"` + `payload: { message_id, reaction: "<emoji>" }`; `"unreact"` with message_id only removes it.
-- **Sender profile**: `GET /<IGSID>?fields=name,username,profile_pic,follower_count,is_user_follow_business` (consent: after the person messages you or taps an ice breaker or menu item).
-- **Thread history**: `GET /me/conversations?platform=instagram&fields=participants,messages{id,created_time,from,message}`.
-- **Ice breakers / persistent menu**: `POST /$INSTAGRAM_ACCOUNT_ID/messenger_profile` with `platform: "instagram"` and `ice_breakers` or `persistent_menu`; taps arrive as `messaging_postbacks` webhooks.
+- **Sender profile**: `hookmyapp instagram threads --participant <igsid>`, or raw `GET /<IGSID>?fields=name,username,profile_pic,follower_count,is_user_follow_business` for the follow-relationship fields (consent: after the person messages you or taps an ice breaker or menu item).
+- **Thread history**: `hookmyapp instagram threads` (add `--thread <id>` for one thread), or raw `GET /me/conversations?platform=instagram&fields=participants,messages{id,created_time,from,message}`.
+- **Ice breakers / persistent menu**: the `set_instagram_thread_setup` MCP tool, or raw `POST /$INSTAGRAM_ACCOUNT_ID/messenger_profile` with `platform: "instagram"` and `ice_breakers` or `persistent_menu`; taps arrive as `messaging_postbacks` webhooks.
 
 ### Moderate comments
 
