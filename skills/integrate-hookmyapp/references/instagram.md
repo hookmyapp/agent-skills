@@ -133,10 +133,15 @@ hookmyapp instagram profile --channel @acme --quota            # profile + publi
 
 ### Mentions
 
+**There is no endpoint that lists past mentions.** `/{ig}/mentions` is POST-only (it creates the reply).
+A mention arrives on the `mentions` webhook carrying the comment id or media id; that id is read back as a
+field expansion on the IG-User node. Subscribe to the field before you need it.
+
 ```bash
-hookmyapp instagram mentions --channel @acme                   # who @mentioned the account
-hookmyapp instagram mentions --channel @acme --media <ig-media-id>
-# A mention id behaves like a comment id — reply with `comments reply` / `comments private-reply`.
+hookmyapp instagram mentions --channel @acme --media <ig-media-id>      # caption mention
+hookmyapp instagram mentions --channel @acme --comment <ig-comment-id>  # comment mention
+hookmyapp instagram mentions --channel @acme --media <id> --reply "thanks!"
+# Replying always needs --media, even for a comment mention. Story mentions cannot be replied to.
 ```
 
 ### Read the inbox
