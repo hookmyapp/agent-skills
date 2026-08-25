@@ -82,4 +82,4 @@ hookmyapp channels env ch_AAAAAAAA --json
 
 > **Direct Meta access still works.** Existing integrations that read a raw Meta token and call `https://graph.facebook.com` are unaffected. The gateway `.env` above is the recommended shape for new setups.
 
-**Exit codes:** `0` success · `1` channel not found · `2` no token to export (re-run `channels connect`, which mints one).
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).

@@ -28,7 +28,7 @@ hookmyapp workspace list
 hookmyapp workspace list --json | jq '.[] | select(.active)'
 ```
 
-**Exit codes:** `0` success · `1` not authenticated (run `hookmyapp login`).
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## workspace use
 
@@ -52,7 +52,7 @@ hookmyapp workspace use                       # interactive picker
 >
 > **Disambiguation:** When a name is passed as a positional it must be an exact match or the CLI errors. If the user has multiple workspaces with similar names, prefer slug or `ws_XXXXXXXX` to avoid ambiguity.
 
-**Exit codes:** `0` success · `1` not a member of that workspace · `2` workspace does not exist.
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## workspace new
 
@@ -71,7 +71,7 @@ hookmyapp workspace new "Acme Inc"
 hookmyapp workspace new "Personal"
 ```
 
-**Exit codes:** `0` success · `1` name already exists for this user · `2` billing / plan restriction.
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## workspace current
 

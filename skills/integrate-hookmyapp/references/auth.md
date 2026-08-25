@@ -84,7 +84,7 @@ hookmyapp login --next sandbox --phone +15551234567
 
 `--next sandbox` auto-chains into `sandbox listen` after login; `--next channels` into a `channels` prompt; `--next exit` returns to the shell with no further steps.
 
-**Exit codes:** `0` success · `1` browser callback timed out or user cancelled / bootstrap code expired or consumed.
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## logout
 
@@ -119,4 +119,4 @@ hookmyapp credentials revoke ac_ab12cd34 -y   # revoke; -y skips the confirm pro
 
 **Browser step required:** No
 
-**Exit codes:** `0` success · non-zero on unknown credential or network error.
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).

@@ -20,11 +20,12 @@ Start:  Can you run `hookmyapp channels list` and see at least one WABA?
   ├─ No  → Auth problem → run `hookmyapp login`, then `hookmyapp workspace use <id>`
   └─ Yes → continue
 
-  Does `hookmyapp channels health <channel>` return status "healthy"?
-  ├─ No  → Credentials / phone number problem
-  │         - status "unhealthy" on phone_numbers[].code_verification_status: re-verify in Meta dashboard
-  │         - status "unhealthy" on webhook.verified = false: your webhook URL failed Meta's verify GET
-  │         - quality_rating RED/YELLOW: reduce send volume, Meta auto-flagged the number
+  Does `hookmyapp channels health <channel>` look healthy?
+  ├─ No  → Read the fields it prints:
+  │         - metaConnected false: the channel lost its Meta connection — re-run `hookmyapp channels connect`
+  │         - forwardingEnabled false: inbound events are being dropped — run `hookmyapp channels enable <channel>`
+  │         - whatsappQualityRating RED/YELLOW: reduce send volume, Meta auto-flagged the number
+  │         - consecutiveForwardFailures > 0: your webhook endpoint is rejecting deliveries — check `channels logs`
   └─ Yes → continue
 
   Does `hookmyapp channels webhook show <channel>` print your expected URL?
