@@ -54,4 +54,4 @@ hookmyapp channels token ch_AAAAAAAA --rotate
 
 > **Direct Meta access still works.** Existing integrations that call `https://graph.facebook.com` with their own Meta token are unaffected. The gateway with the channel's `hmat_` access token is the recommended path for new setups.
 
-**Exit codes:** `0` success · `1` channel not found · `2` token read/rotate failed (re-run `channels connect`).
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).

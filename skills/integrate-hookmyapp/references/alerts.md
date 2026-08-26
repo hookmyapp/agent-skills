@@ -30,7 +30,7 @@ hookmyapp alerts phone status --json
 
 With no verified number, the human form points at `alerts phone set`. `--json` returns the status object: `phone` (masked, `null` when unset), `verified`, and the delivery preference.
 
-**Exit codes:** `0` success · `1` not authenticated (run `hookmyapp login`).
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## alerts phone set
 
@@ -68,7 +68,7 @@ or pass it in one go with `--code 123456`. Running `set` with no terminal and ne
 
 If HookMyApp could not deliver the code, the command says so and stops rather than asking for a code that never arrived. Try again in a moment.
 
-**Exit codes:** `0` success · `1` not authenticated, bad number format, no terminal for the prompt, or too many codes requested for that number.
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## alerts phone remove
 
@@ -93,7 +93,7 @@ hookmyapp alerts phone remove --yes
 
 Without `--yes` the command asks for confirmation (declining prints `Aborted.` and changes nothing); `--json` skips the prompt and removes immediately. Removing is destructive for the human's safety net: confirm with them first and relay that without a number HookMyApp cannot text them when something breaks.
 
-**Exit codes:** `0` success or declined confirmation · `1` not authenticated.
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## alerts phone verify
 
@@ -112,7 +112,7 @@ hookmyapp alerts phone verify 123456
 hookmyapp alerts phone verify 123456 --json
 ```
 
-**Exit codes:** `0` success · `1` wrong or expired code, or no verification in progress (start again with `alerts phone set`).
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## Notes for agents
 

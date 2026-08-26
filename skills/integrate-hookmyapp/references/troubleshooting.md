@@ -20,11 +20,12 @@ Start:  Can you run `hookmyapp channels list` and see at least one WABA?
   ├─ No  → Auth problem → run `hookmyapp login`, then `hookmyapp workspace use <id>`
   └─ Yes → continue
 
-  Does `hookmyapp channels health <channel>` return status "healthy"?
-  ├─ No  → Credentials / phone number problem
-  │         - status "unhealthy" on phone_numbers[].code_verification_status: re-verify in Meta dashboard
-  │         - status "unhealthy" on webhook.verified = false: your webhook URL failed Meta's verify GET
-  │         - quality_rating RED/YELLOW: reduce send volume, Meta auto-flagged the number
+  Does `hookmyapp channels health <channel>` look healthy?
+  ├─ No  → Read the fields it prints:
+  │         - metaConnected false: the channel lost its Meta connection — re-run `hookmyapp channels connect`
+  │         - forwardingEnabled false: inbound events are being dropped — run `hookmyapp channels enable <channel>`
+  │         - whatsappQualityRating RED/YELLOW: reduce send volume, Meta auto-flagged the number
+  │         - consecutiveForwardFailures > 0: your webhook endpoint is rejecting deliveries — check `channels logs`
   └─ Yes → continue
 
   Does `hookmyapp channels webhook show <channel>` print your expected URL?
@@ -55,17 +56,11 @@ Start:  Can you run `hookmyapp channels list` and see at least one WABA?
 | `channels connect: popup blocked` | Browser blocked Meta's embedded-signup popup | Allow popups from `app.hookmyapp.com`, or copy the URL the CLI prints and open it manually. |
 | `channels connect instagram`: popup blocked | Browser blocked Meta's OAuth popup | Allow popups from `app.hookmyapp.com`, or open the printed URL manually. Same behavior as WhatsApp connect. |
 | `workspace use: not a member of workspace` | The workspace ID is valid but your user isn't a member | Ask the workspace owner to invite you, or run `workspace list` to find one you own. |
-| `webhook set` fails with "URL did not pass Meta's verify GET" | Your server isn't up, or it isn't returning `VERIFY_TOKEN` as the response body | Start your server first, confirm `curl https://<your-domain>/webhook` returns the verify-token plaintext, then re-run `webhook set`. |
+| `webhook set` fails with "URL did not pass the verify GET probe" | Your server isn't up, or it isn't returning `VERIFY_TOKEN` as the response body | Start your server first, confirm `curl https://<your-domain>/webhook` returns the verify-token plaintext, then re-run `webhook set`. The probe comes from HookMyApp, not Meta. |
 | Webhook POSTs arrive but signature check fails | Mismatched body-shape between HookMyApp's signing and your verification, or wrong HMAC key | HookMyApp signs EVERY outbound webhook (sandbox AND your own channel) as `X-HookMyApp-Signature-256` keyed on `WEBHOOK_HMAC_SECRET` (same key name in `channels env` and `sandbox env`) over `JSON.stringify(parsedBody)`. Keying the check on `VERIFY_TOKEN` is the classic mistake — that value is only the verify-GET handshake response. If your server uses `express.json()`, hash `JSON.stringify(req.body)`; if it uses `express.raw({ type: 'application/json' })`, hash the raw bytes. Both are byte-equivalent. `X-Hub-Signature-256` / `APP_SECRET` is internal to HookMyApp — customers never see it. See SKILL.md "Signature verification". |
 
 ## CLI exit codes (global conventions)
 
-| Code | Meaning |
-|------|---------|
-| 0 | Success |
-| 1 | Not authenticated / generic user error |
-| 2 | Workspace not selected / resource not in workspace |
-| 3 | Authorization failure (member of workspace but not allowed the action) |
-| 4+ | Command-specific (see the per-command reference) |
+Exit codes are class-based and global -- the single authoritative table is SKILL.md § Exit codes: `0` success · `2` invalid input · `3` not permitted · `4` not authenticated · `5` network failure · `6` conflict or rate limit · `1` any other failure. The listen commands add tunnel-specific codes (`3`/`4`/`7`); see the same section.
 
 > **Caveat:** These codes are the **documented convention** for top-level auth/workspace errors. Per-command exit codes (e.g., `health`) may use a different numbering — check the specific command's reference before gating CI on a non-zero exit.

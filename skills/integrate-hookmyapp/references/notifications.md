@@ -44,4 +44,4 @@ hookmyapp notifications ack ntf_XXXXXXXX
 hookmyapp notifications ack ntf_XXXXXXXX --json
 ```
 
-**Exit codes:** `0` success · `1` not authenticated or unknown id.
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).

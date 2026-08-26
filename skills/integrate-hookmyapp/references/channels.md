@@ -39,7 +39,7 @@ hookmyapp channels connect instagram
 hookmyapp channels connect --workspace acme-corp
 ```
 
-**Exit codes:** `0` success · `1` popup blocked / closed before completion · `2` Meta returned an error (see CLI output).
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## channels list
 
@@ -64,7 +64,7 @@ hookmyapp channels list --json | jq '.[] | .id'
 # → "ch_7xGvkTR8"
 ```
 
-**Exit codes:** `0` success · `1` not authenticated · `2` workspace has zero channels (empty table is exit 0, but `--json` prints `[]`).
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes. Zero channels is exit `0` (human mode prints a hint, `--json` prints `[]`).
 
 ## channels show
 

@@ -50,7 +50,7 @@ hookmyapp sandbox start instagram
 hookmyapp sandbox start                      # no flag — CLI prompts for the type
 ```
 
-**Exit codes:** `0` success · `1` not authenticated, or `--type` missing in non-interactive/`--json` mode.
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## sandbox status
 
@@ -144,7 +144,7 @@ hookmyapp sandbox env --username @acmebrand --write --force
 
 Use `--force` in CI; without it the CLI prompts before overwriting an existing file.
 
-**Exit codes:** `0` success · `1` no active session (run `sandbox start` first).
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## sandbox listen
 
@@ -193,7 +193,7 @@ hookmyapp sandbox listen --path /webhook --verbose
 hookmyapp sandbox listen --reinstall-tunnel-binary
 ```
 
-**Exit codes:** `0` on graceful shutdown · `1` port in use · `2` tunnel provisioning failed · `3` session phone mismatch.
+**Exit codes:** `0` graceful shutdown · `3` tunnel provisioning/configure failed · `4` cloudflared binary install failed · `7` cloudflared exited unexpectedly · otherwise standard CLI codes (see SKILL.md § Exit codes).
 
 ## sandbox send
 
@@ -232,7 +232,7 @@ hookmyapp sandbox send --phone +15551234567 --message "hi"
 hookmyapp sandbox send --username @acmebrand --message "hi"
 ```
 
-**Exit codes:** `0` success · `1` no active session · `2` message blocked by the sandbox (recipient not session phone, or template attempt).
+**Exit codes:** standard CLI codes — see SKILL.md § Exit codes (`0` success; class-based non-zero).
 
 ## sandbox webhook
 

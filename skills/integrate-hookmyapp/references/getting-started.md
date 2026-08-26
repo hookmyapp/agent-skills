@@ -146,10 +146,8 @@ hookmyapp channels connect whatsapp
 
 ```bash
 hookmyapp channels list
-# id: ch_AAAAAAAA
-# waba_id: 1276334778010256
-# business_name: Acme Inc
-# phone_numbers: [+15551234567]
+# Type      Identifier       Channel ID   Forwarding
+# WhatsApp  +1 555 123 4567  ch_AAAAAAAA  on
 ```
 
 **5. Pull your channel's env keys**

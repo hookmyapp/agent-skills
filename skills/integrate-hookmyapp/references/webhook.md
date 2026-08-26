@@ -1,11 +1,11 @@
 ---
 name: webhook
-description: "Set, inspect, and clear the webhook override URL for a channel via `channels webhook`."
+description: "Set, inspect, and clear the webhook destination URL for a channel via `channels webhook`."
 ---
 
 # Webhooks
 
-Configure which URL Meta POSTs your channel's events to. Under the hood this writes Meta's `override_callback_uri` field via the Graph API — it takes precedence over any app-level webhook configured in the Meta App Dashboard's Webhooks card.
+Configure which URL HookMyApp delivers your channel's events to. Meta always delivers to HookMyApp; HookMyApp forwards each event to your configured URL -- for WhatsApp, scoped to the one phone number it belongs to; for Instagram, scoped to the connected account -- signed with the channel's `WEBHOOK_HMAC_SECRET` as `X-HookMyApp-Signature-256`. Nothing is configured on Meta's side, and there is no per-channel setting in the Meta App Dashboard.
 
 Use `hookmyapp channels webhook {show,set,clear} <channel>`.
 
@@ -19,7 +19,7 @@ Set the webhook URL for a specific channel.
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
-| `--url` | URL | yes | — | Public HTTPS URL. Must respond `200` with `VERIFY_TOKEN` body on Meta's verify GET. |
+| `--url` | URL | yes | — | Public HTTPS URL. Must respond `200` with `VERIFY_TOKEN` body on HookMyApp's verify GET probe. |
 | `--verify-token` | string | no | (prior token, or auto-generated) | Plain-text value your endpoint must return on the webhook verify GET. NOT the HMAC signing key — `X-HookMyApp-Signature-256` is keyed on the channel's separate `WEBHOOK_HMAC_SECRET` (exported by `channels env`), which this command never touches. Omitting the flag keeps the prior token (URL-only rotation); if the channel has none yet, the backend auto-generates one (the same `VERIFY_TOKEN` that `channels env` exports). See SKILL.md "Signature verification". |
 
 Global flags: `--workspace`, `--json`.
@@ -61,18 +61,18 @@ hookmyapp channels webhook set ch_AAAAAAAA \
   --verify-token <new-token>
 ```
 
-**Exit codes:** `0` success · `1` URL did not pass Meta's verify GET · `2` WABA not found in workspace · `3` not authorized for WABA.
+**Exit codes:** `0` success · `2` URL did not pass the verify GET probe (validation) · `1` channel not found · `3` not authorized for the channel.
 
 ## channels webhook show
 
-Print the current `override_callback_uri` for a channel.
+Print the channel's configured destination URL.
 
 **Flags:**
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--workspace` | string | no | active | Target workspace. |
-| `--json` | boolean | no | `false` | JSON output `{channel_id, url, verified}`. |
+| `--json` | boolean | no | `false` | JSON output `{channelId, webhookUrl, verifyToken}` (`webhookUrl`/`verifyToken` are `null` when unset). |
 
 **Arguments:** `<channel>`
 
@@ -89,7 +89,7 @@ hookmyapp channels webhook show ch_AAAAAAAA
 
 ## channels webhook clear
 
-Clear the channel's override URL and revert delivery to the HookMyApp CLI tunnel destination (HookMyAppCLI). Idempotent: clearing an already-cleared channel is a no-op success.
+Clear the channel's destination URL and revert delivery to the HookMyApp CLI tunnel destination (HookMyAppCLI). Idempotent: clearing an already-cleared channel is a no-op success.
 
 **Arguments:** `<channel>`
 

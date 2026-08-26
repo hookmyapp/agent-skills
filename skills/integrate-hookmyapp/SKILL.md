@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.14"
+  version: "0.9.15"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -85,7 +85,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.14" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.15" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -165,6 +165,22 @@ Every command accepts these flags:
 - `--workspace <slug>` — override the active workspace for this invocation. Accepts workspace **name, slug, OR id** (`ws_XXXXXXXX`).
 - `--debug` — print full HTTP request/response bodies and stack traces for troubleshooting.
 - `--help` — print usage and available flags for the command.
+
+## Exit codes
+
+Exit codes are set by error CLASS, globally — commands do not define their own numbering:
+
+| Code | Meaning |
+|---|---|
+| `0` | success |
+| `2` | invalid input (validation) |
+| `3` | not permitted (permission / forbidden / feature disabled) |
+| `4` | not authenticated (run `hookmyapp login`) |
+| `5` | network failure |
+| `6` | conflict or rate limit |
+| `1` | any other failure (not found, API error, unexpected) |
+
+Exceptions — the long-running listen commands exit with their own codes when the tunnel breaks: `3` tunnel provisioning/configure failed, `4` cloudflared binary install failed, `7` cloudflared exited unexpectedly. Do not gate scripts on exit codes finer than zero/non-zero; parse `--json` output instead.
 
 ## Sending Messages
 
