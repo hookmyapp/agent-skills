@@ -55,4 +55,4 @@ test "$(echo "$h" | jq -r .metaConnected)" = "true" \
 
 **Exit codes:** `0` the health read succeeded (regardless of what it reports) · `1` channel not found. The exit code does not encode health status — gate on the JSON fields, not the exit code.
 
-> **Caveat:** These codes are **observed**, not contractually documented -- the `--help` output does not enumerate them. They may change; do not rely on them for CI gates without a fallback (e.g., parse `--json` and gate on `status`). Per-command exit codes may also conflict with the "global conventions" table in [references/troubleshooting.md](troubleshooting.md); treat the global table as the contractual convention (not this per-command one).
+> **Caveat:** For CI gates, parse `--json` and test the fields that exist -- `metaConnected` and `forwardingEnabled` (as in the example above). There is no `status` field on a healthy response, and the exit code carries no health information beyond success/failure of the read itself (SKILL.md § Exit codes).
