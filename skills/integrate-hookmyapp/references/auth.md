@@ -68,6 +68,14 @@ hookmyapp login --email you@example.com --json
 hookmyapp login --email you@example.com --registration-id <id> --otp <code> --json
 ```
 
+The credential binds to ONE organization for its whole life (`workspace use` cannot move it). Default: the account's oldest organization — right for new users, often wrong for a human in several. For a multi-org human, pass `--org` on the completion call to pick (org ids come from `hookmyapp workspace list --json`, `organizationPublicId` field):
+
+```bash
+hookmyapp login --email you@example.com --registration-id <id> --otp <code> --org org_XXXXXXXX --json
+```
+
+The completion output names the organization it bound to and lists the account's other organizations. If a later command fails with `WORKSPACE_ORG_MISMATCH`, the credential is in the wrong organization — re-run the login with `--org`, do not retry the failing command. (Requires CLI >=0.14.21; earlier CLIs ignore `--org`.)
+
 Run the initiation command exactly once and retain its `registrationId`. Any unexpired code sent to the same email during the current 10-minute login window can complete that login. If completion fails, preserve the registration ID, stop, and report the exact error. Do not initiate again or request another code unless all existing codes are expired or locked and the human explicitly approves another email.
 
 > **HUMAN ACTION REQUIRED:** The one-time code goes to the human's email inbox. The agent cannot read it — ask the human to paste the 6-digit code.
