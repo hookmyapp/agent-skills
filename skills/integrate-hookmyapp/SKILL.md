@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.16"
+  version: "0.9.17"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -85,7 +85,7 @@ If `npm` is missing, stop and ask the user to install Node.js 20+ (which include
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.16" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.17" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -235,6 +235,24 @@ HookMyApp forwards Meta's webhook body verbatim. The envelope has `entry[].chang
       ]
     }
   ]
+}
+```
+
+### Messages the business sends from the WhatsApp Business app
+
+On a coexistence number (one connected through Embedded Signup while it stays in use in the WhatsApp Business app), replies a human types in the app are also forwarded to the customer's webhook — under `field: "smb_message_echoes"`, carrying `value.message_echoes[]` instead of `value.messages[]`. This is how an integration tells the two directions apart on one number:
+
+| `field` | Author | Array |
+|---|---|---|
+| `messages` | The WhatsApp user, inbound to the business | `value.messages[]` |
+| `smb_message_echoes` | The business itself, typed in the WhatsApp Business app or a linked device | `value.message_echoes[]` |
+
+In an echo, `from` is the business number and `to` is the WhatsApp user — reversed from an inbound message. Messages sent through the API do NOT echo (the send response already returned the `wamid`), and echoes are never billed. Branch on `change.field` before reading any array; code that assumes `value.messages` silently drops every app reply.
+
+```js
+for (const change of body.entry?.[0]?.changes ?? []) {
+  if (change.field === 'messages') for (const m of change.value.messages ?? []) onInbound(m);
+  if (change.field === 'smb_message_echoes') for (const m of change.value.message_echoes ?? []) onOwnReply(m);
 }
 ```
 
