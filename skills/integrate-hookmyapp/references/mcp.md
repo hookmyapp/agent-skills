@@ -31,15 +31,17 @@ hookmyapp agent setup   # re-run to repair; needs CLI >= 0.14.19
 hookmyapp doctor        # reports MCP connection status
 ```
 
-Claude Code needs no sign-in: the entry carries a `headersHelper` that runs `hookmyapp mcp-headers`, and Claude Code calls it on every request for a fresh token from the CLI's stored credential. Codex and Cursor sign in once through the browser instead:
+**Run the follow-up for your own client and no other.** These are per-client alternatives, not a sequence. An agent that runs another client's binary either trips a permission prompt the user did not expect (a `codex` command inside Claude Code) or hits a command that is not installed.
+
+Claude Code needs no sign-in: the entry carries a `headersHelper` that runs `hookmyapp mcp-headers`, and Claude Code calls it on every request for a fresh token from the CLI's stored credential. Codex signs in once through the browser, Cursor from its MCP settings. For the human on Codex:
 
 ```bash
-codex mcp login hookmyapp   # Cursor signs in from its MCP settings
+codex mcp login hookmyapp
 ```
 
 Requires the `hookmyapp` binary to be resolvable from the PATH that Claude Code hands the helper process. A normal global install (`npm install -g @gethookmyapp/cli`) satisfies this; an unusual npm prefix may not — see [Recovery](#recovery-mcp-isnt-working).
 
-**Newly added MCP servers do not activate mid-session.** Every client resolves MCP tools at session start, so a server configured during a session stays dormant until the next one. That is expected, not a failure. It also means a tool call cannot verify a setup you just ran: the tools you can see still point at the previous configuration, so the call answers from the old server and proves nothing. Check `codex mcp get hookmyapp` or `claude mcp get hookmyapp` instead, and tell the user to restart.
+**Newly added MCP servers do not activate mid-session.** Every client resolves MCP tools at session start, so a server configured during a session stays dormant until the next one. That is expected, not a failure. It also means a tool call cannot verify a setup you just ran: the tools you can see still point at the previous configuration, so the call answers from the old server and proves nothing. Read the config back for your own client instead — `claude mcp get hookmyapp` in Claude Code, `codex mcp get hookmyapp` in Codex, the MCP settings pane in Cursor — and tell the user to restart.
 
 **2. API key — any client.** An org admin creates an API key in the HookMyApp app (Organization → API). Keys are prefixed `hmok_` and are passed either way:
 
@@ -53,7 +55,7 @@ X-API-Key: hmok_...
 
 Send exactly one of the two headers, not both. Use `X-API-Key` only when the client can't set an `Authorization` header.
 
-**Browser sign-in (OAuth) works.** Add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp`, then run `/mcp`, pick `hookmyapp`, and approve in the browser. Codex does the same with `codex mcp login hookmyapp`.
+**Browser sign-in (OAuth) works.** In Claude Code, add the server by URL with `claude mcp add --transport http hookmyapp https://api.hookmyapp.com/mcp`, then run `/mcp`, pick `hookmyapp`, and approve in the browser. In Codex, `codex mcp login hookmyapp` does the same. Use the one for the client you are in.
 
 ### Client setup
 
@@ -69,7 +71,7 @@ hookmyapp agent setup
 
 Hand-rolling is right only when there is no CLI on the machine. An entry added by hand has **no** credential helper, so Claude Code authenticates only through `/mcp` → pick `hookmyapp` → approve in the browser, never automatically.
 
-The blocks below are the API-key path, for CI and headless environments where no browser sign-in is possible.
+The blocks below are the API-key path, for CI and headless environments where no browser sign-in is possible. Use the block for your own client; the others are reference for the human.
 
 Codex CLI:
 
