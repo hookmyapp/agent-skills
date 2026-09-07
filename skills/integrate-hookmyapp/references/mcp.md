@@ -33,7 +33,9 @@ hookmyapp doctor                                      # reports MCP connection s
 
 Substitute your own client before running it — a literal value copied from this page configures somebody else's client and leaves yours untouched. Drop `--client` only when the user asked for every agent on their machine; the unscoped form rewrites all three.
 
-**There is no follow-up command.** Setup puts the credential in the entry itself: Claude Code and Codex get a `headersHelper` that runs `hookmyapp mcp-headers` and is called on every request for a fresh token, Cursor gets the token literally because it has no helper mechanism. Nothing signs in afterwards. Setup prints one line per client naming the restart it needs — do what it names for you, and never run another client's binary to finish a setup.
+**There is no follow-up command.** Setup puts the credential in the entry itself: Claude Code and Codex get a helper that runs `hookmyapp mcp-headers` and is called on every request for a fresh token (`headersHelper` in Claude Code's JSON, `http_headers_helper` in Codex's TOML), Cursor gets the token literally because it has no helper mechanism. Nothing signs in afterwards.
+
+Codex needs **0.148.0 or newer** for that field (it landed 2026-08-12 in openai/codex#38245, first stable release 0.148.0 on 2026-08-18). On an older Codex the field never sticks and setup fails loudly with `MCP_INSTALL_FAILED`; there the human upgrades Codex, or adds the server by URL and signs in with `codex mcp login hookmyapp`, which is the pre-helper path. Setup prints one line per client naming the restart it needs — do what it names for you, and never run another client's binary to finish a setup.
 
 Requires the `hookmyapp` binary to be resolvable from the PATH that Claude Code hands the helper process. A normal global install (`npm install -g @gethookmyapp/cli`) satisfies this; an unusual npm prefix may not — see [Recovery](#recovery-mcp-isnt-working).
 
