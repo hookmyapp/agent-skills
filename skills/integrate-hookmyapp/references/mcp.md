@@ -33,13 +33,7 @@ hookmyapp doctor                                      # reports MCP connection s
 
 Substitute your own client before running it — a literal value copied from this page configures somebody else's client and leaves yours untouched. Drop `--client` only when the user asked for every agent on their machine; the unscoped form rewrites all three.
 
-**Run the follow-up for your own client and no other.** These are per-client alternatives, not a sequence. An agent that runs another client's binary either trips a permission prompt the user did not expect (a `codex` command inside Claude Code) or hits a command that is not installed.
-
-Claude Code needs no sign-in: the entry carries a `headersHelper` that runs `hookmyapp mcp-headers`, and Claude Code calls it on every request for a fresh token from the CLI's stored credential. Codex signs in once through the browser, Cursor from its MCP settings. For the human on Codex:
-
-```bash
-codex mcp login hookmyapp
-```
+**There is no follow-up command.** Setup puts the credential in the entry itself: Claude Code and Codex get a `headersHelper` that runs `hookmyapp mcp-headers` and is called on every request for a fresh token, Cursor gets the token literally because it has no helper mechanism. Nothing signs in afterwards. Setup prints one line per client naming the restart it needs — do what it names for you, and never run another client's binary to finish a setup.
 
 Requires the `hookmyapp` binary to be resolvable from the PATH that Claude Code hands the helper process. A normal global install (`npm install -g @gethookmyapp/cli`) satisfies this; an unusual npm prefix may not — see [Recovery](#recovery-mcp-isnt-working).
 
