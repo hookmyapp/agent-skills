@@ -24,7 +24,7 @@ Setting up HookMyApp does **not** require MCP. The CLI covers everything MCP doe
 
 Two working options; pick what the MCP client supports.
 
-**1. CLI setup — every agent on the machine.** `hookmyapp agent setup` configures Claude Code, Codex and Cursor in one go, and `hookmyapp login` does the same for whatever it finds.
+**1. CLI setup — every agent on the machine.** `hookmyapp agent setup` configures Claude Code, Codex and Cursor in one go, and `hookmyapp login` does the same for whatever it finds. `--client claude|codex|cursor` narrows it to one: reach for that unless the user asked you to set up their other agents too.
 
 ```bash
 hookmyapp agent setup   # re-run to repair; needs CLI >= 0.14.19
