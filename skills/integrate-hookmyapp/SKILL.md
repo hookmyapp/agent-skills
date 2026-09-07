@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.17"
+  version: "0.9.18"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -78,14 +78,16 @@ cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
 cli_ok || { echo "hookmyapp >=0.14.17 <1 required for this skill; install it manually and re-run." >&2; false; }
 ```
 
-If that final check fails, stop and ask the user to upgrade the CLI themselves — do not continue to the skill-version marker below.
+If that final check fails, do not continue to the skill-version marker below. Read why it failed first: a missing `npm` is a different situation from a CLI that will not upgrade, and the two get different answers.
 
-If `npm` is missing, stop and ask the user to install Node.js 20+ (which includes npm). If global installs are blocked, stop and ask the user to install the CLI themselves (`npm install -g @gethookmyapp/cli`) or make `hookmyapp` available on PATH another way — do not retry the blocked command. Do not continue with guessed commands or raw API calls just because the CLI is absent.
+**The CLI failed to upgrade (npm works).** Stop and ask the user to upgrade it themselves.
+
+**`npm` is missing.** The CLI path is closed on this machine. Node.js 20+ (which includes npm) is the fix, but do not make it a wall for tasks that do not need it: the [MCP server](references/mcp.md) (`https://api.hookmyapp.com/mcp`) and the [REST API](references/api.md) need no Node and cover account operations — messaging, Instagram publishing and insights, webhook destinations, customers and onboarding links, delivery logs, sandbox sessions. What needs the CLI is anything that touches the user's machine or a browser flow: connecting their own channel, and any command that writes a file or holds a tunnel open (`channels listen`, `sandbox listen`, `channels env --write`, `sandbox env`). That is the shape of it, not a closed list — a handful of others have no remote equivalent either (`sandbox stop`, Instagram sandbox replies). Before promising the no-Node path for a specific task, confirm the operation actually appears in the [MCP tool table](references/mcp.md#tools-43) or the [REST endpoint map](references/api.md); if it does not, it is CLI-only and needs Node. Credentials themselves are not CLI-bound — with an `hmok_` key, REST reads and rotates a channel's `hmat_` token and returns its env set (`GET /meta/channels/{id}/token`, `/token/rotate`, `/env`); only writing them into a `.env` file for the user is CLI work. Name which side the user's task falls on, then offer the matching path — Node install, or the no-Node surface. If global installs are blocked, stop and ask the user to install the CLI themselves (`npm install -g @gethookmyapp/cli`) or make `hookmyapp` available on PATH another way — do not retry the blocked command. Do not continue with guessed commands or raw API calls just because the CLI is absent.
 
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.17" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.18" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -142,7 +144,7 @@ Five build rules and the health pass that reads the result: [references/developm
 
 HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 39 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, feedback, alert phone, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
-Set it up with `hookmyapp agent setup`, which configures every coding agent installed on the machine: Claude Code, Codex and Cursor. `hookmyapp login` does the same for whatever it finds. Claude Code needs nothing further; Codex signs in with `codex mcp login hookmyapp` and Cursor from its MCP settings. Any other client takes the server URL (`https://api.hookmyapp.com/mcp`) and its own sign-in, or an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key` for CI and headless environments. Every client resolves MCP tools at session start, so a server configured mid-session stays dormant until the next one.
+Set it up with `hookmyapp agent setup`, which configures every coding agent installed on the machine: Claude Code, Codex and Cursor. `hookmyapp login` does the same for whatever it finds. Pass `--client claude|codex|cursor` when only one should be touched — use it whenever the user has not asked you to set up their other agents. **Act only on the client you are running in.** The per-client follow-ups below are a menu, not a checklist: if you are Claude Code, nothing further is needed and you never run a `codex` command; if you are Codex, sign in once with `codex mcp login hookmyapp` and never run a `claude` command; Cursor signs in from its MCP settings. Running another client's binary is at best a permission prompt the user cannot make sense of, at worst a command not installed on the machine. Any other client takes the server URL (`https://api.hookmyapp.com/mcp`) and its own sign-in, or an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key` for CI and headless environments. Every client resolves MCP tools at session start, so a server configured mid-session stays dormant until the next one.
 
 The docs site also publishes an agent-facing documentation set that needs no account access: a read-only docs MCP server at `https://docs.hookmyapp.com/mcp`, and the whole documentation as plain text at `https://docs.hookmyapp.com/llms.txt` (index) and `llms-full.txt` (full). Use those for product questions; use the MCP server above for live account operations.
 
