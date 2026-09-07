@@ -13,7 +13,7 @@ Billing is **organization-scoped**: one subscription and one pooled action allow
 
 | Plan | Price | Actions | Channels | Team |
 |---|---|---|---|---|
-| Trial | Free, 7 days | 100,000 for the 7-day trial | Unlimited | 1 user |
+| Trial | Free, 7 days | 100,000 for the 7-day trial | Unlimited | Included |
 | Build | $1/mo ($10/yr) | 200/mo | Unlimited | Included |
 | Scale | $24/mo ($240/yr) | 15,000/mo | Unlimited | Included |
 | Business | $97/mo ($970/yr) | 100,000/mo | Unlimited | Included |
