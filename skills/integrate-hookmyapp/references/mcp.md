@@ -27,9 +27,11 @@ Two working options; pick what the MCP client supports.
 **1. CLI setup — every agent on the machine.** `hookmyapp agent setup` configures Claude Code, Codex and Cursor in one go, and `hookmyapp login` does the same for whatever it finds. `--client claude|codex|cursor` narrows it to one: reach for that unless the user asked you to set up their other agents too.
 
 ```bash
-hookmyapp agent setup   # re-run to repair; needs CLI >= 0.14.19
-hookmyapp doctor        # reports MCP connection status
+hookmyapp agent setup --client claude   # your own client; needs CLI >= 0.14.19
+hookmyapp doctor                        # reports MCP connection status
 ```
+
+Swap `claude` for `codex` or `cursor` to match the client you are running in. Drop `--client` only when the user asked for every agent on their machine — the unscoped form rewrites all three.
 
 **Run the follow-up for your own client and no other.** These are per-client alternatives, not a sequence. An agent that runs another client's binary either trips a permission prompt the user did not expect (a `codex` command inside Claude Code) or hits a command that is not installed.
 
@@ -63,10 +65,10 @@ Send exactly one of the two headers, not both. Use `X-API-Key` only when the cli
 export HOOKMYAPP_API_KEY="hmok_..."
 ```
 
-When the CLI is installed, let it do the wiring for all three instead of hand-rolling per-client config:
+When the CLI is installed, let it do the wiring instead of hand-rolling per-client config:
 
 ```bash
-hookmyapp agent setup
+hookmyapp agent setup --client claude   # or codex / cursor — the one you are running in
 ```
 
 Hand-rolling is right only when there is no CLI on the machine. An entry added by hand has **no** credential helper, so Claude Code authenticates only through `/mcp` → pick `hookmyapp` → approve in the browser, never automatically.
