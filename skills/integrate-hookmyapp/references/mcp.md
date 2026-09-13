@@ -108,7 +108,9 @@ Work top to bottom; each row assumes the ones above it passed.
 
 `hookmyapp doctor` summarizes CLI, login, and MCP status in one command — run it first when a user reports "the MCP isn't working".
 
-## Tools (50)
+## Tools
+
+50 tools.
 
 Read:
 
