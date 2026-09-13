@@ -121,7 +121,6 @@ Read:
 | `list_customers` | List customers in the organization (SaaS Mode) |
 | `list_channels` | List channels in one workspace — pass the `ws_` ID from `list_workspaces` |
 | `get_channel` | Read one channel (type, identity, forwarding state, destination) |
-| `move_channel` | Move a channel to another workspace in the same organization (`channelId`, `targetWorkspaceId`). No reconnect or interruption; org-admin only. Use when a channel connected into the wrong workspace |
 | `get_webhook_config` | Read a channel's webhook destination |
 | `get_hmac_secret` | Read a channel's current webhook signing secret without rotating it. The value signs every delivered webhook — treat it like a password: never echo it into chat, logs, or client-visible output; if it leaks, `rotate_hmac` |
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |
@@ -165,6 +164,7 @@ Write:
 | `clear_webhook_destination` | Clear a channel's webhook destination |
 | `rotate_hmac` | Rotate a channel's webhook signing secret |
 | `set_forwarding` | Enable or disable webhook forwarding for a channel |
+| `move_channel` | Move a channel to another workspace in the same organization (`channelId`, `targetWorkspaceId`). No reconnect or interruption; org-admin only. Use when a channel connected into the wrong workspace |
 | `set_org_destination` | Set the organization default destination seeded onto new customer channels (org admin + SaaS Mode) |
 | `apply_org_destination_to_channels` | Bulk-apply (or clear) the organization destination across customer channels |
 | `publish_instagram_media` | Publish an image, reel, story, or carousel on an Instagram channel: `mediaType`, `imageUrl`/`videoUrl`, `caption`, `children[]` (carousel), `coverUrl`, `shareToFeed`, `trialParams` with `graduationStrategy` set to `"manual"` or `"automatic"` (reels only — trial reel; rejected on any other `mediaType`), plus optional `altText` (image posts), `userTags[]` (`{username, x?, y?}`), `locationId`, `thumbOffset` (ms), `audioName` (reels). Runs Meta's container → status poll → publish flow and returns `{mediaId, permalink}` |
@@ -187,7 +187,7 @@ The Instagram tools require an **Instagram Login** channel. A channel connected 
 
 The skill-wide safety rules apply unchanged over MCP:
 
-- **Confirm before mutating.** `set_webhook_destination`, `clear_webhook_destination`, `set_forwarding` (disabling = silent inbound message drop), `rotate_hmac` (old signatures stop verifying immediately), `set_org_destination`, `apply_org_destination_to_channels`, `delete_workspace` (disconnects every channel in the workspace — inbound traffic stops), and `revoke_onboarding_link` (the connect URL stops working immediately) all change live message routing or connectivity — get explicit human confirmation, including the exact channel, customer, workspace, organization, or `ol_` onboarding-link ID, before calling.
+- **Confirm before mutating.** `set_webhook_destination`, `clear_webhook_destination`, `set_forwarding` (disabling = silent inbound message drop), `rotate_hmac` (old signatures stop verifying immediately), `set_org_destination`, `apply_org_destination_to_channels`, `delete_workspace` (disconnects every channel in the workspace — inbound traffic stops), `move_channel` (the channel starts using the target workspace's webhook destination and customer attribution), and `revoke_onboarding_link` (the connect URL stops working immediately) all change live message routing or connectivity — get explicit human confirmation, including the exact channel, customer, workspace, organization, or `ol_` onboarding-link ID, before calling.
 - **`send_message` sends a real message** to a real person. Confirm recipient channel and content.
 - **`send_sandbox_message` also sends a real WhatsApp message** — to the human's own bound phone. Confirm content. `set_sandbox_destination` re-points live sandbox traffic, so confirm the URL.
 - **`publish_instagram_media` posts real, public content** to the account's feed, reels, or story. `reply_instagram_comment` posts a public reply (or DMs a real user); `moderate_instagram_comment` hides or deletes real comments, and `delete` is irreversible. Confirm channel, target ids, and content with the human before calling any of them.
