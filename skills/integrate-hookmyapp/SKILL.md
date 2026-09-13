@@ -313,11 +313,11 @@ support ticket directly — you are the best witness. Redact before sending:
 no secrets or tokens, no customer message content or PII, no cookies or
 auth headers — keep the error text and the steps, drop the sensitive values.
 
-- MCP: `open_support_ticket {subject, description}`; check replies with
+- MCP: `open_support_ticket {subject, description, requestId}` — make up a `requestId` (letters, digits, `. _ : -`, max 128) BEFORE the call and keep it; check replies with
   `get_support_ticket {ticketId, wait: 20, afterCursor: <nextCursor from the previous response>}`.
 - CLI: `hookmyapp support new --subject "…" -m "…"`; then `hookmyapp support show sup_… --wait 20`. (Needs `@gethookmyapp/cli` >= 0.14.9 — older CLIs lack the `support` command; `support watch` needs >= 0.14.10. Use the MCP tools instead on older versions.)
 - Fresh session with no saved ticket id? `list_support_tickets` / `hookmyapp support list` shows the organization's tickets from any surface — no local state needed.
-- Retrying after a timeout or network error? Pass the same `requestId` you sent the first time (`open_support_ticket` and `submit_feedback` accept one, as does `POST /support/tickets`), so an open that actually landed returns the existing ticket instead of a duplicate.
+- Retrying after a timeout or network error? Resend with the SAME `requestId` you generated for the first call (`open_support_ticket`, `submit_feedback`, `POST /support/tickets` and `POST /support/feedback` all accept one), so an open that actually landed returns the existing ticket instead of a duplicate. A call made without one cannot be deduplicated.
 - A reply can come back with a `note` instead of your message in the transcript. Act on it literally: "still being delivered" means check the ticket again shortly, "not delivered" means send it again, and "could not confirm" means check the ticket first and only resend if your message is missing.
 - Support tickets are answered by the HookMyApp support team in its inbox. There is no separate AI answer tool; don't promise an instant automated answer.
 
@@ -332,7 +332,7 @@ error, abandons a flow, or says "why doesn't this just work". You are the only
 witness to that, so send it.
 
 - CLI: `hookmyapp feedback "<what they were trying to do and what confused them>" [--surface docs]` (needs `@gethookmyapp/cli` >= 0.14.20).
-- MCP: `submit_feedback {message, surface}`.
+- MCP: `submit_feedback {message, surface, requestId}` (generate and keep the `requestId` before the call, same as for tickets).
 
 Send when you observe confusion, repeated failed attempts, an abandoned flow, a
 misread error, or an explicit complaint. Don't judge whether it is important

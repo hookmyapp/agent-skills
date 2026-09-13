@@ -108,7 +108,7 @@ Work top to bottom; each row assumes the ones above it passed.
 
 `hookmyapp doctor` summarizes CLI, login, and MCP status in one command — run it first when a user reports "the MCP isn't working".
 
-## Tools (43)
+## Tools (50)
 
 Read:
 
@@ -119,6 +119,7 @@ Read:
 | `list_customers` | List customers in the organization (SaaS Mode) |
 | `list_channels` | List channels in one workspace — pass the `ws_` ID from `list_workspaces` |
 | `get_channel` | Read one channel (type, identity, forwarding state, destination) |
+| `move_channel` | Move a channel to another workspace in the same organization (`channelId`, `targetWorkspaceId`). No reconnect or interruption; org-admin only. Use when a channel connected into the wrong workspace |
 | `get_webhook_config` | Read a channel's webhook destination |
 | `get_hmac_secret` | Read a channel's current webhook signing secret without rotating it. The value signs every delivered webhook — treat it like a password: never echo it into chat, logs, or client-visible output; if it leaks, `rotate_hmac` |
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |

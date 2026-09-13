@@ -89,7 +89,7 @@ Full request/response schemas: the OpenAPI spec and per-endpoint pages under the
 
 | Method | Path | Purpose |
 |--------|------|---------|
-| POST | `/support/tickets` | Open a support ticket (`{subject, description}` → `{ticketId}`) |
+| POST | `/support/tickets` | Open a support ticket (`{subject, description, requestId?}` → `{ticketId}`). Generate `requestId` before the call and resend the same value on retry so a lost response never opens a second ticket |
 | GET | `/support/tickets` | List your 20 most recent tickets |
 | GET | `/support/tickets/{id}` | Read a ticket; `?wait=20&afterCursor=…` holds for a new support reply (wait accepts 1-25 seconds) |
 | POST | `/support/tickets/{id}/messages` | Follow up on a ticket (resolved tickets reopen); same `wait`/`afterCursor` options |
