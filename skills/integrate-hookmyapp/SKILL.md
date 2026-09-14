@@ -78,9 +78,7 @@ cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
 cli_ok || { echo "hookmyapp >=0.14.17 <1 required for this skill; install it manually and re-run." >&2; false; }
 ```
 
-If that final check fails, do not continue to the skill-version marker below. Read why it failed first: a missing `npm` is a different situation from a CLI that will not upgrade, and the two get different answers.
-
-**The CLI failed to upgrade (npm works).** Stop and ask the user to upgrade it themselves.
+If that final check fails, do not continue to the skill-version marker below. Read why it failed first: a permission error (`EACCES`), a CLI that will not upgrade, and a missing `npm` each get a different answer.
 
 **The install failed with `EACCES` (permission denied).** npm's global folder is root-owned, which is the default for Node from the nodejs.org installer. Do not use `sudo`. Move npm's global folder into the user's home directory and install again:
 
@@ -90,7 +88,9 @@ export PATH="$HOME/.npm-global/bin:$PATH"
 npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
 ```
 
-Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh, `~/.bashrc` for bash) so `hookmyapp` stays on PATH in new terminals, and tell the user you did. If a later command cannot find `hookmyapp`, run it as `~/.npm-global/bin/hookmyapp`. Then re-run the check above.
+Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh, `~/.bashrc` for bash) so `hookmyapp` stays on PATH in new terminals, and tell the user you did. If a later command cannot find `hookmyapp`, run it as `~/.npm-global/bin/hookmyapp`. Then re-run the check above. This is the one install failure you recover from yourself; every other rule below that says to stop on a failed or blocked install means a failure other than `EACCES`.
+
+**The CLI failed to install or upgrade for any other reason (npm works).** Stop and ask the user to upgrade it themselves.
 
 **`npm` is missing.** The CLI path is closed on this machine. Node.js 20+ (which includes npm) is the fix, but do not make it a wall for tasks that do not need it: the [MCP server](references/mcp.md) (`https://api.hookmyapp.com/mcp`) and the [REST API](references/api.md) need no Node and cover account operations — messaging, Instagram publishing and insights, webhook destinations, customers and onboarding links, delivery logs, sandbox sessions. What needs the CLI is anything that touches the user's machine or a browser flow: connecting their own channel, and any command that writes a file or holds a tunnel open (`channels listen`, `sandbox listen`, `channels env --write`, `sandbox env`). That is the shape of it, not a closed list — a handful of others have no remote equivalent either (`sandbox stop`, Instagram sandbox replies). Before promising the no-Node path for a specific task, confirm the operation actually appears in the [MCP tool table](references/mcp.md#tools) or the [REST endpoint map](references/api.md); if it does not, it is CLI-only and needs Node. Credentials themselves are not CLI-bound — with an `hmok_` key, REST reads and rotates a channel's `hmat_` token and returns its env set (`GET /meta/channels/{id}/token`, `/token/rotate`, `/env`); only writing them into a `.env` file for the user is CLI work. Name which side the user's task falls on, then offer the matching path — Node install, or the no-Node surface. If global installs are blocked for a reason other than `EACCES`, stop and ask the user to install the CLI themselves (`npm install -g @gethookmyapp/cli`) or make `hookmyapp` available on PATH another way — do not retry the blocked command. Do not continue with guessed commands or raw API calls just because the CLI is absent.
 
