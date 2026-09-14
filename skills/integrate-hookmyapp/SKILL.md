@@ -88,7 +88,7 @@ export PATH="$HOME/.npm-global/bin:$PATH"
 npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
 ```
 
-Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh; for bash, whichever of `~/.bash_profile` or `~/.bashrc` their terminal actually loads) so `hookmyapp` stays on PATH in new terminals, and tell the user you did. If a later command cannot find `hookmyapp`, run it as `~/.npm-global/bin/hookmyapp`. Then re-run the check above. Apply this recovery once: if the install fails again, or `EACCES` names any other path (a root-owned `~/.npm` cache, for example), it falls under the stop rules below. This is the one install failure you recover from yourself; every other rule below that says to stop on a failed or blocked install means a failure other than this one.
+Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh; for bash, the existing file their terminal actually loads, such as `~/.bash_profile`, `~/.bash_login`, `~/.profile` or `~/.bashrc`, and never create a new `~/.bash_profile`, which would stop `~/.profile` from loading) so `hookmyapp` stays on PATH in new terminals, and tell the user you did. If a later command cannot find `hookmyapp`, run it as `~/.npm-global/bin/hookmyapp`. Then re-run the check above. Apply this recovery once: if the install fails again, or `EACCES` names any other path (a root-owned `~/.npm` cache, for example), it falls under the stop rules below. This is the one install failure you recover from yourself; every other rule below that says to stop on a failed or blocked install means a failure other than this one.
 
 **The CLI failed to install or upgrade for any other reason (npm works).** Stop and ask the user to upgrade it themselves.
 
