@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.22"
+  version: "0.9.23"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -83,6 +83,8 @@ cli_ok || { echo "hookmyapp >=0.14.17 <1 required for this skill; install it man
 
 If that final check fails, do not continue to the skill-version marker below. Read why it failed first: a permission error (`EACCES`), a CLI that will not upgrade, and a missing `npm` each get a different answer.
 
+**Any command failed with a network error** (`ENOTFOUND`, `EAI_AGAIN`, `ETIMEDOUT`, `ECONNREFUSED`, `ECONNRESET`). You are probably in a sandbox without internet access. Ask the user to allow network access, then run the same command again. This comes before every rule below: only if it still fails with network access allowed does it count as a failed install.
+
 **The install failed with `EACCES` (permission denied) on npm's global folder (macOS or Linux)** (the path in the error is inside `npm config get prefix`, usually `/usr/local`). That folder is root-owned, which is the default for Node from the nodejs.org installer. Do not use `sudo`. Move npm's global folder into the user's home directory and install again:
 
 ```bash
@@ -102,7 +104,7 @@ Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh;
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.22" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.23" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
