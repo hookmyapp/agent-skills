@@ -80,7 +80,7 @@ cli_ok || { echo "hookmyapp >=0.14.17 <1 required for this skill; install it man
 
 If that final check fails, do not continue to the skill-version marker below. Read why it failed first: a permission error (`EACCES`), a CLI that will not upgrade, and a missing `npm` each get a different answer.
 
-**The install failed with `EACCES` (permission denied) on npm's global folder** (the path in the error is inside `npm config get prefix`, usually `/usr/local`). That folder is root-owned, which is the default for Node from the nodejs.org installer. Do not use `sudo`. Move npm's global folder into the user's home directory and install again:
+**The install failed with `EACCES` (permission denied) on npm's global folder (macOS or Linux)** (the path in the error is inside `npm config get prefix`, usually `/usr/local`). That folder is root-owned, which is the default for Node from the nodejs.org installer. Do not use `sudo`. Move npm's global folder into the user's home directory and install again:
 
 ```bash
 npm config set prefix ~/.npm-global
