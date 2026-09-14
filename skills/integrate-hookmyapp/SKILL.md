@@ -69,6 +69,9 @@ Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the use
 # publish/insights/comments). The bounded range keeps installs on the
 # reviewed 0.x line; an older existing install is upgraded in place.
 command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
+# Agent shells often skip the user's startup file, so a home-directory npm
+# prefix installs fine but stays off PATH. Add npm's global bin for this shell.
+command -v hookmyapp >/dev/null 2>&1 || export PATH="$(npm prefix -g)/bin:$PATH"
 # cli_ok: version is non-empty AND within >=0.14.17 <1 (a failed/missing
 # `hookmyapp --version` yields an empty string and fails the check).
 cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 17))) ? 0 : 1 }'; }
@@ -88,7 +91,9 @@ export PATH="$HOME/.npm-global/bin:$PATH"
 npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
 ```
 
-Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh; for bash, the existing file their terminal actually loads, such as `~/.bash_profile`, `~/.bash_login`, `~/.profile` or `~/.bashrc`, and never create a new `~/.bash_profile`, which would stop `~/.profile` from loading) so `hookmyapp` stays on PATH in new terminals, and tell the user you did. If a later command cannot find `hookmyapp`, run it as `~/.npm-global/bin/hookmyapp`. Then re-run the check above. Apply this recovery once: if the install fails again, or `EACCES` names any other path (a root-owned `~/.npm` cache, for example), it falls under the stop rules below. This is the one install failure you recover from yourself; every other rule below that says to stop on a failed or blocked install means a failure other than this one.
+Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh; for bash, the existing file their terminal actually loads, such as `~/.bash_profile`, `~/.bash_login`, `~/.profile` or `~/.bashrc`, and never create a new `~/.bash_profile`, which would stop `~/.profile` from loading) so `hookmyapp` stays on PATH in new terminals, and tell the user you did. Then re-run the check above. Apply this recovery once: if the install fails again, or `EACCES` names any other path (a root-owned `~/.npm` cache, for example), it falls under the stop rules below. This is the one install failure you recover from yourself; every other rule below that says to stop on a failed or blocked install means a failure other than this one.
+
+**`hookmyapp: command not found` right after the install succeeded (macOS or Linux).** The CLI is installed; this shell just does not have npm's global bin folder on PATH, which is common in agent shells that never read the user's startup file. The setup block above adds it for its own shell, but every later command starts a fresh shell: run `hookmyapp` as `"$(npm prefix -g)/bin/hookmyapp"` (or prefix the command with `export PATH="$(npm prefix -g)/bin:$PATH";`). This is not a failed install; do not stop.
 
 **The CLI failed to install or upgrade for any other reason (npm works).** Stop and ask the user to upgrade it themselves.
 
