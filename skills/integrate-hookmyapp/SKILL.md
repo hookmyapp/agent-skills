@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.21"
+  version: "0.9.22"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -82,12 +82,22 @@ If that final check fails, do not continue to the skill-version marker below. Re
 
 **The CLI failed to upgrade (npm works).** Stop and ask the user to upgrade it themselves.
 
-**`npm` is missing.** The CLI path is closed on this machine. Node.js 20+ (which includes npm) is the fix, but do not make it a wall for tasks that do not need it: the [MCP server](references/mcp.md) (`https://api.hookmyapp.com/mcp`) and the [REST API](references/api.md) need no Node and cover account operations — messaging, Instagram publishing and insights, webhook destinations, customers and onboarding links, delivery logs, sandbox sessions. What needs the CLI is anything that touches the user's machine or a browser flow: connecting their own channel, and any command that writes a file or holds a tunnel open (`channels listen`, `sandbox listen`, `channels env --write`, `sandbox env`). That is the shape of it, not a closed list — a handful of others have no remote equivalent either (`sandbox stop`, Instagram sandbox replies). Before promising the no-Node path for a specific task, confirm the operation actually appears in the [MCP tool table](references/mcp.md#tools) or the [REST endpoint map](references/api.md); if it does not, it is CLI-only and needs Node. Credentials themselves are not CLI-bound — with an `hmok_` key, REST reads and rotates a channel's `hmat_` token and returns its env set (`GET /meta/channels/{id}/token`, `/token/rotate`, `/env`); only writing them into a `.env` file for the user is CLI work. Name which side the user's task falls on, then offer the matching path — Node install, or the no-Node surface. If global installs are blocked, stop and ask the user to install the CLI themselves (`npm install -g @gethookmyapp/cli`) or make `hookmyapp` available on PATH another way — do not retry the blocked command. Do not continue with guessed commands or raw API calls just because the CLI is absent.
+**The install failed with `EACCES` (permission denied).** npm's global folder is root-owned, which is the default for Node from the nodejs.org installer. Do not use `sudo`. Move npm's global folder into the user's home directory and install again:
+
+```bash
+npm config set prefix ~/.npm-global
+export PATH="$HOME/.npm-global/bin:$PATH"
+npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
+```
+
+Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh, `~/.bashrc` for bash) so `hookmyapp` stays on PATH in new terminals, and tell the user you did. If a later command cannot find `hookmyapp`, run it as `~/.npm-global/bin/hookmyapp`. Then re-run the check above.
+
+**`npm` is missing.** The CLI path is closed on this machine. Node.js 20+ (which includes npm) is the fix, but do not make it a wall for tasks that do not need it: the [MCP server](references/mcp.md) (`https://api.hookmyapp.com/mcp`) and the [REST API](references/api.md) need no Node and cover account operations — messaging, Instagram publishing and insights, webhook destinations, customers and onboarding links, delivery logs, sandbox sessions. What needs the CLI is anything that touches the user's machine or a browser flow: connecting their own channel, and any command that writes a file or holds a tunnel open (`channels listen`, `sandbox listen`, `channels env --write`, `sandbox env`). That is the shape of it, not a closed list — a handful of others have no remote equivalent either (`sandbox stop`, Instagram sandbox replies). Before promising the no-Node path for a specific task, confirm the operation actually appears in the [MCP tool table](references/mcp.md#tools) or the [REST endpoint map](references/api.md); if it does not, it is CLI-only and needs Node. Credentials themselves are not CLI-bound — with an `hmok_` key, REST reads and rotates a channel's `hmat_` token and returns its env set (`GET /meta/channels/{id}/token`, `/token/rotate`, `/env`); only writing them into a `.env` file for the user is CLI work. Name which side the user's task falls on, then offer the matching path — Node install, or the no-Node surface. If global installs are blocked for a reason other than `EACCES`, stop and ask the user to install the CLI themselves (`npm install -g @gethookmyapp/cli`) or make `hookmyapp` available on PATH another way — do not retry the blocked command. Do not continue with guessed commands or raw API calls just because the CLI is absent.
 
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.21" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.22" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
