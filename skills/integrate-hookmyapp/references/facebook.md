@@ -100,14 +100,14 @@ Raw: list `GET /<post-id>/comments?fields=id,from,message,created_time,is_hidden
 
 ```bash
 hookmyapp facebook insights --channel ch_xxxxxxxx                                          # Page, default metrics, period day
-hookmyapp facebook insights --channel ch_xxxxxxxx --metric page_impressions page_fans --period week
+hookmyapp facebook insights --channel ch_xxxxxxxx --metric page_follows page_views_total --period week
 hookmyapp facebook insights --channel ch_xxxxxxxx --post <page-id>_<post-id>               # post, lifetime
 hookmyapp facebook profile --channel ch_xxxxxxxx                                           # name, category, followers, link
 ```
 
 Raw: `GET /$FACEBOOK_PAGE_ID/insights?metric=<list>&period=day|week|days_28`; `GET /<post-id>/insights?metric=<list>`; `GET /$FACEBOOK_PAGE_ID?fields=id,name,category,followers_count,link,picture{url}`.
 
-**Page defaults:** `page_impressions`, `page_post_engagements`, `page_fans`, `page_daily_follows_unique`. **Post defaults:** `post_impressions`, `post_engaged_users`, `post_reactions_by_type_total`. Data can lag up to 48 hours; a retired metric returns an error naming it.
+**Page defaults:** `page_post_engagements`, `page_follows`, `page_views_total`, `page_daily_follows_unique`. **Post defaults:** `post_clicks`, `post_reactions_by_type_total`, `post_activity_by_action_type`. Data can lag up to 48 hours; a retired metric returns an error naming it.
 
 ## Webhooks
 
