@@ -27,11 +27,11 @@ they want to bind. Tool details and the not-a-channel caveat are in
 
 ## Facebook
 
-The Facebook sandbox is a HookMyApp-hosted Page. It covers Messenger only (no posts, comments or insights) and has no CLI commands yet: run it over MCP.
+The Facebook sandbox is a HookMyApp-hosted Page. It covers Messenger only (no posts, comments or insights) and has no CLI commands yet: the human uses the dashboard's Sandbox page (Facebook tab, m.me link with the code prefilled) or the agent runs it over MCP.
 
 1. `start_sandbox_session` with `channelType: "facebook"` returns the bind code and an `m.me/<sandbox-page>?text=<code>` link. The human opens it **from the Facebook account they want to bind** and sends the message; the session activates when it arrives. An account already connected to another workspace is turned away with a Messenger reply saying so.
 2. `set_sandbox_destination` points the session at the user's webhook. Events arrive as `object: "page"` bodies, signed like a connected Page ([facebook.md](facebook.md#webhooks)).
-3. `send_sandbox_message` replies as the sandbox Page to the bound account (no recipient argument).
+3. `send_sandbox_message` replies as the sandbox Page to the bound account (no recipient argument). Outside Messenger's 24-hour window it answers `SESSION_WINDOW_CLOSED`.
 4. `get_sandbox_logs` and `list_sandbox_sessions` read the traffic and the bound sender's name.
 
 ## sandbox start
