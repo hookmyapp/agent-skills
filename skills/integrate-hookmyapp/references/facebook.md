@@ -147,7 +147,7 @@ Nine Page tools, every one taking `channelId` (a facebook `ch_` id):
 
 | Tool | Input | Output |
 |------|-------|--------|
-| `list_facebook_conversations` | `cursor?` | `conversations[]` (`id`, `participantName`, `updatedAt`, `unreadCount`, `snippet`), `cursor.next` |
+| `list_facebook_conversations` | `cursor?` | `conversations[]` (`id`, `participantId`, `participantName`, `updatedAt`, `unreadCount`, `snippet`), `cursor.next` |
 | `list_facebook_posts` | `cursor?` | `posts[]` (`id`, `message`, `createdAt`, `permalink`, `type`), `cursor.next` |
 | `publish_facebook_post` | `kind` (`text`/`link`/`photo`/`video`/`reel`), `message?`, `link?`, `mediaUrl?`, `description?` | `postId`, `kind` |
 | `delete_facebook_post` | `postId` | `postId`, `deleted` |
@@ -157,7 +157,7 @@ Nine Page tools, every one taking `channelId` (a facebook `ch_` id):
 | `get_facebook_insights` | `postId?`, `metrics?`, `period?` | `target` (`page`/`post`), `metrics[]` (`name`, `period`, `values[]` of `value`, `endTime`) |
 | `get_facebook_page` | none | `pageId`, `name`, `category`, `followers`, `link`, `pictureUrl` |
 
-`send_message` takes a facebook channel with `recipient.id` = PSID. `get_channel` on a facebook row adds `linkedInstagramChannelId`; both `list_channels` and `get_channel` carry `metaPageId`, `facebookPageName`, `facebookPagePictureUrl`. `create_onboarding_link` and `start_sandbox_session` accept `channelType: "facebook"`.
+`send_message` takes a facebook channel with `recipient.id` = PSID. `get_channel` on a facebook row adds `linkedInstagramChannelId`; both `list_channels` and `get_channel` carry `facebookPageName` and `facebookPagePictureUrl`. `create_onboarding_link` and `start_sandbox_session` accept `channelType: "facebook"`.
 
 ## Scripts
 
