@@ -1,6 +1,6 @@
 # HookMyApp Agent Skills
 
-AI-agent skills for integrating [HookMyApp](https://hookmyapp.com) -- connect WhatsApp Business or Instagram in minutes.
+AI-agent skills for integrating [HookMyApp](https://hookmyapp.com) -- connect WhatsApp Business, Instagram or a Facebook Page in minutes.
 
 ## Installation
 
@@ -14,7 +14,7 @@ Works with Claude Code, Cursor, Codex CLI, Gemini CLI, and other compatible agen
 
 | Skill                                                        | Description                                                                                                                                             |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [integrate-hookmyapp](./skills/integrate-hookmyapp/SKILL.md) | Set up WhatsApp Business or Instagram integration -- receive webhooks and send messages. Covers the CLI, the hosted MCP server, and the public REST API |
+| [integrate-hookmyapp](./skills/integrate-hookmyapp/SKILL.md) | Set up WhatsApp Business, Instagram or Facebook Page integration -- receive webhooks and send messages. Covers the CLI, the hosted MCP server, and the public REST API |
 
 ## Prerequisites
 
@@ -28,10 +28,10 @@ The skill checks for the HookMyApp CLI before running commands. If `hookmyapp` i
 The integration skill guides your AI coding agent through:
 
 1. Installing and authenticating the HookMyApp CLI
-2. Connecting WhatsApp through Meta Embedded Signup or Instagram through Instagram OAuth, or using either sandbox
+2. Connecting WhatsApp through Meta Embedded Signup, Instagram through Instagram OAuth, or a Facebook Page from the dashboard, or using a sandbox
 3. Configuring webhook forwarding to your application
-4. Retrieving API credentials (channel id, a minted gateway access token, phone number id or Instagram account id)
-5. Sending WhatsApp and Instagram messages (raw HTTP from your code, or the typed `whatsapp` / `instagram` CLI commands for scripting) plus managing templates, media, the business profile, and Instagram comment moderation
+4. Retrieving API credentials (channel id, a minted gateway access token, phone number id, Instagram account id or Page id)
+5. Sending WhatsApp, Instagram and Messenger messages (raw HTTP from your code, or the typed `whatsapp` / `instagram` / `facebook` CLI commands for scripting) plus managing templates, media, the business profile, Instagram and Facebook comment moderation, and Facebook Page publishing and insights
 
 Browser-only steps (the default browser login flow, WhatsApp Embedded Signup, and Instagram OAuth) are clearly marked so your agent knows when to prompt you for action. Browser-free login through email OTP or a bootstrap code remains documented.
 
