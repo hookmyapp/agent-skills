@@ -110,7 +110,7 @@ Work top to bottom; each row assumes the ones above it passed.
 
 ## Tools
 
-50 tools.
+59 tools.
 
 Read:
 
@@ -119,15 +119,15 @@ Read:
 | `status` | Check auth, organization, granted scopes, usage, and suggested next steps. **Call this first.** Returns `notifications[]` — unacknowledged notifications; relay them to the human. |
 | `list_workspaces` | List workspaces and customers |
 | `list_customers` | List customers in the organization (SaaS Mode) |
-| `list_channels` | List channels in one workspace — pass the `ws_` ID from `list_workspaces` |
-| `get_channel` | Read one channel (type, identity, forwarding state, destination) |
+| `list_channels` | List channels in one workspace — pass the `ws_` ID from `list_workspaces`. Facebook rows carry `metaPageId`, `facebookPageName`, `facebookPagePictureUrl` |
+| `get_channel` | Read one channel (type, identity, forwarding state, destination). A facebook row adds `linkedInstagramChannelId` when the Page has a connected Instagram account |
 | `get_webhook_config` | Read a channel's webhook destination |
 | `get_hmac_secret` | Read a channel's current webhook signing secret without rotating it. The value signs every delivered webhook — treat it like a password: never echo it into chat, logs, or client-visible output; if it leaks, `rotate_hmac` |
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
 | `get_org_usage` | Check organization usage for the current quota period (each org has its own monthly reset date; `resetsAt` in the response says when) |
 | `get_alert_phone_status` | Check the human's own alert phone (masked) |
-| `list_sandbox_sessions` | List sandbox testing sessions in a workspace (`workspaceId`, optional `includeInactive`). A sandbox session is a phone or Instagram account bound to the SHARED HookMyApp sandbox number — **not a channel**: it has an `ssn_` ID, no `ch_` ID, and never appears in `list_channels` or `status.channelCount` |
+| `list_sandbox_sessions` | List sandbox testing sessions in a workspace (`workspaceId`, optional `includeInactive`). A sandbox session is a phone, Instagram account or Facebook Messenger sender bound to the SHARED HookMyApp sandbox account — **not a channel**: it has an `ssn_` ID, no `ch_` ID, and never appears in `list_channels` or `status.channelCount` |
 | `get_sandbox_logs` | Delivery log for a sandbox session (`sessionId`, optional `since`/`until` ISO bounds, `limit`, `cursor`) — the sandbox counterpart of `list_deliveries`, which only covers channels. An inbound message with no destination set is recorded as `not_delivered` / "No sandbox destination" |
 | `list_onboarding_links` | List customer connect links (SaaS Mode) |
 | `list_support_tickets` | List your organization's 20 most recent support tickets (org-wide — whichever credential or surface opened them) |
@@ -137,6 +137,11 @@ Read:
 | `list_instagram_media` | List an Instagram account's own published posts, newest first. Pass `mediaId` instead to read one post with its carousel `children`. **This is where media ids come from** — `get_instagram_insights` and `list_instagram_comments` both need one, and an inbound webhook is the only other source. Source `tagged` returns the posts that tagged or @mentioned the account — that is also the mention read. Stories are NOT available: that edge needs a Facebook User token |
 | `reply_instagram_mention` | Reply to a caption or comment that @mentioned the account (`mediaId` always, plus `commentId` for a comment mention). **Instagram cannot list mentions** — use `list_instagram_media` with source `tagged` to see what tagged you; mentions arrive live inside the `comments` webhook events (Meta folds mention notifications into that format; no separate payload to handle). Story mentions cannot be replied to |
 | `list_instagram_conversations` | List DM threads (most recently updated first), read one thread's messages with `conversationId` (Meta expands them on the conversation node, nested under `messages.data`, since there is no `/messages` edge), or read the public profile behind an IGSID with `participantId`. Read the thread before `send_message` so a reply has the history in view |
+| `list_facebook_conversations` | List a Page's Messenger threads, newest first (`channelId`, `cursor?`): `id`, `participantName`, `updatedAt`, `unreadCount`, `snippet`. Reply with `send_message` using the person's PSID |
+| `list_facebook_posts` | List the posts a Page published, newest first (`channelId`, `cursor?`): `id` (`{pageId}_{postId}`), `message`, `createdAt`, `permalink`, `type`. Post ids feed `list_facebook_comments`, `get_facebook_insights`, `delete_facebook_post` |
+| `list_facebook_comments` | Every comment on a Page post, replies included, oldest first (`channelId`, `postId`, `cursor?`): `id`, `fromName`, `message`, `createdAt`, `isHidden`, `parentId` |
+| `get_facebook_insights` | Page insights (`channelId` only; `period` `day`/`week`/`days_28`) or one post's lifetime insights (`postId`). `metrics?` defaults to `page_impressions, page_post_engagements, page_fans, page_daily_follows_unique` for the Page and `post_impressions, post_engaged_users, post_reactions_by_type_total` for a post. Returns `target` and `metrics[]` with `values[]` (`value`, `endTime`). Data can lag 48 hours |
+| `get_facebook_page` | The Page profile behind a channel: `pageId`, `name`, `category`, `followers`, `link`, `pictureUrl` |
 | `get_instagram_account` | Read the account profile (username, name, bio, website, picture, follower/following/post counts), plus the daily publishing quota when `includePublishingLimit` is set — worth checking before `publish_instagram_media` on a busy account. The quota read needs the content-publish scope, so it gates on that rather than on basic |
 
 Write:
@@ -146,12 +151,12 @@ Write:
 | `create_workspace` | Create a workspace |
 | `delete_workspace` | Delete a workspace by its `ws_` ID (org admin only; team and customer workspaces alike). Two outcomes: a workspace with no channels and no usage history is hard-deleted; otherwise it is deprecated — channels disconnected, history kept for stats/billing. The organization's last workspace is refused (`LAST_WORKSPACE`) |
 | `create_customer` | Create a customer (SaaS Mode) |
-| `create_onboarding_link` | Mint a connect link a customer opens to connect their channel |
+| `create_onboarding_link` | Mint a connect link a customer opens to connect their channel (`channelType` `whatsapp`/`instagram`/`facebook`; a facebook link connects the Page and its linked Instagram account into the same workspace) |
 | `revoke_onboarding_link` | Revoke an onboarding link by its `ol_` ID so its connect URL stops working (org admin only) |
-| `start_sandbox_session` | Get the caller's sandbox bind code plus a `wa.me` deep link (optional `workspaceId`; required when the org has several team workspaces). The human sends that code to the sandbox number **from the phone they want to bind** — you cannot do this step for them. Returns the same code until it is consumed. This is the no-Meta-app, no-WABA path: use it instead of `create_onboarding_link` whenever someone wants to test |
+| `start_sandbox_session` | Get the caller's sandbox bind code plus a deep link (optional `workspaceId`; required when the org has several team workspaces; `channelType` `whatsapp` default, `instagram`, or `facebook` for an `m.me` link to the sandbox Page with the code prefilled). The human sends that code to the sandbox number **from the phone they want to bind** — you cannot do this step for them. Returns the same code until it is consumed. This is the no-Meta-app, no-WABA path: use it instead of `create_onboarding_link` whenever someone wants to test |
 | `set_sandbox_destination` | Point a sandbox session at a destination webhook URL (`sessionId`, `url`). Verified with a live handshake before it is stored. Without a destination, inbound sandbox messages go nowhere |
-| `send_sandbox_message` | Reply to the phone bound to a WhatsApp sandbox session (`sessionId`, `message`). WhatsApp only — Instagram sandbox replies are CLI-only. Subject to WhatsApp's 24h window (`SESSION_WINDOW_CLOSED`) and to the shared-number caps (10/min per session, `RATE_LIMIT_SESSION`) |
-| `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object) |
+| `send_sandbox_message` | Reply to the phone or Messenger sender bound to a sandbox session (`sessionId`, `message`). WhatsApp and Facebook; Instagram sandbox replies are CLI-only. Subject to WhatsApp's 24h window (`SESSION_WINDOW_CLOSED`) and to the shared-number caps (10/min per session, `RATE_LIMIT_SESSION`) |
+| `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object). On a facebook channel `recipient.id` is the PSID; outside the 24-hour window Meta needs a `tag` |
 | `update_org_profile` | Update the organization profile (name, support contact) |
 | `acknowledge_notification` | Mark a notification from `status` `notifications[]` as seen, after relaying it to the human. Idempotent. Per-user notifications (`ackScope: "user"`) clear only for your user — other members keep their own copy; org notifications (`ackScope: "org"`) clear for the whole organization and record who acked (`acknowledgedBy`). `personal: true` notifications are addressed to your human alone. |
 | `set_alert_phone` | Set the human's own alert phone. HookMyApp sends a 6-digit code to it. User-scoped: never for a teammate |
@@ -170,9 +175,15 @@ Write:
 | `publish_instagram_media` | Publish an image, reel, story, or carousel on an Instagram channel: `mediaType`, `imageUrl`/`videoUrl`, `caption`, `children[]` (carousel), `coverUrl`, `shareToFeed`, `trialParams` with `graduationStrategy` set to `"manual"` or `"automatic"` (reels only — trial reel; rejected on any other `mediaType`), plus optional `altText` (image posts), `userTags[]` (`{username, x?, y?}`), `locationId`, `thumbOffset` (ms), `audioName` (reels). Runs Meta's container → status poll → publish flow and returns `{mediaId, permalink}` |
 | `reply_instagram_comment` | Public threaded reply to a comment (`commentId`, `text`), or `private: true` to DM the commenter instead (one DM per comment; within 7 days for post/reel comments, Live comments only while the broadcast is live) |
 | `moderate_instagram_comment` | `action`: `hide` \| `unhide` \| `delete` \| `disable_media_comments` \| `enable_media_comments`, with `commentId` (comment actions) or `mediaId` (media-level enable/disable) |
+| `publish_facebook_post` | Publish to a Page: `kind` `text` (`message`), `link` (`link`, `message?`), `photo` (`mediaUrl`, `message?`), `video` (`mediaUrl`, `description?`) or `reel` (`mediaUrl`, `description?`; the upload session runs server-side). Returns `postId`. Every call publishes again |
+| `delete_facebook_post` | Delete a Page post by `postId`. Irreversible |
+| `reply_facebook_comment` | Public reply under a Page comment (`commentId`, `message`), or `private: true` for a Messenger message to the commenter (once per comment, within 7 days). Returns `replyId` or `messageId` |
+| `moderate_facebook_comment` | `action`: `hide` \| `unhide` \| `delete` on a Page comment (`commentId`). Delete is irreversible |
 | `set_instagram_thread_setup` | Set the starter questions on a new DM thread (up to 4; tapping one posts its `payload` to the webhook) and the always-visible thread menu (up to 5 links), or `clear: true` to remove both. Replaces whatever is set |
 
-The Instagram tools require an **Instagram Login** channel. A channel connected via Facebook Login returns an **unsupported-login-flow** error; the account must be connected through Instagram OAuth. Reads (`list_instagram_comments`, `get_instagram_insights`, `list_instagram_media`, `list_instagram_conversations`, `get_instagram_account`) run under the `channel.read` action; mutations (`publish_instagram_media`, `reply_instagram_comment`, `moderate_instagram_comment`, `set_instagram_thread_setup`, `reply_instagram_mention`) run under `channel.manage`. An Instagram-Login channel connected before these abilities were available returns a **reconnect-required** error — the human re-runs `hookmyapp channels connect instagram` for that account, then the tool works. Media constraints, publish quota, insight metric names, and the comment-webhook payload shapes are in [instagram.md](instagram.md).
+The Instagram tools work on any Instagram channel: connected through Instagram Login, or through a Facebook Page ([instagram.md](instagram.md#connected-through-a-facebook-page)). Reads (`list_instagram_comments`, `get_instagram_insights`, `list_instagram_media`, `list_instagram_conversations`, `get_instagram_account`) run under the `channel.read` action; mutations (`publish_instagram_media`, `reply_instagram_comment`, `moderate_instagram_comment`, `set_instagram_thread_setup`, `reply_instagram_mention`) run under `channel.manage`. An Instagram-Login channel connected before these abilities were available returns a **reconnect-required** error — the human re-runs `hookmyapp channels connect instagram` for that account, then the tool works. Media constraints, publish quota, insight metric names, and the comment-webhook payload shapes are in [instagram.md](instagram.md).
+
+The Facebook tools take a facebook `ch_` id. Reads run under `channel.read`, mutations under `channel.manage`. A Page connected without the access an ability needs answers `FACEBOOK_SCOPE_MISSING` ("Reconnect the Facebook Page to enable this."); the human reconnects from the channel page in the dashboard. Id shapes, the 24-hour window, tags and the webhook shapes are in [facebook.md](facebook.md).
 
 **Sandbox sessions are not channels.** Every channel-scoped tool (`list_channels`, `get_channel`, `list_deliveries`, `send_message`, `get_webhook_config`, `set_webhook_destination`) is keyed to a `ch_` ID and is blind to sandbox traffic. Before telling a human that nothing is connected, check **both**: `status` reports `sandboxSessionCount` alongside `channelCount`, and `list_channels` returns `sandboxSessionCount` next to its `channels[]`. An org can have zero channels and a live sandbox session — answering "no number connected" there is wrong. Full CLI equivalents in [sandbox.md](sandbox.md).
 
@@ -191,5 +202,6 @@ The skill-wide safety rules apply unchanged over MCP:
 - **`send_message` sends a real message** to a real person. Confirm recipient channel and content.
 - **`send_sandbox_message` also sends a real WhatsApp message** — to the human's own bound phone. Confirm content. `set_sandbox_destination` re-points live sandbox traffic, so confirm the URL.
 - **`publish_instagram_media` posts real, public content** to the account's feed, reels, or story. `reply_instagram_comment` posts a public reply (or DMs a real user); `moderate_instagram_comment` hides or deletes real comments, and `delete` is irreversible. Confirm channel, target ids, and content with the human before calling any of them.
+- **`publish_facebook_post` publishes to a real Page and republishes on every call**; `delete_facebook_post` and `moderate_facebook_comment` with `delete` are irreversible; `reply_facebook_comment` posts publicly or messages a real person. Same rule: confirm first.
 - **Never paste `hmok_` API keys** into chat, tickets, or logs. They are org-scoped credentials; the human creates and stores them.
 - **Verify token ≠ HMAC secret.** The verify token answers the webhook subscription handshake; the HMAC secret (rotated by `rotate_hmac`) signs delivered payloads (`X-HookMyApp-Signature-256`). Don't conflate them when reading `get_webhook_config` output back to the human.
