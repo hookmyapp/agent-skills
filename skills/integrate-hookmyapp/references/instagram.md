@@ -18,7 +18,7 @@ All hit the same gateway; the path after `/meta` is verbatim Meta Graph API. The
 - **Channel resolution.** `--channel <ref>` accepts an `@handle` or a `ch_xxxxxxxx` id (no `+phone` — IG channels have no phone), falling back to `HOOKMYAPP_CHANNEL_ID`. Wrong type → `CHANNEL_TYPE_MISMATCH`; none → `NO_CHANNEL`.
 - **Body shape is `{recipient,message}`** — not WhatsApp's `messaging_product`/`to` shape. `messages send` accepts builder flags (`--to`, `--text`) or a complete `--body`/`-d` (inline JSON, `@file`, or `-`).
 - **You can only DM someone who messaged you first.** The recipient is an IGSID (Instagram-scoped id) captured from the inbound webhook; Meta's 24-hour window applies. The one exception is a [private reply to a comment](#private-replies) — that DM is allowed because the user commented, under its own 7-day rule.
-- **Instagram Login channels only.** Publish, insights, and comment operations work only on channels connected via **Instagram Login** (direct Instagram OAuth). A channel connected via Facebook Login gets an **unsupported-login-flow** error; connect the account through Instagram OAuth instead. DMs are unaffected.
+- **Both connection paths work.** Every ability below runs on an Instagram channel connected through Instagram Login or through a Facebook Page ([Connected through a Facebook Page](#connected-through-a-facebook-page)).
 - **Older channels may need a one-time reconnect.** If a publish, insights, or comment operation returns a **reconnect-required** error, see [Reconnect](#reconnect-channels-connected-before-these-abilities).
 
 ## Recipes
@@ -264,9 +264,17 @@ Parsing rules:
 - **@mentions** arrive in the `comments` webhook event format under Instagram Login — Meta folds mention notifications into `comments` events, so there is no separate mentions payload to handle. The `mentioned_comment`/`mentioned_media` lookups belong to the Facebook-Login Instagram Graph API, which these abilities do not use.
 - Unknown fields/shapes are forwarded to you anyway (never billed); ignore what you don't handle rather than erroring.
 
-## Reconnect: channels connected before these abilities
+## Connected through a Facebook Page
 
-These abilities are **Instagram-Login-only**. A channel connected via **Facebook Login** fails with an **unsupported-login-flow** error (never reconnect-required); connect the account through Instagram OAuth instead.
+An Instagram account linked to a Facebook Page can be connected from the Page side ([facebook.md](facebook.md#connect)): connecting the Page creates the `instagram` channel next to the `facebook` one, in the same workspace. The same CLI commands and MCP tools apply, with these differences handled server-side, so nothing changes for you:
+
+- Conversation and thread-setup calls are Page-rooted on this path; the tools pick the right shape from the channel.
+- Mentions work here too (`list_instagram_media --source tagged`, `reply_instagram_mention`).
+- Participant profile reads (`threads --participant`, `list_instagram_conversations` with `participantId`) are not available on this path (`MCP_IG_PARTICIPANT_LOOKUP_UNSUPPORTED`).
+- A missing ability answers **reconnect-required** with a message naming the Page; the human reconnects the Page from the dashboard, not `channels connect instagram`.
+- The `instagram` and `facebook` channels are managed separately after connect: disconnecting one never changes the other.
+
+## Reconnect: channels connected before these abilities
 
 An Instagram-Login channel connected before publish/insights/comment abilities were available fails those operations with a **reconnect-required** error. Nothing is forced — DMs keep working without reconnecting.
 

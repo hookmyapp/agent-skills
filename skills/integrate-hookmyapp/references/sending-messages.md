@@ -1,6 +1,6 @@
 ---
 name: sending-messages
-description: Send WhatsApp or Instagram messages from your app against Meta Graph API. Works identically for sandbox and your own channel; only env values and (for Instagram) the body shape change.
+description: Send WhatsApp, Instagram or Facebook Messenger messages from your app against Meta Graph API. Works identically for sandbox and your own channel; only env values and (for Instagram and Messenger) the body shape change.
 ---
 
 # Sending Messages
@@ -147,4 +147,8 @@ export async function sendInstagram(recipientIgsid, text) {
 
 The env-key fallbacks (`INSTAGRAM_API_URL` then `INSTAGRAM_GRAPH_API_URL`; `INSTAGRAM_ACCOUNT_ID` then `INSTAGRAM_USER_ID`) bridge the sandbox vs real-channel base-URL key split documented in [env.md](env.md), plus the legacy `INSTAGRAM_USER_ID` alias from older `.env` files (both contexts now emit `INSTAGRAM_ACCOUNT_ID`).
 
-**Private replies to comments are not a messaging feature** — they live with the comment tooling in [instagram.md](instagram.md#private-replies), not here. A private reply DMs a commenter via `POST /{IG_ACCOUNT_ID}/messages` with `recipient: {"comment_id": "<id>"}` (one DM per comment; within 7 days for post/reel comments, Live comments only while the broadcast is live). The regular DM path above is unchanged: outside a private reply, you can only DM a user within Meta's standard 24-hour window after their last message. Meta's `HUMAN_AGENT` tag (which extends manual replies to 7 days) requires a separate app-level Human Agent permission that HookMyApp's Instagram integration does not currently include, so within HookMyApp treat the 24-hour window as the limit.
+## Facebook Messenger (same `{recipient,message}` shape, Page-rooted)
+
+A Facebook Page sends the same body shape as Instagram to `POST https://gateway.hookmyapp.com/meta/v25.0/${FACEBOOK_PAGE_ID}/messages` with the channel's `hmat_` token. The recipient is the PSID from the inbound `sender.id`. Free-form messages are allowed within 24 hours of the person's last message; outside it the gateway answers 409 unless the body carries `"messaging_type": "MESSAGE_TAG"` and a `tag` (`CONFIRMED_EVENT_UPDATE`, `POST_PURCHASE_UPDATE`, `ACCOUNT_UPDATE`; `HUMAN_AGENT` only on approved Pages). Attachments: `message.attachment` with `type` `image|video|audio|file` and `payload.url`. Sender actions (`mark_seen`, `typing_on`, `typing_off`) are free. Full recipes, CLI and scripts: [facebook.md](facebook.md).
+
+**Private replies to comments are not a messaging feature** — they live with the comment tooling in [instagram.md](instagram.md#private-replies), not here. A private reply DMs a commenter via `POST /{IG_ACCOUNT_ID}/messages` (or `POST /{FACEBOOK_PAGE_ID}/messages` for a Page comment, see [facebook.md](facebook.md#moderate-comments)) with `recipient: {"comment_id": "<id>"}` (one DM per comment; within 7 days for post/reel comments, Live comments only while the broadcast is live). The regular DM path above is unchanged: outside a private reply, you can only DM a user within Meta's standard 24-hour window after their last message. Meta's `HUMAN_AGENT` tag (which extends manual replies to 7 days) requires a separate app-level Human Agent permission that HookMyApp's Instagram integration does not currently include, so within HookMyApp treat the 24-hour window as the limit.

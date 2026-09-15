@@ -1,11 +1,11 @@
 ---
 name: sandbox
-description: Manage a sandbox WhatsApp or Instagram session (dev/testing), pull its env, open a tunnel, and send test messages.
+description: Manage a sandbox WhatsApp, Instagram or Facebook Messenger session (dev/testing), pull its env, open a tunnel, and send test messages.
 ---
 
 # Sandbox
 
-The sandbox is a test account HookMyApp provisions for dev and testing — no Meta dashboard, no embedded signup, no templates. A WhatsApp session is pinned to a single phone number (yours). Recipients are pinned to that session phone server-side; **`--to` does not exist** on `sandbox send` and any attempt to send to a different number is rejected. `sandbox start instagram` opens an Instagram session reached via an ig.me deep link; IG sandbox replies go to the DM thread rather than a pinned phone.
+The sandbox is a test account HookMyApp provisions for dev and testing — no Meta dashboard, no embedded signup, no templates. A WhatsApp session is pinned to a single phone number (yours). Recipients are pinned to that session phone server-side; **`--to` does not exist** on `sandbox send` and any attempt to send to a different number is rejected. `sandbox start instagram` opens an Instagram session reached via an ig.me deep link; IG sandbox replies go to the DM thread rather than a pinned phone. A Facebook Messenger sandbox session exists too, over MCP only ([Facebook](#facebook)).
 
 ## No terminal? Use MCP
 
@@ -14,16 +14,25 @@ blocked. Same session, same shared number — only the surface differs:
 
 | CLI | MCP tool |
 | --- | --- |
-| `sandbox start` | `start_sandbox_session` (returns the bind code + `wa.me` deep link) |
+| `sandbox start` | `start_sandbox_session` (returns the bind code + `wa.me` deep link; `channelType: "facebook"` returns an `m.me` link to the sandbox Page) |
 | `sandbox status` | `list_sandbox_sessions` |
 | `sandbox webhook set` | `set_sandbox_destination` |
 | `sandbox logs` | `get_sandbox_logs` |
-| `sandbox send` | `send_sandbox_message` (WhatsApp only) |
+| `sandbox send` | `send_sandbox_message` (WhatsApp and Facebook) |
 | `sandbox env`, `sandbox listen`, `sandbox stop` | CLI only |
 
 The phone step is identical either way: the human sends the code from the device
 they want to bind. Tool details and the not-a-channel caveat are in
 [mcp.md](mcp.md).
+
+## Facebook
+
+The Facebook sandbox is a HookMyApp-hosted Page. It covers Messenger only (no posts, comments or insights) and has no CLI commands yet: the human uses the dashboard's Sandbox page (Facebook tab, m.me link plus the code to send) or the agent runs it over MCP.
+
+1. `start_sandbox_session` with `channelType: "facebook"` returns the bind code and an `m.me/<sandbox-page>` link. The human opens it **from the Facebook account they want to bind** and sends the code as a message (Messenger links cannot prefill text); the session activates when it arrives. An account already connected to another workspace is turned away with a Messenger reply saying so.
+2. `set_sandbox_destination` points the session at the user's webhook. Events arrive as `object: "page"` bodies, signed like a connected Page ([facebook.md](facebook.md#webhooks)).
+3. `send_sandbox_message` replies as the sandbox Page to the bound account (no recipient argument). Outside Messenger's 24-hour window it answers `SESSION_WINDOW_CLOSED`.
+4. `get_sandbox_logs` and `list_sandbox_sessions` read the traffic and the bound sender's name.
 
 ## sandbox start
 

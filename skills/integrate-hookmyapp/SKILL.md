@@ -1,17 +1,17 @@
 ---
 name: integrate-hookmyapp
-description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp or Instagram messages, publish Instagram posts, reels, or stories, read Instagram insights, manage WhatsApp templates/media or the business profile, moderate Instagram comments or receive comment webhooks, set up a sandbox session, connect WhatsApp via Meta Embedded Signup or Instagram via Instagram OAuth, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram publish, instagram insights, instagram messaging api, meta instagram api, hookmyapp instagram, hookmyapp mcp."
+description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp, Instagram or Facebook Messenger messages, publish Instagram posts, reels, or stories, publish Facebook Page posts and reels, read Instagram or Facebook Page insights, manage WhatsApp templates/media or the business profile, moderate Instagram or Facebook comments or receive comment webhooks, set up a sandbox session, connect WhatsApp via Meta Embedded Signup, Instagram via Instagram OAuth or a Facebook Page (with its linked Instagram account) from the dashboard, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram publish, instagram insights, instagram messaging api, meta instagram api, hookmyapp instagram, facebook page api, facebook messenger api, messenger webhook, facebook comments, facebook page insights, hookmyapp facebook, hookmyapp mcp."
 license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.23"
+  version: "0.9.24"
   cli-package: "@gethookmyapp/cli"
 ---
 
 # Integrate HookMyApp
 
-HookMyApp connects the user's own WhatsApp number and Instagram account to their code: inbound events are forwarded to their code, and their replies go out over Meta's official API. Outbound sends route through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`): the user's app carries a minted `hmat_` gateway access token, the gateway swaps it for the underlying Meta token server-side, and the path after `/meta` is verbatim Meta Graph API. This skill teaches AI coding agents how to drive the `@gethookmyapp/cli` to integrate a user's app with either a sandbox account (for dev and testing) or their own channel. WhatsApp uses Meta Embedded Signup; Instagram uses direct Instagram OAuth. The CLI owns credential issuance, tunnel lifecycle, and webhook configuration. For a single own-channel integration your code never needs to call the HookMyApp API directly; SaaS builders whose backend must manage customers at runtime use the [REST API](references/api.md).
+HookMyApp connects the user's own WhatsApp number, Instagram account and Facebook Page to their code: inbound events are forwarded to their code, and their replies go out over Meta's official API. Outbound sends route through the HookMyApp gateway (`https://gateway.hookmyapp.com/meta/...`): the user's app carries a minted `hmat_` gateway access token, the gateway swaps it for the underlying Meta token server-side, and the path after `/meta` is verbatim Meta Graph API. This skill teaches AI coding agents how to drive the `@gethookmyapp/cli` to integrate a user's app with either a sandbox account (for dev and testing) or their own channel. WhatsApp uses Meta Embedded Signup; Instagram uses direct Instagram OAuth; a Facebook Page connects from the dashboard's Page picker and brings its linked Instagram account along. The CLI owns credential issuance, tunnel lifecycle, and webhook configuration. For a single own-channel integration your code never needs to call the HookMyApp API directly; SaaS builders whose backend must manage customers at runtime use the [REST API](references/api.md).
 
 > **Direct Meta access still works.** Integrations that already call `https://graph.facebook.com` with their own Meta token are unaffected. The gateway with a minted `hmat_` access token is the recommended path for new setups: the access token is scoped to one channel and revocable.
 
@@ -22,8 +22,8 @@ HookMyApp connects the user's own WhatsApp number and Instagram account to their
 - **The CLI is the source of truth.** Never embed credentials inline in generated code. Run `hookmyapp sandbox env --write .env` or `hookmyapp channels env <channel> --write` (which exports the channel's current gateway `hmat_` access token — only `channels token --rotate` mints a new one) and let the user's app read from environment variables.
 - **There is no environment to select.** Every command runs against the live HookMyApp service. Pass `--workspace <id>` only when the user has multiple workspaces and a command must hit one other than the active default.
 - **Browser steps cannot be automated.** `login` and `channels connect` both open browser tabs the human must complete. Do not pretend to automate them — hand the terminal back with a clear instruction. Exception: `hookmyapp login --email <addr>` is a browser-free login (an OTP code arrives at the human's email; they paste it back) — prefer it in agent/CI contexts. See [references/auth.md](references/auth.md).
-- **Connecting a real channel? First ask WHOSE channel it is.** Two distinct connect flows exist and they are not interchangeable. (a) **The user's own team/product channel** — their company's WhatsApp number or Instagram account — connects via `hookmyapp channels connect` (browser Embedded Signup / OAuth) into a team workspace. (b) **An end-customer's channel** — the user runs a SaaS and their customers bring their own numbers/accounts — connects via a customer workspace plus an onboarding link (`customers onboarding-links create`) that the end-customer opens; onboarding links can ONLY target customer workspaces, and the backend rejects a link pointed at a team workspace. When the user says "connect WhatsApp/Instagram" and the intent is not already obvious from context, ask one question before acting: "Is this your own team's channel, or a channel your customers will connect?" — then route to (a) or (b). Never mint an onboarding link for the user's own channel.
-- **Sandbox is not your own channel.** Sandbox is a HookMyApp-hosted test account with 6 env keys, no templates, and recipient pinned to the session phone. Your own channel is your WhatsApp number (7 env keys and template support) or Instagram account (6 env keys and no templates). Authorize it with `channels connect`, then export its runtime environment with `channels env`. The two are not interchangeable — pick one based on the user's goal before generating code.
+- **Connecting a real channel? First ask WHOSE channel it is.** Two distinct connect flows exist and they are not interchangeable. (a) **The user's own team/product channel** — their company's WhatsApp number, Instagram account or Facebook Page — connects via `hookmyapp channels connect` (browser Embedded Signup / OAuth) into a team workspace. (b) **An end-customer's channel** — the user runs a SaaS and their customers bring their own numbers/accounts — connects via a customer workspace plus an onboarding link (`customers onboarding-links create`) that the end-customer opens; onboarding links can ONLY target customer workspaces, and the backend rejects a link pointed at a team workspace. When the user says "connect WhatsApp/Instagram/Facebook" and the intent is not already obvious from context, ask one question before acting: "Is this your own team's channel, or a channel your customers will connect?" — then route to (a) or (b). Never mint an onboarding link for the user's own channel.
+- **Sandbox is not your own channel.** Sandbox is a HookMyApp-hosted test account with 6 env keys, no templates, and recipient pinned to the session phone. Your own channel is your WhatsApp number (7 env keys and template support), Instagram account (6 env keys and no templates) or Facebook Page (token via `channels token`, Page id via `channels show`; `channels env` has no Facebook key set yet). Authorize it with `channels connect`, then export its runtime environment with `channels env`. The two are not interchangeable — pick one based on the user's goal before generating code.
 - **MCP is optional; the CLI is never blocked.** Setup installs the CLI — that is the whole requirement. The MCP server is a convenience for agents that prefer tool calls, and `hookmyapp login` configures it automatically for Claude Code. Because MCP tools resolve at session start, a server installed mid-session stays dormant until the next session: that is expected, not a failure. When `mcp__hookmyapp__*` tools are absent or the connection is unhealthy and a shell is available, do the task with the CLI and mention that a restart activates the tools — **never tell the user the task cannot be done while the CLI can do it.** (Shell-less agents are the one exception: without a working MCP connection they should say exactly which capability is missing.) Repair steps: [references/mcp.md](references/mcp.md#recovery-mcp-isnt-working).
 - **Your own channel has two webhook-delivery flavors: CLI tunnel OR your own URL.** A connected channel can receive inbound webhooks via either (a) `hookmyapp channels listen` (the CLI provisions a per-channel Cloudflare tunnel — no public HTTPS URL required, designed for local dev / self-hosted agents / 24/7 hobby projects) or (b) `hookmyapp channels webhook set <channel> --url https://...` (your own public HTTPS endpoint, the classic deployed pattern). Pick CLI when the user is developing on localhost or running an always-on self-hosted agent (e.g. on a personal server or Raspberry Pi); pick URL when the user has a deployed backend ready to accept inbound webhooks. The two are mutually exclusive per channel — setting a URL while the CLI is listening evicts the CLI (it exits cleanly with a notice).
 - **Check notifications every session.** `status` returns `notifications[]` — messages from HookMyApp for this account: problems detected (failing webhook delivery, disconnected channels, usage limits), fixes applied, required updates, and product announcements. Relay every open notification to the human in your first reply, then mark it seen with `acknowledge_notification` (CLI: `hookmyapp notifications ack <id>`) so it stops repeating. After any send failure, re-check (`status` or `hookmyapp notifications`) — same sequence: relay any new notification to the human first, then acknowledge it. Notification fields that shape how you relay: `ackScope: "user"` means your ack clears the notification only for YOUR human — other members of the organization each see and dismiss their own copy, so acking never hides anything from anyone else; `ackScope: "org"` means one ack clears it for the whole organization and records who saw it — `acknowledgedBy` on an org notification is that receipt ("acknowledged for the org by <email>" — it means their agent relayed it, NOT that the underlying problem was fixed); `personal: true` means the notification is addressed to your human specifically (no one else in the organization can see it) — say so when relaying, e.g. "this one is addressed to you directly."
@@ -35,8 +35,8 @@ HookMyApp connects the user's own WhatsApp number and Instagram account to their
 Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step is not automatable:
 
 - `hookmyapp login` — opens a browser tab for sign-in.
-- `hookmyapp channels connect` — opens the provider flow: WhatsApp Embedded Signup or direct Instagram OAuth.
-- `hookmyapp channels listen` — long-running foreground process; the human must keep the terminal open (or background it via `nohup …  &` for 24/7 use). Test inbound webhook delivery by sending a real WhatsApp message to a WhatsApp channel or an Instagram DM to an Instagram channel.
+- `hookmyapp channels connect` — opens the provider flow: WhatsApp Embedded Signup, direct Instagram OAuth, or the dashboard's Facebook Page picker.
+- `hookmyapp channels listen` — long-running foreground process; the human must keep the terminal open (or background it via `nohup …  &` for 24/7 use). Test inbound webhook delivery by sending a real WhatsApp message to a WhatsApp channel, an Instagram DM to an Instagram channel, or a Messenger message to a Facebook Page channel.
 - Any destructive operation (`webhook set`, `logout`); confirm intent before running.
 - Rotating a leaked gateway `hmat_` access token, via `hookmyapp channels token <channel> --rotate` (no Meta App Dashboard trip; the Meta token is untouched, and the old token dies immediately).
 
@@ -56,6 +56,7 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 - A HookMyApp account. Sign up at <https://app.hookmyapp.com/signup>.
 - To connect WhatsApp: a Facebook Business Manager account for Embedded Signup.
 - To connect Instagram: an Instagram professional account (Business or Creator) for direct Instagram OAuth.
+- To connect a Facebook Page: a Page the user manages (personal profiles cannot be connected). The `facebook` CLI commands need CLI >= 0.14.24.
 
 ## Skill Setup (run before any CLI command)
 
@@ -104,31 +105,31 @@ Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh;
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.23" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.24" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
 
 ## Two paths: sandbox vs your own channel
 
-| Aspect | WhatsApp sandbox | Instagram sandbox | Own WhatsApp | Own Instagram |
-|--------|------------------|-------------------|--------------|---------------|
-| Account | HookMyApp-hosted test number | HookMyApp-hosted test account | Your WABA and number | Your professional account |
-| Setup | `sandbox start whatsapp` | `sandbox start instagram` | `channels connect whatsapp` | `channels connect instagram` |
-| Env keys | 6: `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | 6: `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `INSTAGRAM_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID` | 7: `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` | 6: `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` |
-| Inbound | `sandbox listen` | `sandbox listen` | Public HTTPS URL (`webhook set`) or CLI tunnel (`channels listen`) | Public HTTPS URL (`webhook set`) or CLI tunnel (`channels listen`) |
-| Recipient | Session phone, pinned server-side | Bound Instagram DM thread | Replies within an active conversation; approved templates may initiate or resume messaging under Meta policy | Instagram user in an active messaging window |
-| Templates | Blocked | Not applicable | Approved templates supported | Not applicable |
-| Provider setup | None | None | Facebook Business Manager and WABA | Instagram Business or Creator account; no Facebook Login |
+| Aspect | WhatsApp sandbox | Instagram sandbox | Own WhatsApp | Own Instagram | Own Facebook Page |
+|--------|------------------|-------------------|--------------|---------------|-------------------|
+| Account | HookMyApp-hosted test number | HookMyApp-hosted test account | Your WABA and number | Your professional account | Your Page (plus its linked Instagram account as a second channel) |
+| Setup | `sandbox start whatsapp` | `sandbox start instagram` | `channels connect whatsapp` | `channels connect instagram` | `channels connect facebook` (dashboard picker) |
+| Env keys | 6: `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `WHATSAPP_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID` | 6: `WEBHOOK_HMAC_SECRET`, `VERIFY_TOKEN`, `PORT`, `INSTAGRAM_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID` | 7: `META_GRAPH_API_URL`, `WHATSAPP_ACCESS_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_WABA_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` | 6: `INSTAGRAM_GRAPH_API_URL`, `INSTAGRAM_ACCESS_TOKEN`, `INSTAGRAM_ACCOUNT_ID`, `HOOKMYAPP_CHANNEL_ID`, `VERIFY_TOKEN`, `WEBHOOK_HMAC_SECRET` | No `channels env` set yet: `FACEBOOK_ACCESS_TOKEN` from `channels token`, `FACEBOOK_PAGE_ID` from `channels show`, HMAC via `webhook hmac show` |
+| Inbound | `sandbox listen` | `sandbox listen` | Public HTTPS URL (`webhook set`) or CLI tunnel (`channels listen`) | Public HTTPS URL (`webhook set`) or CLI tunnel (`channels listen`) | Public HTTPS URL (`webhook set`) or CLI tunnel (`channels listen`) |
+| Recipient | Session phone, pinned server-side | Bound Instagram DM thread | Replies within an active conversation; approved templates may initiate or resume messaging under Meta policy | Instagram user in an active messaging window | Messenger user within 24 hours of their last message, or a tagged message |
+| Templates | Blocked | Not applicable | Approved templates supported | Not applicable | Not applicable (message tags instead) |
+| Provider setup | None | None | Facebook Business Manager and WABA | Instagram Business or Creator account; no Facebook Login | A Facebook Page you manage |
 
-**Pick sandbox** when the user is building or debugging on localhost and wants zero Meta paperwork for day-to-day iteration. **Pick your own channel** when the user is deploying to a real WhatsApp number or Instagram account (provider authorization is required once per channel).
+**Pick sandbox** when the user is building or debugging on localhost and wants zero Meta paperwork for day-to-day iteration. **Pick your own channel** when the user is deploying to a real WhatsApp number, Instagram account or Facebook Page (provider authorization is required once per channel).
 
 ## Getting Started
 
 The end-to-end walkthroughs live in **[references/getting-started.md](references/getting-started.md)**:
 
 - **Quickstart: Sandbox** — install → login → starter kit → `sandbox env`/`listen` → first echoed message.
-- **Full setup: your own channel** — login → workspace → `channels connect` (WhatsApp Embedded Signup or Instagram OAuth) → `channels env` → `webhook set` → health check.
+- **Full setup: your own channel** — login → workspace → `channels connect` (WhatsApp Embedded Signup, Instagram OAuth or the Facebook Page picker) → `channels env` → `webhook set` → health check.
 - **CLI-tunnel inbound** — `channels listen` to pipe inbound webhooks to `localhost` with no public URL.
 
 Read that file when starting a fresh integration; the sections below are the per-area reference an agent jumps to mid-task.
@@ -140,12 +141,13 @@ Read that file when starting a fresh integration; the sections below are the per
 | auth | Log in (browser, bootstrap code, or browser-free email OTP via `login --email`) and log out; `credentials {list,revoke}` manages the agent credentials `login --email` mints. | [references/auth.md](references/auth.md) |
 | alerts | Your own alert phone: `phone status`, `phone set`, `phone verify`, `phone remove`. Where HookMyApp texts the human when something breaks. | [references/alerts.md](references/alerts.md) |
 | billing | Show subscription status, open the app Billing page, upgrade plan (billing is pooled across your organization). | [references/billing.md](references/billing.md) |
-| channels | Connect `[whatsapp|instagram]`, list, show, enable/disable, disconnect, `move <channel> <target>` (to another workspace or customer), `env`/`health`, `webhook {show,set,clear}`, `webhook hmac show`, `meta-retry <on|off>`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
+| channels | Connect `[whatsapp|instagram|facebook]`, list, show, enable/disable, disconnect, `move <channel> <target>` (to another workspace or customer), `env`/`health`, `webhook {show,set,clear}`, `webhook hmac show`, `meta-retry <on|off>`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
 | whatsapp (`wa`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `templates {list,get,create,delete}`, `media {upload,get,download,delete}`, `profile {get,update}`. | [references/whatsapp.md](references/whatsapp.md) |
 | instagram (`ig`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `publish` (image/reel/story/carousel), `insights [--media]`, `comments {list,get,reply,private-reply,hide,delete}`. | [references/instagram.md](references/instagram.md) |
+| facebook (`fb`) | Typed gateway wrappers for your own Page (CLI >= 0.14.24): `messages {send,read}`, `threads`, `posts`, `publish` (text/link/photo/video/reel), `delete-post`, `comments {list,reply,private-reply,hide,unhide,delete}`, `insights [--post]`, `profile`. | [references/facebook.md](references/facebook.md) |
 | channel tokens | Read and rotate the channel's gateway access token (`hmat_…`) via `channels token [--rotate]` (one active token per channel). | [references/access-tokens.md](references/access-tokens.md) |
 | config | Set/get/unset persistent CLI config (e.g., `telemetry` crash-reporting on/off). | [references/config.md](references/config.md) |
-| customers | SaaS customer workspaces: `list`, `new`, `use`, `current`, and `onboarding-links {list,create}` — mint connect links your end-customers open to connect their channel (no HookMyApp account needed). | [references/customers.md](references/customers.md) |
+| customers | SaaS customer workspaces: `list`, `new`, `use`, `current`, and `onboarding-links {list,create}` (`--channel-type whatsapp|instagram|facebook`) — mint connect links your end-customers open to connect their channel (no HookMyApp account needed). | [references/customers.md](references/customers.md) |
 | notifications | List and acknowledge notifications from HookMyApp about integration problems (`notifications list [--all]`, `notifications ack <id>`). | [references/notifications.md](references/notifications.md) |
 | org profile | Read/update the organization's company profile (`org profile [show]`, `org profile set --website/--business-category/--business-niche/--primary-use-case/--email/--phone`). Org admins only; values come from the human. | [references/getting-started.md](references/getting-started.md) |
 | support | Open and converse on support tickets: `support {new,list,show,watch,reply}`. See "Reporting problems to HookMyApp" below for the conversation workflow. | [references/troubleshooting.md](references/troubleshooting.md) |
@@ -159,7 +161,7 @@ Five build rules and the health pass that reads the result: [references/developm
 
 ### MCP server (operate HookMyApp without the CLI)
 
-HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 50 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, feedback, alert phone, and Instagram publishing, insights, and comment moderation. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
+HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 59 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, feedback, alert phone, Instagram publishing, insights, and comment moderation, and Facebook Page inbox, publishing, comments and insights. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
 Set it up with `hookmyapp agent setup`, which configures every coding agent installed on the machine: Claude Code, Codex and Cursor. `hookmyapp login` does the same for whatever it finds. Pass `--client claude|codex|cursor` when only one should be touched — use it whenever the user has not asked you to set up their other agents. **No client signs in.** Setup writes the credential into each client's entry (Codex needs 0.148.0 or newer for that, see [references/mcp.md](references/mcp.md#authentication)), so there is no follow-up command for anyone — it prints one line per client naming the restart that client needs, and that is the whole story. Never run another client's binary to finish a setup: at best it is a permission prompt the user cannot make sense of, at worst a command that is not installed. Any other client takes the server URL (`https://api.hookmyapp.com/mcp`) and its own sign-in, or an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key` for CI and headless environments. Every client resolves MCP tools at session start, so a server configured mid-session stays dormant until the next one.
 
@@ -173,7 +175,7 @@ When the user's own backend must operate HookMyApp at runtime — create a custo
 
 ### Bundled scripts & assets (runtime fallback, no CLI at send time)
 
-For environments where the `hookmyapp` CLI isn't installed at runtime, the skill ships thin Node scripts that call the gateway directly: `scripts/wa-*.mjs` (send, template, media, profile, mark-read) and `scripts/ig-*.mjs` (DM, mark-seen, comments). **You still provision credentials once** with `hookmyapp channels env <channel> --write .env` (the scripts need the resulting `WHATSAPP_ACCESS_TOKEN`/`HOOKMYAPP_CHANNEL_ID`/etc) — they then auto-load `./.env` (override with `--dotenv <path>` or `HOOKMYAPP_ENV_FILE`) and run without the CLI. Each takes `--help`. Copy-paste request bodies live in `assets/` (text, image, interactive, template-create, template-send, IG DM). Full annotated tables: [references/whatsapp.md](references/whatsapp.md) and [references/instagram.md](references/instagram.md); the FILEMAP at the end lists every script and asset.
+For environments where the `hookmyapp` CLI isn't installed at runtime, the skill ships thin Node scripts that call the gateway directly: `scripts/wa-*.mjs` (send, template, media, profile, mark-read), `scripts/ig-*.mjs` (DM, mark-seen, comments) and `scripts/fb-*.mjs` (Messenger message, comments). **You still provision credentials once** with `hookmyapp channels env <channel> --write .env` (the scripts need the resulting `WHATSAPP_ACCESS_TOKEN`/`HOOKMYAPP_CHANNEL_ID`/etc) — they then auto-load `./.env` (override with `--dotenv <path>` or `HOOKMYAPP_ENV_FILE`) and run without the CLI. Each takes `--help`. Copy-paste request bodies live in `assets/` (text, image, interactive, template-create, template-send, IG DM, Messenger message, Messenger private reply). Full annotated tables: [references/whatsapp.md](references/whatsapp.md), [references/instagram.md](references/instagram.md) and [references/facebook.md](references/facebook.md); the FILEMAP at the end lists every script and asset.
 
 ## Global Options
 
@@ -207,14 +209,14 @@ Once env is populated, sending is a single HTTP POST to the gateway at `https://
 
 Your app code does not change between sandbox and your own channel; only the env values change. Full code samples (JS with `fetch`, Python with `httpx`, template payloads) live in [references/sending-messages.md](references/sending-messages.md). Integrations that prefer to call `https://graph.facebook.com` directly with their own Meta token still work; the gateway is the recommended path for new setups.
 
-Instagram outbound uses a different body shape (`{"recipient":{"id":"<IGSID>"},"message":{"text":"..."}}`) against the Instagram Graph API base, not WhatsApp's `messaging_product`/`to` shape. See [references/sending-messages.md](references/sending-messages.md) for both.
+Instagram and Facebook Messenger outbound use a different body shape (`{"recipient":{"id":"<IGSID or PSID>"},"message":{"text":"..."}}`) against `/{account-or-page-id}/messages`, not WhatsApp's `messaging_product`/`to` shape. See [references/sending-messages.md](references/sending-messages.md) for all three.
 
 ### Three ways to send (and manage templates, media, profile, comments)
 
 Same gateway endpoint, pick the path that fits the context:
 
 1. **CLI** (preferred for scripting/CI/agents): typed wrappers — `hookmyapp whatsapp messages send …`, `hookmyapp instagram comments reply …`. Run any with `--help`.
-2. **Bundled scripts** (no CLI at runtime): `node scripts/wa-*.mjs` / `ig-*.mjs`. They auto-load `./.env` (the one `channels env --write` produced — provision it once) and call the gateway directly.
+2. **Bundled scripts** (no CLI at runtime): `node scripts/wa-*.mjs` / `ig-*.mjs` / `fb-*.mjs`. They auto-load `./.env` (the one `channels env --write` produced — provision it once) and call the gateway directly.
 3. **Raw HTTP** (inside your running app): the `fetch`/`httpx` samples in [references/sending-messages.md](references/sending-messages.md).
 
 ```bash
@@ -222,7 +224,7 @@ hookmyapp whatsapp messages send --channel +15551234567 --to +15557654321 --text
 node scripts/wa-send-message.mjs --to +15557654321 --text "hi"                            # script fallback
 ```
 
-CLI commands resolve the channel from `--channel` (`+phone`, `@handle`, or `ch_id`) or fall back to `HOOKMYAPP_CHANNEL_ID`. Beyond sending, these cover templates, media, the WhatsApp business profile, and Instagram publishing, insights, and comment moderation. Copy-paste request bodies live in `assets/` (e.g. `--body @assets/wa-template-utility.json`). Full recipes: [references/whatsapp.md](references/whatsapp.md) and [references/instagram.md](references/instagram.md).
+CLI commands resolve the channel from `--channel` (`+phone`, `@handle`, or `ch_id`) or fall back to `HOOKMYAPP_CHANNEL_ID`. Beyond sending, these cover templates, media, the WhatsApp business profile, Instagram publishing, insights, and comment moderation, and Facebook Page posts, comments and insights. Copy-paste request bodies live in `assets/` (e.g. `--body @assets/wa-template-utility.json`). Full recipes: [references/whatsapp.md](references/whatsapp.md), [references/instagram.md](references/instagram.md) and [references/facebook.md](references/facebook.md).
 
 ## Webhook Payload Format
 
@@ -274,6 +276,10 @@ for (const change of body.entry?.[0]?.changes ?? []) {
   if (change.field === 'smb_message_echoes') for (const m of change.value.message_echoes ?? []) onOwnReply(m);
 }
 ```
+
+### Instagram and Facebook Page bodies
+
+Instagram (`object: "instagram"`) and Facebook Pages (`object: "page"`) deliver Messenger-style events in `entry[].messaging[]` (`sender.id`, `recipient.id`, `message`, `reaction`, `read`, `postback`; Pages add `delivery`), and comment events in `entry[].changes[]` (`field: "comments"` for Instagram, `field: "feed"` for a Page, which also carries post events). Shapes and parsing rules: [references/instagram.md](references/instagram.md#comment-webhooks-both-payload-shapes) and [references/facebook.md](references/facebook.md#webhooks).
 
 ### Signature verification
 
@@ -442,9 +448,9 @@ Full decision tree and error table: [references/troubleshooting.md](references/t
 ```text
 [integrate-hookmyapp file map]|root: .
 |.:{package.json,SKILL.md}
-|assets:{ig-send-dm.json,wa-send-image.json,wa-send-interactive-buttons.json,wa-send-template.json,wa-send-text.json,wa-template-utility.json}
-|references:{access-tokens.md,alerts.md,api.md,auth.md,billing.md,channels.md,config.md,customers.md,development-advice.md,env.md,getting-started.md,health.md,instagram.md,mcp.md,notifications.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
-|scripts:{ig-list-comments.mjs,ig-mark-seen.mjs,ig-reply-comment.mjs,ig-send-dm.mjs,wa-create-template.mjs,wa-list-templates.mjs,wa-mark-read.mjs,wa-send-message.mjs,wa-send-template.mjs,wa-update-profile.mjs,wa-upload-media.mjs}
+|assets:{fb-private-reply.json,fb-send-dm.json,ig-send-dm.json,wa-send-image.json,wa-send-interactive-buttons.json,wa-send-template.json,wa-send-text.json,wa-template-utility.json}
+|references:{access-tokens.md,alerts.md,api.md,auth.md,billing.md,channels.md,config.md,customers.md,development-advice.md,env.md,facebook.md,getting-started.md,health.md,instagram.md,mcp.md,notifications.md,sandbox.md,sending-messages.md,troubleshooting.md,webhook.md,whatsapp.md,workspace.md}
+|scripts:{fb-list-comments.mjs,fb-reply-comment.mjs,fb-send-dm.mjs,ig-list-comments.mjs,ig-mark-seen.mjs,ig-reply-comment.mjs,ig-send-dm.mjs,wa-create-template.mjs,wa-list-templates.mjs,wa-mark-read.mjs,wa-send-message.mjs,wa-send-template.mjs,wa-update-profile.mjs,wa-upload-media.mjs}
 |scripts/lib:{args.mjs,env.mjs,gateway.mjs,output.mjs}
 ```
 <!-- FILEMAP:END -->

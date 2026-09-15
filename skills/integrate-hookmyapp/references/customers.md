@@ -9,7 +9,7 @@ description: "Manage SaaS customer workspaces and mint onboarding links (`custom
 
 HookMyApp's SaaS-management surface is available to every org, no plan gate. A **customer** is an end-customer of your org, represented as a customer workspace — strictly separate from your team workspaces. `workspace` commands never show customers and `customers` commands never show team workspaces; do not mix the two surfaces.
 
-The customer's channel arrives via an **onboarding link**: you mint a persistent `https://app.hookmyapp.com/connect/<token>` URL with a fixed channel type and send it to the end-customer. They open it and complete the selected provider's flow — Meta Embedded Signup for WhatsApp or direct Instagram OAuth for Instagram. **No HookMyApp account is needed on their side.** The connected channel lands in the target customer workspace (or a new customer is created if the link wasn't pinned to one).
+The customer's channel arrives via an **onboarding link**: you mint a persistent `https://app.hookmyapp.com/connect/<token>` URL with a fixed channel type and send it to the end-customer. They open it and complete the selected provider's flow — Meta Embedded Signup for WhatsApp, direct Instagram OAuth for Instagram, or the Facebook Page picker for a Page (which also connects the Page's linked Instagram account into the same workspace). **No HookMyApp account is needed on their side.** The connected channel lands in the target customer workspace (or a new customer is created if the link wasn't pinned to one).
 
 Related org-level concepts: the **org default destination** (a webhook URL that newly connected customer channels inherit automatically) and **bulk-apply** (apply that destination to existing channels in one action) are dashboard/MCP surfaces with no CLI verbs; **channel move** (move a channel between workspaces/customers) is `hookmyapp channels move <channel> <target>` — see [channels.md](channels.md).
 
@@ -69,11 +69,11 @@ Mint a connect link to share with an end-customer.
 | Flag | Type | Required | Description |
 |------|------|----------|-------------|
 | `--label <label>` | string | yes | Label for the link. |
-| `--channel-type <type>` | `whatsapp\|instagram` | yes | Channel type the link connects. |
+| `--channel-type <type>` | `whatsapp\|instagram\|facebook` | yes | Channel type the link connects. `facebook` needs CLI >= 0.14.24. |
 | `--customer <ws-id>` | string | no | Target an existing customer (`ws_XXXXXXXX`) — the connect lands in that customer. |
 | `--json` | boolean | no | Machine-readable output. |
 
-**Browser step required:** No for you — the end-customer opens the printed URL and completes WhatsApp Embedded Signup or Instagram OAuth.
+**Browser step required:** No for you — the end-customer opens the printed URL and completes WhatsApp Embedded Signup, Instagram OAuth or the Facebook Page picker.
 
 Prints the link `id`, the shareable `url`, and the `verifyToken` the connected channel's webhook config will use for the verify-GET handshake (it is NOT the HMAC signing secret, and it never becomes a destination token).
 

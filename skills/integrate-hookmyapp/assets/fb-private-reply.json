@@ -1,0 +1,4 @@
+{
+  "recipient": { "comment_id": "<COMMENT_ID_FROM_WEBHOOK_OR_LIST>" },
+  "message": { "text": "Thanks for the comment, sent you the details here." }
+}
