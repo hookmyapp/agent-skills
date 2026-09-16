@@ -149,7 +149,7 @@ Nine Page tools, every one taking `channelId` (a facebook `ch_` id):
 |------|-------|--------|
 | `list_facebook_conversations` | `cursor?` | `conversations[]` (`id`, `participantId`, `participantName`, `updatedAt`, `unreadCount`, `snippet`), `cursor.next` |
 | `list_facebook_posts` | `cursor?` | `posts[]` (`id`, `message`, `createdAt`, `permalink`, `type`), `cursor.next` |
-| `publish_facebook_post` | `kind` (`text`/`link`/`photo`/`video`/`reel`), `message?`, `link?`, `mediaUrl?`, `description?` | `postId`, `kind` |
+| `publish_facebook_post` | `kind` (`text`/`link`/`photo`/`video`/`reel`), `message?`, `link?`, `mediaUrl?`, `description?` | `postId` (always `{pageId}_{id}`, what the comment/insight/delete tools take), `mediaId` (videos and reels), `kind` |
 | `delete_facebook_post` | `postId` | `postId`, `deleted` |
 | `list_facebook_comments` | `postId`, `cursor?` | `comments[]` (`id`, `fromName`, `message`, `createdAt`, `isHidden`, `parentId`), `cursor.next` |
 | `reply_facebook_comment` | `commentId`, `message`, `private?` | `commentId`, `private`, `replyId` (public) or `messageId` (private) |
