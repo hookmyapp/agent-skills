@@ -118,14 +118,14 @@ curl -X POST https://gateway.hookmyapp.com/meta/v22.0/{PHONE_NUMBER_ID}/messages
   -d '{"messaging_product":"whatsapp","to":"15551234567","type":"text","text":{"body":"Hello"}}'
 ```
 
-Instagram uses the IG body shape instead (`{"recipient":{"id":"<IGSID>"},"message":{"text":"..."}}`). Full send recipes and code samples: [references/sending-messages.md](references/sending-messages.md).
+Instagram and Facebook Messenger use the `{recipient,message}` shape instead (`{"recipient":{"id":"<IGSID or PSID>"},"message":{"text":"..."}}`) on `/{account-or-page-id}/messages`. Facebook reels publish through `POST /channels/{id}/facebook/reels` (`{videoUrl, description?}`, `hmok_` key + `X-Workspace-Id`) so the upload session runs server-side. Full send recipes and code samples: [references/sending-messages.md](references/sending-messages.md).
 
 ## SaaS Mode runtime flow
 
 The canonical loop a SaaS backend implements:
 
 1. Customer signs up in *your* product → `POST /organizations/{orgId}/customers`.
-2. Mint a connect link → `POST /org/onboarding-links` → show it to the customer; they connect their own WhatsApp/Instagram (no HookMyApp account needed).
+2. Mint a connect link → `POST /org/onboarding-links` → show it to the customer; they connect their own WhatsApp/Instagram/Facebook Page (no HookMyApp account needed).
 3. After they connect → `GET /meta/channels` with the customer's `X-Workspace-Id` to find the channel.
 4. Point inbound traffic at your backend → `POST /webhook-config` (verify the `X-HookMyApp-Signature-256` HMAC on delivery — see [references/webhook.md](references/webhook.md)).
 5. Send outbound via the gateway with the channel's `hmat_` token.

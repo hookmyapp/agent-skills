@@ -5,7 +5,7 @@ description: "Set, inspect, and clear the webhook destination URL for a channel 
 
 # Webhooks
 
-Configure which URL HookMyApp delivers your channel's events to. Meta always delivers to HookMyApp; HookMyApp forwards each event to your configured URL -- for WhatsApp, scoped to the one phone number it belongs to; for Instagram, scoped to the connected account -- signed with the channel's `WEBHOOK_HMAC_SECRET` as `X-HookMyApp-Signature-256`. Nothing is configured on Meta's side, and there is no per-channel setting in the Meta App Dashboard.
+Configure which URL HookMyApp delivers your channel's events to. Meta always delivers to HookMyApp; HookMyApp forwards each event to your configured URL -- for WhatsApp, scoped to the one phone number it belongs to; for Instagram, scoped to the connected account; for a Facebook Page, scoped to that Page (Messenger events under `entry[].messaging[]`, comment and post events under `entry[].changes[]` with `field: "feed"`; only inbound messages with content are billable, see [facebook.md](facebook.md#webhooks)) -- signed with the channel's `WEBHOOK_HMAC_SECRET` as `X-HookMyApp-Signature-256`. Nothing is configured on Meta's side, and there is no per-channel setting in the Meta App Dashboard.
 
 Use `hookmyapp channels webhook {show,set,clear} <channel>`.
 
