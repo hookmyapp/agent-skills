@@ -169,7 +169,7 @@ Write:
 | `clear_webhook_destination` | Clear a channel's webhook destination |
 | `rotate_hmac` | Rotate a channel's webhook signing secret |
 | `set_forwarding` | Enable or disable webhook forwarding for a channel |
-| `move_channel` | Move a channel to another workspace in the same organization (`channelId`, `targetWorkspaceId`). No reconnect or interruption; org-admin only. Use when a channel connected into the wrong workspace |
+| `move_channel` | Move a channel to another workspace in the same organization (`channelId`, `targetWorkspaceId`). No reconnect or interruption; org-admin only. Use when a channel connected into the wrong workspace. A Facebook Page and the Instagram account connected with it move together |
 | `set_org_destination` | Set the organization default destination seeded onto new customer channels (org admin + SaaS Mode) |
 | `apply_org_destination_to_channels` | Bulk-apply (or clear) the organization destination across customer channels |
 | `publish_instagram_media` | Publish an image, reel, story, or carousel on an Instagram channel: `mediaType`, `imageUrl`/`videoUrl`, `caption`, `children[]` (carousel), `coverUrl`, `shareToFeed`, `trialParams` with `graduationStrategy` set to `"manual"` or `"automatic"` (reels only — trial reel; rejected on any other `mediaType`), plus optional `altText` (image posts), `userTags[]` (`{username, x?, y?}`), `locationId`, `thumbOffset` (ms), `audioName` (reels). Runs Meta's container → status poll → publish flow and returns `{mediaId, permalink}` |
