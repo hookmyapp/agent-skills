@@ -5,7 +5,7 @@ description: Manage a sandbox WhatsApp, Instagram or Facebook Messenger session 
 
 # Sandbox
 
-The sandbox is a test account HookMyApp provisions for dev and testing — no Meta dashboard, no embedded signup, no templates. A WhatsApp session is pinned to a single phone number (yours). Recipients are pinned to that session phone server-side; **`--to` does not exist** on `sandbox send` and any attempt to send to a different number is rejected. `sandbox start instagram` opens an Instagram session reached via an ig.me deep link; IG sandbox replies go to the DM thread rather than a pinned phone. A Facebook Messenger sandbox session exists too, over MCP only ([Facebook](#facebook)).
+The sandbox is a test account HookMyApp provisions for dev and testing — no Meta dashboard, no embedded signup, no templates. A WhatsApp session is pinned to a single phone number (yours). Recipients are pinned to that session phone server-side; **`--to` does not exist** on `sandbox send` and any attempt to send to a different number is rejected. `sandbox start instagram` opens an Instagram session reached via an ig.me deep link; IG sandbox replies go to the DM thread rather than a pinned phone. `sandbox start facebook` opens a Messenger session with the HookMyApp sandbox Page ([Facebook](#facebook)).
 
 ## No terminal? Use MCP
 
@@ -27,7 +27,7 @@ they want to bind. Tool details and the not-a-channel caveat are in
 
 ## Facebook
 
-The Facebook sandbox is a HookMyApp-hosted Page. It covers Messenger only (no posts, comments or insights) and has no CLI commands yet: the human uses the dashboard's Sandbox page (Facebook tab, m.me link plus the code to send) or the agent runs it over MCP.
+The Facebook sandbox is a HookMyApp-hosted Page. It covers Messenger only (no posts, comments or insights). From the CLI, `hookmyapp sandbox start facebook` prints the bind code and the `m.me` link; a Facebook session has no phone or handle, so every later command selects it with `--session ssn_XXXXXXXX` (`sandbox status` lists it by the sender's name). `sandbox env` writes `FACEBOOK_API_URL`, `FACEBOOK_ACCESS_TOKEN` and `FACEBOOK_PAGE_ID`; `sandbox listen --path /webhook/facebook`, `sandbox send` and `sandbox logs` work as for the other types. Over MCP:
 
 1. `start_sandbox_session` with `channelType: "facebook"` returns the bind code and an `m.me/<sandbox-page>` link. The human opens it **from the Facebook account they want to bind** and sends the code as a message (Messenger links cannot prefill text); the session activates when it arrives. An account already connected to another workspace is turned away with a Messenger reply saying so.
 2. `set_sandbox_destination` points the session at the user's webhook. Events arrive as `object: "page"` bodies, signed like a connected Page ([facebook.md](facebook.md#webhooks)).
@@ -42,20 +42,21 @@ Start a new sandbox session. Pass the channel type as a positional argument or u
 
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
-| `--type` | `whatsapp\|instagram` | no | (interactive prompt) | Channel type for this session. |
+| `--type` | `whatsapp\|instagram\|facebook` | no | (interactive prompt) | Channel type for this session. |
 | `--listen` | boolean | no | `false` | After binding, immediately open the tunnel (same as running `sandbox listen` next). |
 
 Global flags that apply: `--json`, `--workspace`.
 
-**Arguments:** `[whatsapp|instagram]` — optional positional alias for `--type`.
+**Arguments:** `[whatsapp|instagram|facebook]` — optional positional alias for `--type`.
 
-**Browser step required:** No — but a phone step is: there is no flag for the phone or handle. The CLI mints a **bind code** and prints it with a deep link; the human sends that code to the sandbox WhatsApp number (or DMs it to the sandbox Instagram account) from the phone/account they want to bind, and the session activates when the code arrives. Under `--json` the CLI emits `{code, type, deepLink}` and exits immediately — deliver the code out-of-band and poll `sandbox status`.
+**Browser step required:** No — but a phone step is: there is no flag for the phone or handle. The CLI mints a **bind code** and prints it with a deep link; the human sends that code to the sandbox WhatsApp number (or DMs it to the sandbox Instagram account, or messages it to the sandbox Facebook Page over the `m.me` link) from the phone/account they want to bind, and the session activates when the code arrives. Under `--json` the CLI emits `{code, type, deepLink}` and exits immediately — deliver the code out-of-band and poll `sandbox status`.
 
 **Examples:**
 
 ```bash
 hookmyapp sandbox start whatsapp
 hookmyapp sandbox start instagram
+hookmyapp sandbox start facebook
 hookmyapp sandbox start                      # no flag — CLI prompts for the type
 ```
 
