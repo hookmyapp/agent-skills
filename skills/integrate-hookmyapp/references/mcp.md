@@ -125,6 +125,8 @@ Read:
 | `get_hmac_secret` | Read a channel's current webhook signing secret without rotating it. The value signs every delivered webhook — treat it like a password: never echo it into chat, logs, or client-visible output; if it leaks, `rotate_hmac` |
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |
 | `get_delivery` | Read one delivery log by channel + the `wd_` ID from `list_deliveries` |
+| `list_event_subscriptions` | List a channel's event subscriptions: `sub_` id, URL, event types, label, last delivery and last failure. Secrets are never listed |
+| `list_channel_events` | Recent events on a channel in the exact shape a subscription receives (`raw: null`, `rawOmitted: true`), newest first, one per event `id`; optional `types[]` and `limit` (default 10, max 50). Sample data for building an automation, not a history feed |
 | `get_org_usage` | Check organization usage for the current quota period (each org has its own monthly reset date; `resetsAt` in the response says when) |
 | `get_alert_phone_status` | Check the human's own alert phone (masked) |
 | `list_sandbox_sessions` | List sandbox testing sessions in a workspace (`workspaceId`, optional `includeInactive`). A sandbox session is a phone or Instagram account bound to the SHARED HookMyApp sandbox number — **not a channel**: it has an `ssn_` ID, no `ch_` ID, and never appears in `list_channels` or `status.channelCount` |
@@ -163,6 +165,8 @@ Write:
 | `clear_webhook_destination` | Clear a channel's webhook destination |
 | `rotate_hmac` | Rotate a channel's webhook signing secret |
 | `set_forwarding` | Enable or disable webhook forwarding for a channel |
+| `create_event_subscription` | Add an extra https URL that receives a channel's events (`events[]`: `whatsapp.message.received`, `whatsapp.message.status` on WhatsApp; `instagram.message.received`, `instagram.comment.received` on Instagram; none on Facebook Pages), optional `label`. Returns the signing `secret` ONCE: hand it to the human's receiver, never echo it. Up to 25 per channel; the main webhook destination is untouched |
+| `delete_event_subscription` | Remove an event subscription by `sub_` id. Idempotent. To rotate a secret or change a URL, delete and create again |
 | `move_channel` | Move a channel to another workspace in the same organization (`channelId`, `targetWorkspaceId`). No reconnect or interruption; org-admin only. Use when a channel connected into the wrong workspace |
 | `set_org_destination` | Set the organization default destination seeded onto new customer channels (org admin + SaaS Mode) |
 | `apply_org_destination_to_channels` | Bulk-apply (or clear) the organization destination across customer channels |
@@ -187,7 +191,7 @@ The Instagram tools require an **Instagram Login** channel. A channel connected 
 
 The skill-wide safety rules apply unchanged over MCP:
 
-- **Confirm before mutating.** `set_webhook_destination`, `clear_webhook_destination`, `set_forwarding` (disabling = silent inbound message drop), `rotate_hmac` (old signatures stop verifying immediately), `set_org_destination`, `apply_org_destination_to_channels`, `delete_workspace` (disconnects every channel in the workspace — inbound traffic stops), `move_channel` (the channel starts using the target workspace's webhook destination and customer attribution), and `revoke_onboarding_link` (the connect URL stops working immediately) all change live message routing or connectivity — get explicit human confirmation, including the exact channel, customer, workspace, organization, or `ol_` onboarding-link ID, before calling.
+- **Confirm before mutating.** `set_webhook_destination`, `clear_webhook_destination`, `set_forwarding` (disabling = silent inbound message drop), `rotate_hmac` (old signatures stop verifying immediately), `set_org_destination`, `apply_org_destination_to_channels`, `delete_workspace` (disconnects every channel in the workspace — inbound traffic stops), `move_channel` (the channel starts using the target workspace's webhook destination and customer attribution), `revoke_onboarding_link` (the connect URL stops working immediately), `create_event_subscription` (a new URL starts receiving the channel's customer messages), and `delete_event_subscription` (that URL stops receiving events) all change live message routing or connectivity — get explicit human confirmation, including the exact channel, customer, workspace, organization, or `ol_` onboarding-link ID, before calling.
 - **`send_message` sends a real message** to a real person. Confirm recipient channel and content.
 - **`send_sandbox_message` also sends a real WhatsApp message** — to the human's own bound phone. Confirm content. `set_sandbox_destination` re-points live sandbox traffic, so confirm the URL.
 - **`publish_instagram_media` posts real, public content** to the account's feed, reels, or story. `reply_instagram_comment` posts a public reply (or DMs a real user); `moderate_instagram_comment` hides or deletes real comments, and `delete` is irreversible. Confirm channel, target ids, and content with the human before calling any of them.
