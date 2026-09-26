@@ -1,11 +1,11 @@
 ---
 name: channels
-description: Connect and list WhatsApp or Instagram channels through their provider authorization flows.
+description: Connect and list WhatsApp, Instagram or Facebook Page channels through their provider authorization flows.
 ---
 
 # Channels
 
-A "channel" is a WhatsApp Business Account (WABA) or an Instagram account attached to your workspace. WhatsApp connects through Meta Embedded Signup. Instagram connects through direct Instagram OAuth at `instagram.com`; it does not use Facebook Login or WhatsApp Embedded Signup. The provider token stays inside HookMyApp; your app authenticates to the gateway with a minted `hmat_` access token instead (see [access tokens](access-tokens.md)).
+A "channel" is a WhatsApp Business Account (WABA), an Instagram account or a Facebook Page attached to your workspace. WhatsApp connects through Meta Embedded Signup. Instagram connects through direct Instagram OAuth at `instagram.com`; it does not use Facebook Login or WhatsApp Embedded Signup. A Facebook Page connects from the dashboard's Page picker; a Page with a linked Instagram account also connects that account as its own `instagram` channel with the full Instagram abilities ([facebook.md](facebook.md#connect)). The provider token stays inside HookMyApp; your app authenticates to the gateway with a minted `hmat_` access token instead (see [access tokens](access-tokens.md)).
 
 Instagram channels also forward **comment webhook events** (`comments`, `live_comments`) to the channel's webhook destination exactly like messages — same delivery, same `X-HookMyApp-Signature-256` HMAC signature. Receiving a comment event is **not billable**. Acting on one is: replying to a comment, and hiding or unhiding a comment, each count as an action, the same as sending a message or publishing a post, reel, or story. Deleting a comment is free. See [billing.md](billing.md) for the full list. Payload shapes (Meta emits two) and parsing rules: [instagram.md](instagram.md#comment-webhooks-both-payload-shapes).
 
@@ -17,7 +17,7 @@ Instagram channels also forward **comment webhook events** (`comments`, `live_co
 
 Run the provider authorization flow. Produces a new channel attached to the current workspace.
 
-**Arguments:** `[whatsapp|instagram]` (optional) — channel type to connect. When omitted the CLI prompts interactively. Pass `whatsapp` or `instagram` explicitly to skip the type prompt. There is no default; the CLI always asks if the type is omitted.
+**Arguments:** `[whatsapp|instagram|facebook]` (optional) — channel type to connect. When omitted the CLI prompts interactively. Pass the type explicitly to skip the prompt. There is no default; the CLI always asks if the type is omitted.
 
 **Flags:**
 
@@ -28,7 +28,7 @@ Run the provider authorization flow. Produces a new channel attached to the curr
 
 **Browser step required:** Yes
 
-> **HUMAN ACTION REQUIRED:** `channels connect whatsapp` opens Meta Embedded Signup; sign in to Facebook Business, select or create a WABA, select a phone number, and grant access. `channels connect instagram` opens Instagram OAuth; sign in to the Instagram professional account and grant the requested permissions. If the browser blocks the popup, open the URL printed by the CLI.
+> **HUMAN ACTION REQUIRED:** `channels connect whatsapp` opens Meta Embedded Signup; sign in to Facebook Business, select or create a WABA, select a phone number, and grant access. `channels connect instagram` opens Instagram OAuth; sign in to the Instagram professional account and grant the requested permissions. `channels connect facebook` opens the dashboard's channels page: click **Connect Channel**, then **Facebook**, sign in and pick the Page; the CLI waits and reports the new channel (and the linked Instagram channel, when there is one). If the browser blocks the popup, open the URL printed by the CLI.
 
 **Examples:**
 
@@ -36,6 +36,7 @@ Run the provider authorization flow. Produces a new channel attached to the curr
 hookmyapp channels connect
 hookmyapp channels connect whatsapp
 hookmyapp channels connect instagram
+hookmyapp channels connect facebook
 hookmyapp channels connect --workspace acme-corp
 ```
 
@@ -50,7 +51,7 @@ Print the channels connected to the current workspace.
 | Flag | Type | Required | Default | Description |
 |------|------|----------|---------|-------------|
 | `--workspace` | string | no | active | Target workspace ID. |
-| `--json` | boolean | no | `false` | JSON array of channel objects (camelCase): `id`, `type`, `metaWabaId`, `forwardingEnabled`, plus provider-explicit fields like `whatsappDisplayPhoneNumber`, `whatsappWabaName`, `instagramUsername`. |
+| `--json` | boolean | no | `false` | JSON array of channel objects (camelCase): `id`, `type`, `metaWabaId`, `forwardingEnabled`, plus provider-explicit fields like `whatsappDisplayPhoneNumber`, `whatsappWabaName`, `instagramUsername`, `facebookPageName`, and the shared `metaPageId` on facebook rows and on Instagram rows connected through a Page. Older servers may still emit `type: "messenger"`; read it as `facebook`. |
 
 **Arguments:** none
 

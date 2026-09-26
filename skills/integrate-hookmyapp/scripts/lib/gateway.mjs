@@ -8,7 +8,7 @@
 // server-side. (You still provision the .env once via the CLI; these scripts then
 // run without it.)
 //
-// The .env is loaded automatically: whatsappConfig()/instagramConfig() call
+// The .env is loaded automatically: whatsappConfig()/instagramConfig()/facebookConfig() call
 // loadEnv(), which reads `./.env` (override with `--dotenv <path>` or
 // HOOKMYAPP_ENV_FILE) without overwriting already-exported vars.
 
@@ -61,6 +61,27 @@ export function instagramConfig() {
     baseUrl: baseUrl.replace(/\/+$/, ''),
     token,
     igId: pick('INSTAGRAM_ACCOUNT_ID', 'INSTAGRAM_USER_ID'),
+  };
+}
+
+const DEFAULT_FB_BASE = 'https://gateway.hookmyapp.com/meta/v25.0';
+
+/** Resolve Facebook Page credentials from env. `channels env` has no Facebook key set yet:
+ *  FACEBOOK_ACCESS_TOKEN = `hookmyapp channels token <ch>`, FACEBOOK_PAGE_ID = the Page id
+ *  from `hookmyapp channels show <ch>`. */
+export function facebookConfig() {
+  loadEnv();
+  const baseUrl = pick('FACEBOOK_GRAPH_API_URL', 'FACEBOOK_API_URL') || DEFAULT_FB_BASE;
+  const token = pick('FACEBOOK_ACCESS_TOKEN');
+  if (!token) {
+    throw new Error(
+      'Missing FACEBOOK_ACCESS_TOKEN. Set it to the output of: hookmyapp channels token <channel>',
+    );
+  }
+  return {
+    baseUrl: baseUrl.replace(/\/+$/, ''),
+    token,
+    pageId: pick('FACEBOOK_PAGE_ID'),
   };
 }
 
