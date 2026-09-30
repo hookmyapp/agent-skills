@@ -76,7 +76,7 @@ command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14
 command -v hookmyapp >/dev/null 2>&1 || export PATH="$(npm prefix -g)/bin:$PATH"
 # cli_ok: version is non-empty AND within >=0.14.28 <1 (a failed/missing
 # `hookmyapp --version` yields an empty string and fails the check).
-cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 17))) ? 0 : 1 }'; }
+cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 28))) ? 0 : 1 }'; }
 cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.28 <1'
 # Re-check after the upgrade and STOP if the range still is not met — do not
 # write the skill marker or continue with a CLI that lacks the new subcommands.
