@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.26"
+  version: "0.9.27"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -63,23 +63,24 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the user's machine:
 
 ```bash
-# This skill version needs CLI >=0.14.17 <1 (instagram publish optional
+# This skill version needs CLI >=0.14.28 <1 (whatsapp profile --photo and
+# media upload --handle; instagram publish optional
 # fields: --alt-text/--tag/--location/--thumb-offset/--audio-name, on top of
 # in-terminal plan changes, alerts phone + org profile subcommands,
 # notifications list/ack, support watch, and instagram
 # publish/insights/comments). The bounded range keeps installs on the
 # reviewed 0.x line; an older existing install is upgraded in place.
-command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
+command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.28 <1'
 # Agent shells often skip the user's startup file, so a home-directory npm
 # prefix installs fine but stays off PATH. Add npm's global bin for this shell.
 command -v hookmyapp >/dev/null 2>&1 || export PATH="$(npm prefix -g)/bin:$PATH"
-# cli_ok: version is non-empty AND within >=0.14.17 <1 (a failed/missing
+# cli_ok: version is non-empty AND within >=0.14.28 <1 (a failed/missing
 # `hookmyapp --version` yields an empty string and fails the check).
 cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 17))) ? 0 : 1 }'; }
-cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
+cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.28 <1'
 # Re-check after the upgrade and STOP if the range still is not met — do not
 # write the skill marker or continue with a CLI that lacks the new subcommands.
-cli_ok || { echo "hookmyapp >=0.14.17 <1 required for this skill; install it manually and re-run." >&2; false; }
+cli_ok || { echo "hookmyapp >=0.14.28 <1 required for this skill; install it manually and re-run." >&2; false; }
 ```
 
 If that final check fails, do not continue to the skill-version marker below. Read why it failed first: a permission error (`EACCES`), a CLI that will not upgrade, and a missing `npm` each get a different answer.
@@ -91,7 +92,7 @@ If that final check fails, do not continue to the skill-version marker below. Re
 ```bash
 npm config set prefix ~/.npm-global
 export PATH="$HOME/.npm-global/bin:$PATH"
-npm install -g '@gethookmyapp/cli@>=0.14.17 <1'
+npm install -g '@gethookmyapp/cli@>=0.14.28 <1'
 ```
 
 Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh; for bash, the existing file their terminal actually loads, such as `~/.bash_profile`, `~/.bash_login`, `~/.profile` or `~/.bashrc`, and never create a new `~/.bash_profile`, which would stop `~/.profile` from loading; for fish, csh or another shell, use that shell's own syntax instead, such as `fish_add_path ~/.npm-global/bin`) so `hookmyapp` stays on PATH in new terminals, and tell the user you did. Then re-run the check above. Apply this recovery once: if the install fails again, or `EACCES` names any other path (a root-owned `~/.npm` cache, for example), it falls under the stop rules below. This is the one install failure you recover from yourself; every other rule below that says to stop on a failed or blocked install means a failure other than this one.
@@ -105,7 +106,7 @@ Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh;
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.26" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.27" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -161,7 +162,7 @@ Five build rules and the health pass that reads the result: [references/developm
 
 ### MCP server (operate HookMyApp without the CLI)
 
-HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 59 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, feedback, alert phone, Instagram publishing, insights, and comment moderation, and Facebook Page inbox, publishing, comments and insights. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
+HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 61 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, feedback, alert phone, Instagram publishing, insights, and comment moderation, and Facebook Page inbox, publishing, comments and insights. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
 Set it up with `hookmyapp agent setup`, which configures every coding agent installed on the machine: Claude Code, Codex and Cursor. `hookmyapp login` does the same for whatever it finds. Pass `--client claude|codex|cursor` when only one should be touched — use it whenever the user has not asked you to set up their other agents. **No client signs in.** Setup writes the credential into each client's entry (Codex needs 0.148.0 or newer for that, see [references/mcp.md](references/mcp.md#authentication)), so there is no follow-up command for anyone — it prints one line per client naming the restart that client needs, and that is the whole story. Never run another client's binary to finish a setup: at best it is a permission prompt the user cannot make sense of, at worst a command that is not installed. Any other client takes the server URL (`https://api.hookmyapp.com/mcp`) and its own sign-in, or an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key` for CI and headless environments. Every client resolves MCP tools at session start, so a server configured mid-session stays dormant until the next one.
 

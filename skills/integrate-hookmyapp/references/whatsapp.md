@@ -81,10 +81,21 @@ node scripts/wa-mark-read.mjs --message-id wamid.ABC123
 ```bash
 hookmyapp whatsapp profile get --channel +15551234567
 hookmyapp whatsapp profile update --channel +15551234567 --about "We ship fast"
+hookmyapp whatsapp profile update --channel +15551234567 --photo ./logo.png   # JPEG or PNG, up to 5 MB
 node scripts/wa-update-profile.mjs --about "We ship fast"
 ```
 
-`profile update` builder flags: `--about --description --address --email --vertical --website` (repeatable, max 2), or a complete `--body`.
+`profile update` builder flags: `--about --description --address --email --vertical --website` (repeatable, max 2) `--photo <path>`, or a complete `--body`. The photo changes what every customer sees; confirm it first.
+
+### Upload for a template media header
+
+A template with an image, video or document header needs a sample handle at create time (`"example": { "header_handle": ["<handle>"] }`):
+
+```bash
+hookmyapp whatsapp media upload --channel +15551234567 --file ./banner.jpg --handle
+```
+
+JPEG and PNG up to 5 MB, MP4 up to 16 MB, PDF up to 29 MB. Without `--handle` the command returns a media id for sending, which a template create does not accept.
 
 ## Scripts
 

@@ -110,7 +110,7 @@ Work top to bottom; each row assumes the ones above it passed.
 
 ## Tools
 
-59 tools.
+61 tools.
 
 Read:
 
@@ -143,6 +143,7 @@ Read:
 | `list_facebook_comments` | Every comment on a Page post, replies included, oldest first (`channelId`, `postId`, `cursor?`): `id`, `fromName`, `message`, `createdAt`, `isHidden`, `parentId` |
 | `get_facebook_insights` | Page insights (`channelId` only; `period` `day`/`week`/`days_28`) or one post's lifetime insights (`postId`). `metrics?` defaults to `page_post_engagements, page_follows, page_views_total, page_daily_follows_unique` for the Page and `post_clicks, post_reactions_by_type_total, post_activity_by_action_type` for a post. Returns `target` and `metrics[]` with `values[]` (`value`, `endTime`). Data can lag 48 hours |
 | `get_facebook_page` | The Page profile behind a channel: `pageId`, `name`, `category`, `followers`, `link`, `pictureUrl` |
+| `get_whatsapp_profile` | Read the WhatsApp business profile customers see (`channelId`): `about`, `address`, `description`, `email`, `websites`, `vertical`, and `profilePictureUrl`, a link to the photo that works for 4 minutes |
 | `get_instagram_account` | Read the account profile (username, name, bio, website, picture, follower/following/post counts), plus the daily publishing quota when `includePublishingLimit` is set — worth checking before `publish_instagram_media` on a busy account. The quota read needs the content-publish scope, so it gates on that rather than on basic |
 
 Write:
@@ -158,6 +159,7 @@ Write:
 | `set_sandbox_destination` | Point a sandbox session at a destination webhook URL (`sessionId`, `url`). Verified with a live handshake before it is stored. Without a destination, inbound sandbox messages go nowhere |
 | `send_sandbox_message` | Reply to the phone or Messenger sender bound to a sandbox session (`sessionId`, `message`). WhatsApp and Facebook; Instagram sandbox replies are CLI-only. Subject to WhatsApp's 24h window (`SESSION_WINDOW_CLOSED`) and to the shared-number caps (10/min per session, `RATE_LIMIT_SESSION`) |
 | `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object). On a facebook channel `recipient.id` is the PSID; outside the 24-hour window Meta needs a `tag` |
+| `update_whatsapp_profile` | Update the live WhatsApp business profile (`channelId` plus only the fields to change: `about`, `address`, `description`, `email`, `vertical`, `websites` max 2). `photoUrl` sets the profile photo from a public https JPEG or PNG up to 5 MB. Returns `updated[]` |
 | `update_org_profile` | Update the organization profile (name, support contact) |
 | `acknowledge_notification` | Mark a notification from `status` `notifications[]` as seen, after relaying it to the human. Idempotent. Per-user notifications (`ackScope: "user"`) clear only for your user — other members keep their own copy; org notifications (`ackScope: "org"`) clear for the whole organization and record who acked (`acknowledgedBy`). `personal: true` notifications are addressed to your human alone. |
 | `set_alert_phone` | Set the human's own alert phone. HookMyApp sends a 6-digit code to it. User-scoped: never for a teammate |
@@ -204,6 +206,7 @@ The skill-wide safety rules apply unchanged over MCP:
 
 - **Confirm before mutating.** `set_webhook_destination`, `clear_webhook_destination`, `set_forwarding` (disabling = silent inbound message drop), `rotate_hmac` (old signatures stop verifying immediately), `set_org_destination`, `apply_org_destination_to_channels`, `delete_workspace` (disconnects every channel in the workspace — inbound traffic stops), `move_channel` (the channel starts using the target workspace's webhook destination and customer attribution), `revoke_onboarding_link` (the connect URL stops working immediately), `create_event_subscription` (a new URL starts receiving the channel's customer messages), and `delete_event_subscription` (that URL stops receiving events) all change live message routing or connectivity — get explicit human confirmation, including the exact channel, customer, workspace, organization, or `ol_` onboarding-link ID, before calling.
 - **`send_message` sends a real message** to a real person. Confirm recipient channel and content.
+- **`update_whatsapp_profile` changes the live WhatsApp profile** every customer sees (text and photo). Confirm the channel and the exact new values first.
 - **`send_sandbox_message` also sends a real WhatsApp message** — to the human's own bound phone. Confirm content. `set_sandbox_destination` re-points live sandbox traffic, so confirm the URL.
 - **`publish_instagram_media` posts real, public content** to the account's feed, reels, or story. `reply_instagram_comment` posts a public reply (or DMs a real user); `moderate_instagram_comment` hides or deletes real comments, and `delete` is irreversible. Confirm channel, target ids, and content with the human before calling any of them.
 - **`publish_facebook_post` publishes to a real Page and republishes on every call**; `delete_facebook_post` and `moderate_facebook_comment` with `delete` are irreversible; `reply_facebook_comment` posts publicly or messages a real person. Same rule: confirm first.
