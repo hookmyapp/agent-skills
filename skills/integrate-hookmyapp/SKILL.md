@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.26"
+  version: "0.9.28"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -105,7 +105,7 @@ Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh;
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.26" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.28" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -274,6 +274,30 @@ In an echo, `from` is the business number and `to` is the WhatsApp user — reve
 for (const change of body.entry?.[0]?.changes ?? []) {
   if (change.field === 'messages') for (const m of change.value.messages ?? []) onInbound(m);
   if (change.field === 'smb_message_echoes') for (const m of change.value.message_echoes ?? []) onOwnReply(m);
+}
+```
+
+### Contacts and chat history from the WhatsApp Business app
+
+Right after a coexistence number connects for the first time, HookMyApp asks Meta to sync the business's WhatsApp contacts and up to 180 days of chat history. Both arrive at the same webhook destination, as two more `field` values:
+
+| `field` | What it carries | Array |
+|---|---|---|
+| `smb_app_state_sync` | Contacts saved in the WhatsApp Business app, then every later add or remove | `value.state_sync[]` |
+| `history` | Past chats, one thread per WhatsApp user | `value.history[].threads[].messages[]` |
+
+- `state_sync[]` items: `type: "contact"`, `action: "add"` or `"remove"`, `contact.phone_number`; `contact.full_name` and `contact.first_name` only when the business saved a name. Treat names as optional.
+- `history[].metadata` has `phase` (`0` = first day, `1` = day 1 to 90, `2` = day 90 to 180), `chunk_order` (chunks can arrive out of order) and `progress` (`100` = sync complete). A phase with no messages sends nothing.
+- History messages look like inbound messages plus `history_context.status` (`delivered`, `read`, `pending`, ...). A message the business sent carries `to`, like an echo. Unsupported content arrives as `type: "errors"`; skip it.
+- If the business turned off history sharing, a single `history` webhook arrives with `history[0].errors[0].code === 2593109` and no threads. Not a failure on your side.
+- Meta allows the sync only within 24 hours of the number's first connection. Reconnecting the same number later does not trigger it again, so numbers connected before 2026-09-29 get no backfill.
+- Sync webhooks are not messages and do not count toward usage.
+
+```js
+if (change.field === 'smb_app_state_sync') for (const s of change.value.state_sync ?? []) onContact(s.action, s.contact);
+if (change.field === 'history') for (const h of change.value.history ?? []) {
+  if (h.errors?.length) continue; // business declined history sharing
+  for (const t of h.threads ?? []) for (const m of t.messages ?? []) if (m.type !== 'errors') onPastMessage(t.id, m);
 }
 ```
 
