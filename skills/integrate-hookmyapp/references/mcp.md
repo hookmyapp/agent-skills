@@ -110,7 +110,7 @@ Work top to bottom; each row assumes the ones above it passed.
 
 ## Tools
 
-67 tools.
+73 tools.
 
 Read:
 
@@ -144,6 +144,7 @@ Read:
 | `get_facebook_insights` | Page insights (`channelId` only; `period` `day`/`week`/`days_28`) or one post's lifetime insights (`postId`). `metrics?` defaults to `page_post_engagements, page_follows, page_views_total, page_daily_follows_unique` for the Page and `post_clicks, post_reactions_by_type_total, post_activity_by_action_type` for a post. Returns `target` and `metrics[]` with `values[]` (`value`, `endTime`). Data can lag 48 hours |
 | `get_facebook_page` | The Page profile behind a channel: `pageId`, `name`, `category`, `followers`, `link`, `pictureUrl` |
 | `get_instagram_account` | Read the account profile (username, name, bio, website, picture, follower/following/post counts), plus the daily publishing quota when `includePublishingLimit` is set — worth checking before `publish_instagram_media` on a busy account. The quota read needs the content-publish scope, so it gates on that rather than on basic |
+| `get_whatsapp_profile` | Read the WhatsApp business profile customers see (`channelId`): about, address, description, email, websites, business category (`vertical`) and a short-lived link to the profile photo |
 | `list_whatsapp_groups` | List a WhatsApp channel's groups (`channelId`, `cursor?`, `limit?`): group id and subject. Group ids feed every other group tool |
 | `get_whatsapp_group` | Read one group (`channelId`, `groupId`): subject, description, join approval mode, creation time and members |
 
@@ -186,6 +187,7 @@ Write:
 | `reply_facebook_comment` | Public reply under a Page comment (`commentId`, `message`), or `private: true` for a Messenger message to the commenter (once per comment, within 7 days). Returns `replyId` or `messageId` |
 | `moderate_facebook_comment` | `action`: `hide` \| `unhide` \| `delete` on a Page comment (`commentId`). Delete is irreversible |
 | `set_instagram_thread_setup` | Set the starter questions on a new DM thread (up to 4; tapping one posts its `payload` to the webhook) and the always-visible thread menu (up to 5 links), or `clear: true` to remove both. Replaces whatever is set |
+| `update_whatsapp_profile` | Update the WhatsApp business profile (`channelId`, then any of `about`, `address`, `description`, `email`, `vertical`, `websites[]` up to 2, `photoUrl`: a public https JPEG or PNG up to 5 MB) |
 | `create_whatsapp_group` | Create a group (`channelId`, `subject`, `description?`, `joinApprovalMode?`: `auto_approve` or `approval_required`). The result is asynchronous: it returns a `requestId`, and the group id and invite link arrive in a `whatsapp.group.updated` event with `change: "created"` carrying the same `requestId` |
 | `update_whatsapp_group` | Change a group's subject and/or description (`channelId`, `groupId`, `subject?`, `description?`). Asynchronous, returns a `requestId`. The group photo is REST and CLI only |
 | `delete_whatsapp_group` | Delete a group (`channelId`, `groupId`). Its members are removed and it cannot be restored |
