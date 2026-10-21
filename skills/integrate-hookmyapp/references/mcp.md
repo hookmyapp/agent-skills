@@ -110,7 +110,7 @@ Work top to bottom; each row assumes the ones above it passed.
 
 ## Tools
 
-59 tools.
+67 tools.
 
 Read:
 
@@ -120,7 +120,7 @@ Read:
 | `list_workspaces` | List workspaces and customers |
 | `list_customers` | List customers in the organization (SaaS Mode) |
 | `list_channels` | List channels in one workspace — pass the `ws_` ID from `list_workspaces`. Facebook rows carry `facebookPageName` and `facebookPagePictureUrl` |
-| `get_channel` | Read one channel (type, identity, forwarding state, destination). A facebook row adds `linkedInstagramChannelId` when the Page has a connected Instagram account |
+| `get_channel` | Read one channel (type, identity, forwarding state, destination). A facebook row adds `linkedInstagramChannelId` when the Page has a connected Instagram account. A WhatsApp row carries `whatsappGroups: { available, reason }`; read it before building on groups ([whatsapp.md](whatsapp.md#whatsapp-groups)) |
 | `get_webhook_config` | Read a channel's webhook destination |
 | `get_hmac_secret` | Read a channel's current webhook signing secret without rotating it. The value signs every delivered webhook — treat it like a password: never echo it into chat, logs, or client-visible output; if it leaks, `rotate_hmac` |
 | `list_deliveries` | List delivery logs for a channel, newest first, cursor-paged |
@@ -144,6 +144,8 @@ Read:
 | `get_facebook_insights` | Page insights (`channelId` only; `period` `day`/`week`/`days_28`) or one post's lifetime insights (`postId`). `metrics?` defaults to `page_post_engagements, page_follows, page_views_total, page_daily_follows_unique` for the Page and `post_clicks, post_reactions_by_type_total, post_activity_by_action_type` for a post. Returns `target` and `metrics[]` with `values[]` (`value`, `endTime`). Data can lag 48 hours |
 | `get_facebook_page` | The Page profile behind a channel: `pageId`, `name`, `category`, `followers`, `link`, `pictureUrl` |
 | `get_instagram_account` | Read the account profile (username, name, bio, website, picture, follower/following/post counts), plus the daily publishing quota when `includePublishingLimit` is set — worth checking before `publish_instagram_media` on a busy account. The quota read needs the content-publish scope, so it gates on that rather than on basic |
+| `list_whatsapp_groups` | List a WhatsApp channel's groups (`channelId`, `cursor?`, `limit?`): group id and subject. Group ids feed every other group tool |
+| `get_whatsapp_group` | Read one group (`channelId`, `groupId`): subject, description, join approval mode, creation time and members |
 
 Write:
 
@@ -157,7 +159,7 @@ Write:
 | `start_sandbox_session` | Get the caller's sandbox bind code plus a deep link (optional `workspaceId`; required when the org has several team workspaces; `channelType` `whatsapp` default, `instagram`, or `facebook` for an `m.me` link to the sandbox Page with the code prefilled). The human sends that code to the sandbox number **from the phone they want to bind** — you cannot do this step for them. Returns the same code until it is consumed. This is the no-Meta-app, no-WABA path: use it instead of `create_onboarding_link` whenever someone wants to test |
 | `set_sandbox_destination` | Point a sandbox session at a destination webhook URL (`sessionId`, `url`). Verified with a live handshake before it is stored. Without a destination, inbound sandbox messages go nowhere |
 | `send_sandbox_message` | Reply to the phone or Messenger sender bound to a sandbox session (`sessionId`, `message`). WhatsApp and Facebook; Instagram sandbox replies are CLI-only. Subject to WhatsApp's 24h window (`SESSION_WINDOW_CLOSED`) and to the shared-number caps (10/min per session, `RATE_LIMIT_SESSION`) |
-| `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object). On a facebook channel `recipient.id` is the PSID; outside the 24-hour window Meta needs a `tag` |
+| `send_message` | Send an outbound message on a channel (channel `ch_` ID + the Meta message content object). To message a WhatsApp group, send `recipient_type: "group"` and `to: <groupId>` (text, media and templates work; interactive messages and authentication templates do not). On a facebook channel `recipient.id` is the PSID; outside the 24-hour window Meta needs a `tag` |
 | `update_org_profile` | Update the organization profile (name, support contact) |
 | `acknowledge_notification` | Mark a notification from `status` `notifications[]` as seen, after relaying it to the human. Idempotent. Per-user notifications (`ackScope: "user"`) clear only for your user — other members keep their own copy; org notifications (`ackScope: "org"`) clear for the whole organization and record who acked (`acknowledgedBy`). `personal: true` notifications are addressed to your human alone. |
 | `set_alert_phone` | Set the human's own alert phone. HookMyApp sends a 6-digit code to it. User-scoped: never for a teammate |
@@ -170,7 +172,7 @@ Write:
 | `clear_webhook_destination` | Clear a channel's webhook destination |
 | `rotate_hmac` | Rotate a channel's webhook signing secret |
 | `set_forwarding` | Enable or disable webhook forwarding for a channel |
-| `create_event_subscription` | Add an extra https URL that receives a channel's events (`events[]`: `whatsapp.message.received`, `whatsapp.message.status` on WhatsApp; `instagram.message.received`, `instagram.comment.received` on Instagram; none on Facebook Pages), optional `label`. Returns the signing `secret` ONCE: hand it to the human's receiver, never echo it. Up to 25 per channel; the main webhook destination is untouched |
+| `create_event_subscription` | Add an extra https URL that receives a channel's events (`events[]`: `whatsapp.message.received`, `whatsapp.message.status`, `whatsapp.group.updated` on WhatsApp; `instagram.message.received`, `instagram.comment.received` on Instagram; none on Facebook Pages), optional `label`. Returns the signing `secret` ONCE: hand it to the human's receiver, never echo it. Up to 25 per channel; the main webhook destination is untouched |
 | `delete_event_subscription` | Remove an event subscription by `sub_` id. Idempotent. To rotate a secret or change a URL, delete and create again |
 | `move_channel` | Move a channel to another workspace in the same organization (`channelId`, `targetWorkspaceId`). No reconnect or interruption; org-admin only. Use when a channel connected into the wrong workspace. A Facebook Page and the Instagram account connected with it move together |
 | `set_org_destination` | Set the organization default destination seeded onto new customer channels (org admin + SaaS Mode) |
@@ -184,6 +186,12 @@ Write:
 | `reply_facebook_comment` | Public reply under a Page comment (`commentId`, `message`), or `private: true` for a Messenger message to the commenter (once per comment, within 7 days). Returns `replyId` or `messageId` |
 | `moderate_facebook_comment` | `action`: `hide` \| `unhide` \| `delete` on a Page comment (`commentId`). Delete is irreversible |
 | `set_instagram_thread_setup` | Set the starter questions on a new DM thread (up to 4; tapping one posts its `payload` to the webhook) and the always-visible thread menu (up to 5 links), or `clear: true` to remove both. Replaces whatever is set |
+| `create_whatsapp_group` | Create a group (`channelId`, `subject`, `description?`, `joinApprovalMode?`: `auto_approve` or `approval_required`). The result is asynchronous: it returns a `requestId`, and the group id and invite link arrive in a `whatsapp.group.updated` event with `change: "created"` carrying the same `requestId` |
+| `update_whatsapp_group` | Change a group's subject and/or description (`channelId`, `groupId`, `subject?`, `description?`). Asynchronous, returns a `requestId`. The group photo is REST and CLI only |
+| `delete_whatsapp_group` | Delete a group (`channelId`, `groupId`). Its members are removed and it cannot be restored |
+| `whatsapp_group_invite_link` | `channelId`, `groupId`, `action`: `get` \| `reset` \| `revoke`. `reset` issues a new link and the old ones stop working; `revoke` removes it. People join through the link, there is no direct add |
+| `remove_whatsapp_group_participants` | Remove 1 to 8 members from a group (`channelId`, `groupId`, `members[]`: phone numbers or user ids). Asynchronous, returns a `requestId` |
+| `whatsapp_group_join_requests` | `channelId`, `groupId`, `action`: `list` \| `approve` \| `reject`. Approve and reject take `joinRequestIds[]` from `list` |
 
 The Instagram tools work on any Instagram channel: connected through Instagram Login, or through a Facebook Page ([instagram.md](instagram.md#connected-through-a-facebook-page)). Reads (`list_instagram_comments`, `get_instagram_insights`, `list_instagram_media`, `list_instagram_conversations`, `get_instagram_account`) run under the `channel.read` action; mutations (`publish_instagram_media`, `reply_instagram_comment`, `moderate_instagram_comment`, `set_instagram_thread_setup`, `reply_instagram_mention`) run under `channel.manage`. An Instagram-Login channel connected before these abilities were available returns a **reconnect-required** error — the human re-runs `hookmyapp channels connect instagram` for that account, then the tool works. Media constraints, publish quota, insight metric names, and the comment-webhook payload shapes are in [instagram.md](instagram.md).
 

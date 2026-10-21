@@ -1,6 +1,6 @@
 ---
 name: whatsapp
-description: "Send WhatsApp messages, manage templates and media, and edit the business profile. CLI-first recipes with a script + raw-HTTP fallback, for your own connected channel."
+description: "Send WhatsApp messages, manage templates and media, edit the business profile, and manage groups. CLI-first recipes with a script + raw-HTTP fallback, for your own connected channel."
 ---
 
 # WhatsApp
@@ -85,6 +85,58 @@ node scripts/wa-update-profile.mjs --about "We ship fast"
 ```
 
 `profile update` builder flags: `--about --description --address --email --vertical --website` (repeatable, max 2), or a complete `--body`.
+
+### WhatsApp groups
+
+Groups need a number Meta has approved as an Official Business Account on the Cloud API. Numbers that also run in the WhatsApp Business app, and test numbers, cannot use them. **Check before building anything:**
+
+```bash
+hookmyapp channels show +15551234567 --json     # read whatsappGroups
+```
+
+Over MCP, `get_channel` returns the same `whatsappGroups: { available, reason }`. If `available` is `false`, tell the user the plain reason and do not build on groups:
+
+| `reason` | Say |
+|----------|-----|
+| `whatsapp_business_app_number` | This number is also used in the WhatsApp Business app, so groups are not available on it |
+| `not_on_cloud_api` | This number is not on the WhatsApp Cloud API, so groups are not available on it |
+| `not_official_business_account` | Meta has not approved this number as an Official Business Account yet |
+| `unknown` | HookMyApp has not been able to read the approval yet |
+
+Exception: if the user says the number was just approved, one real `hookmyapp whatsapp groups list --channel <ref>` settles it, and `channels show` reflects the result right after. This is a hint, not a gate: Meta decides, so a stale `false` never blocks the call itself.
+
+**Commands.** Every command takes `--channel <ref>` and `--json`.
+
+```bash
+hookmyapp whatsapp groups create --channel +15551234567 --subject "Order 1042" --approval required
+hookmyapp whatsapp groups list --channel +15551234567                  # --cursor <cursor> for the next page
+hookmyapp whatsapp groups get <groupId> --channel +15551234567
+hookmyapp whatsapp groups update <groupId> --channel +15551234567 --subject "New name" --description "Order updates"
+hookmyapp whatsapp groups photo <groupId> --channel +15551234567 --file ./group.jpg
+hookmyapp whatsapp groups invite-link <groupId> --channel +15551234567              # --reset for a new link, --revoke to remove it
+hookmyapp whatsapp groups remove <groupId> +15557654321 --channel +15551234567      # 1 to 8 members
+hookmyapp whatsapp groups join-requests <groupId> --channel +15551234567            # --approve <id...> or --reject <id...>
+hookmyapp whatsapp groups delete <groupId> --channel +15551234567
+```
+
+`--approval` is `auto` or `required`. The photo is a JPEG, square, at least 192px, up to 5MB, and is CLI and REST only (no MCP tool). Over MCP the eight tools are `create_whatsapp_group`, `list_whatsapp_groups`, `get_whatsapp_group`, `update_whatsapp_group`, `delete_whatsapp_group`, `whatsapp_group_invite_link` (`action`: `get`, `reset`, `revoke`), `remove_whatsapp_group_participants` and `whatsapp_group_join_requests` (`action`: `list`, `approve`, `reject`); see [mcp.md](mcp.md).
+
+**Rules that bite:**
+
+- A group holds up to 8 participants. You cannot add people directly: they join through the invite link, and with `--approval required` you approve each join request.
+- Create, update, photo and remove are asynchronous. They return a `requestId`; the outcome arrives later as a `whatsapp.group.updated` event carrying the same `requestId`.
+- Send to a group with the normal send call: `recipient_type: "group"` and `to: <groupId>`. Text, media and templates work. Interactive messages and authentication templates do not.
+- Inbound message and status events from a group carry a `groupId`. Group status events carry a `participant` (the member the status is about).
+
+**Recipe: a group per case (ticket, order, booking).** Full walkthrough: https://docs.hookmyapp.com/whatsapp/groups/automated-groups
+
+1. Check `whatsappGroups.available` (above).
+2. Subscribe to `whatsapp.group.updated` with an event subscription, or read it from the channel webhook.
+3. Create the group (`groups create`), keep the returned `requestId` next to your case id, and wait for the event with `change: "created"` and that `requestId`. It carries `groupId`, `subject` and `inviteLink`. A `change: "create_failed"` with that `requestId` means it failed.
+4. Send the invite link to each person 1:1. Inside an open conversation a text message with the link works. Otherwise use Meta's "Group invite upon request" utility template; the docs page has the exact steps.
+5. React to `change` values as people arrive and leave: `member_joined` (carries `waId` and `userId`, greet them with a send to `groupId`), `join_requested` (approve or reject), `member_left`, `member_removed`. When the case closes, `groups delete`; the `deleted` event confirms it.
+
+All `change` values: `created`, `create_failed`, `deleted`, `member_joined`, `member_left`, `member_removed`, `join_requested`, `join_request_revoked`, `settings_updated`, `suspended`, `suspension_cleared`.
 
 ## Scripts
 
