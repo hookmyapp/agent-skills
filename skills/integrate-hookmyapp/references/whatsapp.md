@@ -117,7 +117,7 @@ hookmyapp whatsapp groups update <groupId> --channel +15551234567 --subject "New
 hookmyapp whatsapp groups photo <groupId> --channel +15551234567 --file ./group.jpg
 hookmyapp whatsapp groups invite-link <groupId> --channel +15551234567              # --reset for a new link, --revoke to remove it
 hookmyapp whatsapp groups remove <groupId> +15557654321 --channel +15551234567      # 1 to 8 members
-hookmyapp whatsapp groups join-requests <groupId> --channel +15551234567            # --approve <id...> or --reject <id...>
+hookmyapp whatsapp groups join-requests <groupId> --channel +15551234567            # --cursor <cursor> for the next page; --approve <id...> or --reject <id...>
 hookmyapp whatsapp groups delete <groupId> --channel +15551234567
 ```
 
