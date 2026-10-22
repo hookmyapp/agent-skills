@@ -1,11 +1,11 @@
 ---
 name: whatsapp
-description: "Send WhatsApp messages, manage templates and media, edit the business profile, and manage groups. CLI-first recipes with a script + raw-HTTP fallback, for your own connected channel."
+description: "Send WhatsApp messages, manage templates and media, edit the business profile, and manage groups. CLI-first recipes with a script + raw-HTTP fallback (groups: CLI, MCP or REST), for your own connected channel."
 ---
 
 # WhatsApp
 
-Three ways to do everything below, in order of preference:
+Three ways to do everything below except groups, in order of preference (groups have their own options, see [WhatsApp groups](#whatsapp-groups)):
 
 1. **CLI** (preferred when installed): `hookmyapp whatsapp …` (alias `wa`). Run any command with `--help` for the full flag list — don't memorize flags from here.
 2. **Bundled scripts** (no CLI at runtime): `node scripts/wa-*.mjs`. Provision credentials once with `channels env --write .env`; the scripts then auto-load `./.env` (override with `--dotenv <path>` or `HOOKMYAPP_ENV_FILE`) and call the gateway directly.
@@ -105,6 +105,8 @@ Over MCP, `get_channel` returns the same `whatsappGroups: { available, reason }`
 
 Exception: if the user says the number was just approved, one real `hookmyapp whatsapp groups list --channel <ref>` settles it, and `channels show` reflects the result right after. This is a hint, not a gate: Meta decides, so a stale `false` never blocks the call itself.
 
+Groups have no bundled script and no raw-gateway recipe here. Without the CLI, use the MCP tools listed below or the REST routes under `https://api.hookmyapp.com/channels/{ch}/whatsapp/groups` (reference: https://docs.hookmyapp.com/whatsapp/groups/manage).
+
 **Commands.** Every command takes `--channel <ref>` and `--json`.
 
 ```bash
@@ -124,7 +126,7 @@ hookmyapp whatsapp groups delete <groupId> --channel +15551234567
 **Rules that bite:**
 
 - A group holds up to 8 participants. You cannot add people directly: they join through the invite link, and with `--approval required` you approve each join request.
-- Create, update, photo and remove are asynchronous. They return a `requestId`; the outcome arrives later as a `whatsapp.group.updated` event carrying the same `requestId`.
+- Create, update, photo, remove and delete are asynchronous. They return a `requestId`; the outcome arrives later as a `whatsapp.group.updated` event carrying the same `requestId`.
 - Send to a group with the normal send call: `recipient_type: "group"` and `to: <groupId>`. Text, media and templates work. Interactive messages and authentication templates do not.
 - Inbound message and status events from a group carry a `groupId`. Group status events carry a `participant` (the member the status is about).
 
@@ -134,7 +136,7 @@ hookmyapp whatsapp groups delete <groupId> --channel +15551234567
 2. Subscribe to `whatsapp.group.updated` with an event subscription, or read it from the channel webhook.
 3. Create the group (`groups create`), keep the returned `requestId` next to your case id, and wait for the event with `change: "created"` and that `requestId`. It carries `groupId`, `subject` and `inviteLink`. A `change: "create_failed"` with that `requestId` means it failed.
 4. Send the invite link to each person 1:1. Inside an open conversation a text message with the link works. Otherwise use Meta's "Group invite upon request" utility template; the docs page has the exact steps.
-5. React to `change` values as people arrive and leave: `member_joined` (carries `waId` and `userId`, greet them with a send to `groupId`), `join_requested` (approve or reject), `member_left`, `member_removed`. When the case closes, `groups delete`; the `deleted` event confirms it.
+5. React to `change` values as people arrive and leave: `member_joined` (carries `waId` and `userId`, greet them with a send to `groupId`), `join_requested` (approve or reject), `member_left`, `member_removed`. When the case closes, `groups delete`; the `deleted` event with that `requestId` and `succeeded: true` confirms it.
 
 All `change` values: `created`, `create_failed`, `deleted`, `member_joined`, `member_left`, `member_removed`, `join_requested`, `join_request_revoked`, `settings_updated`, `suspended`, `suspension_cleared`.
 
