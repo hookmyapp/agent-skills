@@ -100,6 +100,26 @@ Note what else breaks: once the channel is over its limit the access token is re
 **every** call, including read-only GETs. The app looks entirely dead rather than "sending
 is paused". Say that plainly when reporting it to the human.
 
+### Retrying a send: use an Idempotency-Key
+
+Meta has no protection against duplicate sends. When a send times out on the app's side, or
+the gateway answers `504 GATEWAY_UPSTREAM_NO_ANSWER`, the message may already be out, and a
+plain retry can send it twice. Any send code you write that retries must set an
+`Idempotency-Key` header with a stable id for that message (derived from the app's own record,
+for example `order-${orderId}-confirmation`) and send the same key on every retry of it.
+
+| Answer to a retry | Meaning | Action |
+|---|---|---|
+| The first answer again, with `Idempotent-Replayed: true` | The first attempt went through. Meta was not called again | Use the answer |
+| `409 IDEMPOTENCY_IN_PROGRESS` | The first attempt is still running | Retry shortly with the same key |
+| `409 IDEMPOTENCY_OUTCOME_UNKNOWN` | The first attempt reached Meta but got no answer | Check whether it arrived before sending again with a new key |
+| `409 IDEMPOTENCY_KEY_REUSED` | The key was already used for a different request | Use a new key per message |
+
+Keys work on any gateway POST, are scoped to the organization, and are kept for 24 hours. An
+attempt Meta refused or never received does not use up its key. On WhatsApp, also set
+`biz_opaque_callback_data` to the app's own message id: Meta echoes it in that message's status
+webhooks, which is how the app checks an unknown outcome.
+
 ## 4. Keep the webhook route out of the auth middleware
 
 HookMyApp's forwarder is not a logged-in user of the customer's app. If their webhook path
@@ -159,6 +179,7 @@ cover.
 | `404` in delivery logs | The saved webhook URL does not match a route the app serves | Compare `channels webhook show` against the app's actual route |
 | Deliveries exist, none ever delivered | The integration has never worked once | Verify the destination URL and that the app was deployed at all |
 | `429 CHANNEL_USAGE_LIMIT_EXCEEDED` in their log | Over the plan allowance | Tell the human to upgrade. Do not retry (section 3) |
+| `504 GATEWAY_UPSTREAM_NO_ANSWER` in their log | Meta did not answer in time; the send may have gone through | Retry only with the same `Idempotency-Key` (section 3) |
 | Nothing in delivery logs at all | Forwarding is off, or no inbound traffic arrived | `channels show <channel>` for `forwarding: enabled` |
 
 ### Symptom to command

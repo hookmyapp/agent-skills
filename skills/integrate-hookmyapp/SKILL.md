@@ -1,11 +1,11 @@
 ---
 name: integrate-hookmyapp
-description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp, Instagram or Facebook Messenger messages, publish Instagram posts, reels, or stories, publish Facebook Page posts and reels, read Instagram or Facebook Page insights, manage WhatsApp templates/media or the business profile, moderate Instagram or Facebook comments or receive comment webhooks, set up a sandbox session, connect WhatsApp via Meta Embedded Signup, Instagram via Instagram OAuth or a Facebook Page (with its linked Instagram account) from the dashboard, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram publish, instagram insights, instagram messaging api, meta instagram api, hookmyapp instagram, facebook page api, facebook messenger api, messenger webhook, facebook comments, facebook page insights, hookmyapp facebook, hookmyapp mcp."
+description: "Use when the user wants to integrate WhatsApp Cloud API / Meta webhooks into their app via HookMyApp, send WhatsApp, Instagram or Facebook Messenger messages, publish Instagram posts, reels, or stories, publish Facebook Page posts and reels, read Instagram or Facebook Page insights, manage WhatsApp templates/media, groups or the business profile, moderate Instagram or Facebook comments or receive comment webhooks, set up a sandbox session, connect WhatsApp via Meta Embedded Signup, Instagram via Instagram OAuth or a Facebook Page (with its linked Instagram account) from the dashboard, connect the HookMyApp MCP server to an agent, call the HookMyApp REST API from their backend (customers, onboarding links, webhooks), or debug HookMyApp CLI errors. Triggers: hookmyapp, whatsapp cloud api, whatsapp groups, meta webhook, sandbox whatsapp, gethookmyapp, waba integration, instagram dm, instagram comments, instagram publish, instagram insights, instagram messaging api, meta instagram api, hookmyapp instagram, facebook page api, facebook messenger api, messenger webhook, facebook comments, facebook page insights, hookmyapp facebook, hookmyapp mcp."
 license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.27"
+  version: "0.9.32"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -63,24 +63,25 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the user's machine:
 
 ```bash
-# This skill version needs CLI >=0.14.28 <1 (whatsapp profile --photo and
-# media upload --handle; instagram publish optional
+# This skill version needs CLI >=0.14.31 <1 (whatsapp profile --photo and
+# media upload --handle, WhatsApp groups
+# `whatsapp groups ...`, on top of instagram publish optional
 # fields: --alt-text/--tag/--location/--thumb-offset/--audio-name, on top of
 # in-terminal plan changes, alerts phone + org profile subcommands,
 # notifications list/ack, support watch, and instagram
 # publish/insights/comments). The bounded range keeps installs on the
 # reviewed 0.x line; an older existing install is upgraded in place.
-command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.28 <1'
+command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.31 <1'
 # Agent shells often skip the user's startup file, so a home-directory npm
 # prefix installs fine but stays off PATH. Add npm's global bin for this shell.
 command -v hookmyapp >/dev/null 2>&1 || export PATH="$(npm prefix -g)/bin:$PATH"
-# cli_ok: version is non-empty AND within >=0.14.28 <1 (a failed/missing
+# cli_ok: version is non-empty AND within >=0.14.31 <1 (a failed/missing
 # `hookmyapp --version` yields an empty string and fails the check).
-cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 28))) ? 0 : 1 }'; }
-cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.28 <1'
+cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 31))) ? 0 : 1 }'; }
+cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.31 <1'
 # Re-check after the upgrade and STOP if the range still is not met — do not
 # write the skill marker or continue with a CLI that lacks the new subcommands.
-cli_ok || { echo "hookmyapp >=0.14.28 <1 required for this skill; install it manually and re-run." >&2; false; }
+cli_ok || { echo "hookmyapp >=0.14.31 <1 required for this skill; install it manually and re-run." >&2; false; }
 ```
 
 If that final check fails, do not continue to the skill-version marker below. Read why it failed first: a permission error (`EACCES`), a CLI that will not upgrade, and a missing `npm` each get a different answer.
@@ -92,7 +93,7 @@ If that final check fails, do not continue to the skill-version marker below. Re
 ```bash
 npm config set prefix ~/.npm-global
 export PATH="$HOME/.npm-global/bin:$PATH"
-npm install -g '@gethookmyapp/cli@>=0.14.28 <1'
+npm install -g '@gethookmyapp/cli@>=0.14.31 <1'
 ```
 
 Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh; for bash, the existing file their terminal actually loads, such as `~/.bash_profile`, `~/.bash_login`, `~/.profile` or `~/.bashrc`, and never create a new `~/.bash_profile`, which would stop `~/.profile` from loading; for fish, csh or another shell, use that shell's own syntax instead, such as `fish_add_path ~/.npm-global/bin`) so `hookmyapp` stays on PATH in new terminals, and tell the user you did. Then re-run the check above. Apply this recovery once: if the install fails again, or `EACCES` names any other path (a root-owned `~/.npm` cache, for example), it falls under the stop rules below. This is the one install failure you recover from yourself; every other rule below that says to stop on a failed or blocked install means a failure other than this one.
@@ -106,7 +107,7 @@ Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh;
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.27" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.32" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
@@ -143,7 +144,7 @@ Read that file when starting a fresh integration; the sections below are the per
 | alerts | Your own alert phone: `phone status`, `phone set`, `phone verify`, `phone remove`. Where HookMyApp texts the human when something breaks. | [references/alerts.md](references/alerts.md) |
 | billing | Show subscription status, open the app Billing page, upgrade plan (billing is pooled across your organization). | [references/billing.md](references/billing.md) |
 | channels | Connect `[whatsapp|instagram|facebook]`, list, show, enable/disable, disconnect, `move <channel> <target>` (to another workspace or customer), `env`/`health`, `webhook {show,set,clear}`, `webhook hmac show`, `meta-retry <on|off>`, `logs {list,show}`, and `listen [channel]` (per-channel CLI tunnel for inbound webhooks → localhost). | [references/channels.md](references/channels.md) |
-| whatsapp (`wa`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `templates {list,get,create,delete}`, `media {upload,get,download,delete}`, `profile {get,update}`. | [references/whatsapp.md](references/whatsapp.md) |
+| whatsapp (`wa`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `templates {list,get,create,delete}`, `media {upload,get,download,delete}`, `profile {get,update}`, `groups {create,list,get,update,photo,delete,invite-link,remove,join-requests}`. | [references/whatsapp.md](references/whatsapp.md) |
 | instagram (`ig`) | Typed gateway wrappers for your own channel: `messages {send,read}`, `publish` (image/reel/story/carousel), `insights [--media]`, `comments {list,get,reply,private-reply,hide,delete}`. | [references/instagram.md](references/instagram.md) |
 | facebook (`fb`) | Typed gateway wrappers for your own Page (CLI >= 0.14.24): `messages {send,read}`, `threads`, `posts`, `publish` (text/link/photo/video/reel), `delete-post`, `comments {list,reply,private-reply,hide,unhide,delete}`, `insights [--post]`, `profile`. | [references/facebook.md](references/facebook.md) |
 | channel tokens | Read and rotate the channel's gateway access token (`hmat_…`) via `channels token [--rotate]` (one active token per channel). | [references/access-tokens.md](references/access-tokens.md) |
@@ -162,7 +163,7 @@ Five build rules and the health pass that reads the result: [references/developm
 
 ### MCP server (operate HookMyApp without the CLI)
 
-HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 61 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, feedback, alert phone, Instagram publishing, insights, and comment moderation, and Facebook Page inbox, publishing, comments and insights. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
+HookMyApp also ships a hosted MCP server at `https://api.hookmyapp.com/mcp` with 73 tools covering workspaces, customers, channels, webhooks, delivery logs, onboarding links, message sending, support tickets, feedback, alert phone, Instagram publishing, insights, and comment moderation, Facebook Page inbox, publishing, comments and insights, and WhatsApp group management. Reach for it when the agent supports MCP but has no shell, or when the task is pure account operations and an MCP connection already exists; stay on the CLI for anything involving env files, tunnels, or starter kits (MCP does not mint `hmat_` tokens or write env files).
 
 Set it up with `hookmyapp agent setup`, which configures every coding agent installed on the machine: Claude Code, Codex and Cursor. `hookmyapp login` does the same for whatever it finds. Pass `--client claude|codex|cursor` when only one should be touched — use it whenever the user has not asked you to set up their other agents. **No client signs in.** Setup writes the credential into each client's entry (Codex needs 0.148.0 or newer for that, see [references/mcp.md](references/mcp.md#authentication)), so there is no follow-up command for anyone — it prints one line per client naming the restart that client needs, and that is the whole story. Never run another client's binary to finish a setup: at best it is a permission prompt the user cannot make sense of, at worst a command that is not installed. Any other client takes the server URL (`https://api.hookmyapp.com/mcp`) and its own sign-in, or an org API key (`hmok_...`) as `Authorization: Bearer` or `X-API-Key` for CI and headless environments. Every client resolves MCP tools at session start, so a server configured mid-session stays dormant until the next one.
 
@@ -275,6 +276,30 @@ In an echo, `from` is the business number and `to` is the WhatsApp user — reve
 for (const change of body.entry?.[0]?.changes ?? []) {
   if (change.field === 'messages') for (const m of change.value.messages ?? []) onInbound(m);
   if (change.field === 'smb_message_echoes') for (const m of change.value.message_echoes ?? []) onOwnReply(m);
+}
+```
+
+### Contacts and chat history from the WhatsApp Business app
+
+Right after a coexistence number connects for the first time, HookMyApp asks Meta to sync the business's WhatsApp contacts and up to 180 days of chat history. Both arrive at the same webhook destination, as two more `field` values:
+
+| `field` | What it carries | Array |
+|---|---|---|
+| `smb_app_state_sync` | Contacts saved in the WhatsApp Business app, then every later add or remove | `value.state_sync[]` |
+| `history` | Past chats, one thread per WhatsApp user | `value.history[].threads[].messages[]` |
+
+- `state_sync[]` items: `type: "contact"`, `action: "add"` or `"remove"`, `contact.phone_number`; `contact.full_name` and `contact.first_name` only when the business saved a name. Treat names as optional.
+- `history[].metadata` has `phase` (`0` = first day, `1` = day 1 to 90, `2` = day 90 to 180), `chunk_order` (chunks can arrive out of order) and `progress` (`100` = sync complete). A phase with no messages sends nothing.
+- History messages look like inbound messages plus `history_context.status` (`delivered`, `read`, `pending`, ...). A message the business sent carries `to`, like an echo. Unsupported content arrives as `type: "errors"`; skip it.
+- If the business turned off history sharing, a single `history` webhook arrives with `history[0].errors[0].code === 2593109` and no threads. Not a failure on your side.
+- Meta allows the sync only within 24 hours of the number's first connection. Reconnecting the same number later does not trigger it again, so numbers connected before 2026-09-29 get no backfill.
+- Sync webhooks are not messages and do not count toward usage.
+
+```js
+if (change.field === 'smb_app_state_sync') for (const s of change.value.state_sync ?? []) onContact(s.action, s.contact);
+if (change.field === 'history') for (const h of change.value.history ?? []) {
+  if (h.errors?.length) continue; // business declined history sharing
+  for (const t of h.threads ?? []) for (const m of t.messages ?? []) if (m.type !== 'errors') onPastMessage(t.id, m);
 }
 ```
 
