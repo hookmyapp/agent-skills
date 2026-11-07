@@ -85,10 +85,45 @@ node scripts/wa-mark-read.mjs --message-id wamid.ABC123
 ```bash
 hookmyapp whatsapp profile get --channel +15551234567
 hookmyapp whatsapp profile update --channel +15551234567 --about "We ship fast"
+hookmyapp whatsapp profile update --channel +15551234567 --photo ./logo.png   # JPEG or PNG, up to 5 MB
 node scripts/wa-update-profile.mjs --about "We ship fast"
 ```
 
-`profile update` builder flags: `--about --description --address --email --vertical --website` (repeatable, max 2), or a complete `--body`.
+`profile update` builder flags: `--about --description --address --email --vertical --website` (repeatable, max 2) `--photo <path>`, or a complete `--body`. The photo changes what every customer sees; confirm it first.
+
+### Upload for a template media header
+
+A template with an image, video or document header needs a sample handle at create time (`"example": { "header_handle": ["<handle>"] }`):
+
+```bash
+hookmyapp whatsapp media upload --channel +15551234567 --file ./banner.jpg --handle
+```
+
+JPEG and PNG up to 5 MB, MP4 up to 16 MB, PDF up to 29 MB. Without `--handle` the command returns a media id for sending, which a template create does not accept.
+
+From your backend, send the file as a multipart part named `file`, or a public https link as JSON `{"sourceUrl": "https://..."}`. The response carries `handle`:
+
+```bash
+curl -X POST "https://api.hookmyapp.com/channels/ch_xxxxxxxx/whatsapp/uploads" \
+  -H "Authorization: Bearer hmok_..." \
+  -H "X-Workspace-Id: ws_..." \
+  -F "file=@./banner.jpg"
+```
+
+With a channel access token, use Meta's resumable upload flow through the gateway. Start a session, then post the bytes to the returned `id`, unchanged. The `h` in the response is the handle:
+
+```bash
+curl -X POST "https://gateway.hookmyapp.com/meta/v22.0/app/uploads?file_name=banner.jpg&file_length=${FILE_SIZE_BYTES}&file_type=image/jpeg" \
+  -H "Authorization: Bearer ${WHATSAPP_ACCESS_TOKEN}"
+
+curl -X POST "https://gateway.hookmyapp.com/meta/v22.0/${UPLOAD_SESSION_ID}" \
+  -H "Authorization: Bearer ${WHATSAPP_ACCESS_TOKEN}" \
+  -H "file_offset: 0" \
+  -H "Content-Type: application/octet-stream" \
+  --data-binary @./banner.jpg
+```
+
+In the first call, `app` can also be your channel's own numeric Meta app id, as Meta's docs show it. Any other app id is refused.
 
 ### WhatsApp groups
 

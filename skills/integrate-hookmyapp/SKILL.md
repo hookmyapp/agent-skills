@@ -5,7 +5,7 @@ license: Apache-2.0
 compatibility: Requires Node.js 20+, npm, and network access. CLI steps need a terminal; the MCP and REST API paths work without one.
 metadata:
   author: hookmyapp
-  version: "0.9.31"
+  version: "0.9.32"
   cli-package: "@gethookmyapp/cli"
 ---
 
@@ -63,24 +63,25 @@ Use a `> **HUMAN ACTION REQUIRED:** <action>` blockquote whenever the next step 
 Before invoking any `hookmyapp` CLI command, make sure the CLI exists on the user's machine:
 
 ```bash
-# This skill version needs CLI >=0.14.29 <1 (WhatsApp groups
+# This skill version needs CLI >=0.14.31 <1 (whatsapp profile --photo and
+# media upload --handle, WhatsApp groups
 # `whatsapp groups ...`, on top of instagram publish optional
 # fields: --alt-text/--tag/--location/--thumb-offset/--audio-name, on top of
 # in-terminal plan changes, alerts phone + org profile subcommands,
 # notifications list/ack, support watch, and instagram
 # publish/insights/comments). The bounded range keeps installs on the
 # reviewed 0.x line; an older existing install is upgraded in place.
-command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.29 <1'
+command -v hookmyapp >/dev/null 2>&1 || npm install -g '@gethookmyapp/cli@>=0.14.31 <1'
 # Agent shells often skip the user's startup file, so a home-directory npm
 # prefix installs fine but stays off PATH. Add npm's global bin for this shell.
 command -v hookmyapp >/dev/null 2>&1 || export PATH="$(npm prefix -g)/bin:$PATH"
-# cli_ok: version is non-empty AND within >=0.14.29 <1 (a failed/missing
+# cli_ok: version is non-empty AND within >=0.14.31 <1 (a failed/missing
 # `hookmyapp --version` yields an empty string and fails the check).
-cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 29))) ? 0 : 1 }'; }
-cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.29 <1'
+cli_ok() { v="$(hookmyapp --version 2>/dev/null)" || return 1; case "$v" in ''|*-*) return 1;; esac; printf '%s' "$v" | awk -F. '{ exit (NF == 3 && $1 == 0 && ($2 > 14 || ($2 == 14 && $3 >= 31))) ? 0 : 1 }'; }
+cli_ok || npm install -g '@gethookmyapp/cli@>=0.14.31 <1'
 # Re-check after the upgrade and STOP if the range still is not met — do not
 # write the skill marker or continue with a CLI that lacks the new subcommands.
-cli_ok || { echo "hookmyapp >=0.14.29 <1 required for this skill; install it manually and re-run." >&2; false; }
+cli_ok || { echo "hookmyapp >=0.14.31 <1 required for this skill; install it manually and re-run." >&2; false; }
 ```
 
 If that final check fails, do not continue to the skill-version marker below. Read why it failed first: a permission error (`EACCES`), a CLI that will not upgrade, and a missing `npm` each get a different answer.
@@ -92,7 +93,7 @@ If that final check fails, do not continue to the skill-version marker below. Re
 ```bash
 npm config set prefix ~/.npm-global
 export PATH="$HOME/.npm-global/bin:$PATH"
-npm install -g '@gethookmyapp/cli@>=0.14.29 <1'
+npm install -g '@gethookmyapp/cli@>=0.14.31 <1'
 ```
 
 Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh; for bash, the existing file their terminal actually loads, such as `~/.bash_profile`, `~/.bash_login`, `~/.profile` or `~/.bashrc`, and never create a new `~/.bash_profile`, which would stop `~/.profile` from loading; for fish, csh or another shell, use that shell's own syntax instead, such as `fish_add_path ~/.npm-global/bin`) so `hookmyapp` stays on PATH in new terminals, and tell the user you did. Then re-run the check above. Apply this recovery once: if the install fails again, or `EACCES` names any other path (a root-owned `~/.npm` cache, for example), it falls under the stop rules below. This is the one install failure you recover from yourself; every other rule below that says to stop on a failed or blocked install means a failure other than this one.
@@ -106,7 +107,7 @@ Add the same `export` line to the user's shell startup file (`~/.zshrc` for zsh;
 Then write the skill version marker so the CLI can advertise which skill is driving it. The CLI sends this version on every backend request, and the backend uses it to gate compatibility — without the marker, the skill-version check is skipped and the user can drift onto an out-of-date skill silently.
 
 ```bash
-mkdir -p ~/.config/hookmyapp && echo "0.9.31" > ~/.config/hookmyapp/skill-version
+mkdir -p ~/.config/hookmyapp && echo "0.9.32" > ~/.config/hookmyapp/skill-version
 ```
 
 The version string MUST match this skill's `metadata.version` in the frontmatter above. If you re-run `npx skills add hookmyapp/agent-skills@latest`, re-run the command above with the new version. The file is one-line UTF-8 text, no JSON, no comments — exactly a semver string. Re-running with the same value is a safe no-op.
