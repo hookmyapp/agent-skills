@@ -211,6 +211,8 @@ Once env is populated, sending is a single HTTP POST to the gateway at `https://
 
 Your app code does not change between sandbox and your own channel; only the env values change. Full code samples (JS with `fetch`, Python with `httpx`, template payloads) live in [references/sending-messages.md](references/sending-messages.md). Integrations that prefer to call `https://graph.facebook.com` directly with their own Meta token still work; the gateway is the recommended path for new setups.
 
+WhatsApp **marketing** templates go to `/{phone-number-id}/marketing_messages` (Meta's Marketing Messages API, required for new WhatsApp accounts from April 13, 2027). See the marketing messages section of [references/sending-messages.md](references/sending-messages.md).
+
 Instagram and Facebook Messenger outbound use a different body shape (`{"recipient":{"id":"<IGSID or PSID>"},"message":{"text":"..."}}`) against `/{account-or-page-id}/messages`, not WhatsApp's `messaging_product`/`to` shape. See [references/sending-messages.md](references/sending-messages.md) for all three.
 
 ### Three ways to send (and manage templates, media, profile, comments)
