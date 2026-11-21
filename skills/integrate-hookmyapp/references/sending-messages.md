@@ -82,6 +82,15 @@ export async function sendTemplate(to, templateName, languageCode = 'en_US') {
 }
 ```
 
+### Marketing messages (`/marketing_messages`)
+
+Meta is moving WhatsApp **marketing** templates to `POST /{phone-number-id}/marketing_messages` (Meta's Marketing Messages API). Meta's dates: WhatsApp accounts created on or after **April 13, 2027** can't send marketing templates through `/messages`, and from **October 13, 2027** no account can. Only marketing templates are affected.
+
+- **Send:** same body and same response shape as the template send above; only the path changes to `${API_URL}/${PHONE_NUMBER_ID}/marketing_messages`. An `Idempotency-Key` header works the same way. Rejected in the sandbox, like every template.
+- **Joining:** the business accepts Meta's Marketing Messages terms once. Meta offers them during the HookMyApp connect steps (Embedded Signup); if skipped, someone with full control of the business portfolio opens **WhatsApp Manager > Overview > Alerts > Accept terms**. Until then, add `"product_policy": "CLOUD_API_FALLBACK"` to have Meta deliver it the regular way, or `"STRICT"` to fail instead.
+- **Billing:** one action per successful send, the same as any other message. Failed sends are free.
+- **Message activity:** Meta uses delivered, read, and click activity to optimize these messages. Without `message_activity_sharing`, the account's default setting (Meta Business Settings) applies; set `"message_activity_sharing": false` to turn it off for one message.
+
 ## Python port (`httpx`)
 
 ```python
